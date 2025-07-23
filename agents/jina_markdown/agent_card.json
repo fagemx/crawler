@@ -1,0 +1,105 @@
+{
+  "name": "Jina Markdown Agent",
+  "description": "專業的 Markdown 解析代理，使用 Jina Reader 提取社交媒體指標並寫入雙重存儲",
+  "version": "1.0.0",
+  "agent_type": "processing",
+  "plan_e_role": "第一階段處理：Markdown 解析 → 雙重存儲 → Vision 佇列",
+  "capabilities": {
+    "streaming": true,
+    "batch_processing": true,
+    "dual_storage": true,
+    "queue_management": true
+  },
+  "skills": [
+    {
+      "id": "extract_markdown_metrics",
+      "name": "Markdown 指標提取",
+      "description": "使用 Jina Reader 的 x-respond-with: markdown 功能提取社交媒體貼文的指標",
+      "input_format": "PostMetrics[]",
+      "output_format": "ProcessingResult"
+    },
+    {
+      "id": "dual_storage_write",
+      "name": "雙重存儲寫入",
+      "description": "同時寫入 Redis (Tier-0 快取) 和 PostgreSQL (Tier-1 長期存儲)",
+      "storage_tiers": ["redis", "postgresql"]
+    },
+    {
+      "id": "vision_queue_management",
+      "name": "Vision 佇列管理",
+      "description": "標記和管理需要 Vision 補值的貼文，自動加入 vision_fill 佇列",
+      "queue_name": "vision_fill"
+    }
+  ],
+  "dependencies": {
+    "external_apis": [
+      {
+        "name": "Jina Reader",
+        "url": "https://r.jina.ai/",
+        "purpose": "Markdown 解析"
+      }
+    ],
+    "storage": [
+      {
+        "name": "Redis",
+        "type": "cache",
+        "tier": "Tier-0"
+      },
+      {
+        "name": "PostgreSQL", 
+        "type": "database",
+        "tier": "Tier-1"
+      }
+    ]
+  },
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "posts": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "url": {"type": "string"},
+            "username": {"type": "string"},
+            "post_id": {"type": "string"}
+          },
+          "required": ["url", "username"]
+        }
+      }
+    },
+    "required": ["posts"]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "agent": {"type": "string"},
+      "total_posts": {"type": "integer"},
+      "success_count": {"type": "integer"},
+      "vision_needed_count": {"type": "integer"},
+      "completion_rate": {"type": "number"},
+      "next_stage": {"type": "string"},
+      "vision_queue_length": {"type": "integer"}
+    }
+  },
+  "plan_e_workflow": {
+    "position": 2,
+    "previous_stage": "crawler",
+    "next_stage": "vision_fill",
+    "parallel_capable": true,
+    "batch_size_recommendation": 50
+  },
+  "performance": {
+    "avg_processing_time_per_post": "2-5 seconds",
+    "recommended_batch_size": 50,
+    "max_concurrent_requests": 10,
+    "rate_limit": "Jina Reader API limits apply"
+  },
+  "monitoring": {
+    "health_check_endpoint": "/health",
+    "metrics_endpoints": [
+      "/tasks/{task_id}/status",
+      "/queue/vision-fill/status"
+    ]
+  }
+}

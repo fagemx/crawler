@@ -1,12 +1,12 @@
 """
-Jina Markdown Agent 核心邏輯 - Plan E 重構版
+Jina Markdown Agent 核心邏輯 - Plan E 專門版本
 
 專注於單一職責：
 1. 使用 Jina Reader Markdown 解析貼文數據
 2. 寫入 Redis (Tier-0) 和 PostgreSQL (Tier-1)
 3. 標記需要 Vision 補值的貼文
 
-不再包含 Vision 整合，符合 Plan E 的單一職責原則
+這是 Plan E 架構中的核心 Agent，負責第一階段的數據處理
 """
 
 import re
@@ -22,7 +22,14 @@ from common.a2a import stream_text, stream_status, stream_data, stream_error
 
 
 class JinaMarkdownAgent:
-    """Jina Markdown Agent - Plan E 單一職責版本"""
+    """
+    Jina Markdown Agent - Plan E 單一職責版本
+    
+    專門負責：
+    - Markdown 解析和指標提取
+    - 雙重存儲（Redis + PostgreSQL）
+    - 智能標記需要 Vision 補值的貼文
+    """
     
     def __init__(self):
         """初始化 Jina Markdown Agent"""
@@ -33,7 +40,7 @@ class JinaMarkdownAgent:
         # Redis 和資料庫客戶端
         self.redis_client = get_redis_client()
         
-        # 正則表達式模式
+        # 正則表達式模式 - 針對 Threads 優化
         self.metrics_pattern = re.compile(
             r'\*\*?Thread.*? (?P<views>[\d\.KM,]+) views.*?'
             r'愛心.*? (?P<likes>[\d\.KM,]*) .*?'
@@ -47,7 +54,14 @@ class JinaMarkdownAgent:
         self.active_tasks = {}
     
     def _parse_number(self, text: str) -> Optional[int]:
-        """解析數字字串（支援 K, M 後綴）"""
+        """
+        解析數字字串（支援 K, M 後綴）
+        
+        Examples:
+            "1.2K" -> 1200
+            "5M" -> 5000000
+            "123" -> 123
+        """
         if not text:
             return None
         
@@ -65,40 +79,61 @@ class JinaMarkdownAgent:
         except (ValueError, TypeError):
             return None
     
-    def get_markdown_metrics(self, post_url: str) -> Dict[str, Optional[int]]:
-        """從 Markdown 解析貼文指標"""
-        try:
-            jina_url = self.base_url.format(url=post_url)
-            response = requests.get(
-                jina_url, 
-                headers=self.headers_markdown, 
-                timeout=30
-            )
-            response.raise_for_status()
+    def _extract_metrics_from_markdown(self, markdown_text: str) -> Dict[str, Optional[int]]:
+        """
+        從 Markdown 文本提取指標
+        
+        Args:
+            markdown_text: Jina Reader 返回的 Markdown 文本
             
-            markdown_text = response.text
-            match = self.metrics_pattern.search(markdown_text)
-            
-            if not match:
-                return {
-                    "views": None,
-                    "likes": None, 
-                    "comments": None,
-                    "reposts": None,
-                    "shares": None
-                }
-            
-            groups = match.groupdict()
+        Returns:
+            Dict[str, Optional[int]]: 提取的指標，None 表示未找到
+        """
+        match = self.metrics_pattern.search(markdown_text)
+        
+        if not match:
             return {
-                "views": self._parse_number(groups.get("views")),
-                "likes": self._parse_number(groups.get("likes")),
-                "comments": self._parse_number(groups.get("comments")),
-                "reposts": self._parse_number(groups.get("reposts")),
-                "shares": self._parse_number(groups.get("shares"))
+                "views": None,
+                "likes": None, 
+                "comments": None,
+                "reposts": None,
+                "shares": None
             }
+        
+        groups = match.groupdict()
+        return {
+            "views": self._parse_number(groups.get("views")),
+            "likes": self._parse_number(groups.get("likes")),
+            "comments": self._parse_number(groups.get("comments")),
+            "reposts": self._parse_number(groups.get("reposts")),
+            "shares": self._parse_number(groups.get("shares"))
+        }
+    
+    def _extract_media_urls(self, markdown_text: str) -> Optional[List[str]]:
+        """
+        從 Markdown 文本提取媒體 URL
+        
+        Args:
+            markdown_text: Markdown 文本
+            
+        Returns:
+            Optional[List[str]]: 媒體 URL 列表，如果沒有則返回 None
+        """
+        try:
+            # 提取圖片 URL
+            img_pattern = r'!\[.*?\]\((https?://[^\)]+)\)'
+            img_urls = re.findall(img_pattern, markdown_text)
+            
+            # 提取視頻 URL（如果有的話）
+            video_pattern = r'<video[^>]*src=["\']([^"\']+)["\']'
+            video_urls = re.findall(video_pattern, markdown_text)
+            
+            all_urls = img_urls + video_urls
+            return all_urls if all_urls else None
             
         except Exception as e:
-            raise Exception(f"Markdown 解析失敗 {post_url}: {str(e)}")
+            print(f"提取媒體 URL 失敗: {e}")
+            return None
     
     async def process_single_post_with_storage(
         self, 
@@ -107,7 +142,14 @@ class JinaMarkdownAgent:
         task_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Plan E 核心方法：處理單一貼文並寫入 Redis + PostgreSQL
+        Plan E 核心方法：處理單一貼文並寫入雙重存儲
+        
+        工作流程：
+        1. 調用 Jina Reader Markdown API
+        2. 解析指標和內容
+        3. 寫入 Redis (Tier-0 快取)
+        4. 寫入 PostgreSQL (Tier-1 長期存儲)
+        5. 標記是否需要 Vision 補值
         
         Args:
             post_url: 貼文 URL
@@ -118,7 +160,7 @@ class JinaMarkdownAgent:
             Dict[str, Any]: 處理結果
         """
         try:
-            # 1. 獲取 Markdown 內容和指標
+            # 1. 調用 Jina Reader Markdown API
             jina_url = self.base_url.format(url=post_url)
             response = requests.get(
                 jina_url, 
@@ -129,17 +171,15 @@ class JinaMarkdownAgent:
             
             markdown_text = response.text
             
-            # 2. 解析指標
+            # 2. 解析指標和媒體
             metrics = self._extract_metrics_from_markdown(markdown_text)
+            media_urls = self._extract_media_urls(markdown_text)
             
-            # 3. 寫入 Redis (Tier-0)
+            # 3. 寫入 Redis (Tier-0) - 指標快取
             redis_success = self.redis_client.set_post_metrics(post_url, metrics)
             
-            # 4. 寫入 PostgreSQL (Tier-1)
+            # 4. 寫入 PostgreSQL (Tier-1) - 長期存儲
             db_client = await get_db_client()
-            
-            # 提取媒體 URL（簡單實現）
-            media_urls = self._extract_media_urls(markdown_text)
             
             # 插入貼文基本資料
             await db_client.upsert_post(
@@ -172,7 +212,9 @@ class JinaMarkdownAgent:
                 metadata={
                     "metrics_extracted": len([v for v in metrics.values() if v is not None]),
                     "missing_fields": missing_fields,
-                    "redis_written": redis_success
+                    "redis_written": redis_success,
+                    "markdown_length": len(markdown_text),
+                    "media_count": len(media_urls) if media_urls else 0
                 }
             )
             
@@ -184,11 +226,11 @@ class JinaMarkdownAgent:
                 "needs_vision": needs_vision,
                 "missing_fields": missing_fields,
                 "redis_success": redis_success,
-                "processing_stage": "jina_completed"
+                "processing_stage": "jina_markdown_completed"
             }
             
         except Exception as e:
-            # 記錄錯誤
+            # 記錄錯誤到資料庫
             try:
                 db_client = await get_db_client()
                 await db_client.log_processing(
@@ -203,39 +245,6 @@ class JinaMarkdownAgent:
             
             raise Exception(f"處理貼文失敗 {post_url}: {str(e)}")
     
-    def _extract_metrics_from_markdown(self, markdown_text: str) -> Dict[str, Optional[int]]:
-        """從 Markdown 文本提取指標"""
-        match = self.metrics_pattern.search(markdown_text)
-        
-        if not match:
-            return {
-                "views": None,
-                "likes": None, 
-                "comments": None,
-                "reposts": None,
-                "shares": None
-            }
-        
-        groups = match.groupdict()
-        return {
-            "views": self._parse_number(groups.get("views")),
-            "likes": self._parse_number(groups.get("likes")),
-            "comments": self._parse_number(groups.get("comments")),
-            "reposts": self._parse_number(groups.get("reposts")),
-            "shares": self._parse_number(groups.get("shares"))
-        }
-    
-    def _extract_media_urls(self, markdown_text: str) -> Optional[List[str]]:
-        """從 Markdown 文本提取媒體 URL（簡單實現）"""
-        try:
-            # 簡單的圖片 URL 提取
-            import re
-            img_pattern = r'!\[.*?\]\((https?://[^\)]+)\)'
-            urls = re.findall(img_pattern, markdown_text)
-            return urls if urls else None
-        except:
-            return None
-    
     async def batch_process_posts_with_storage(
         self, 
         posts: List[PostMetrics], 
@@ -244,8 +253,13 @@ class JinaMarkdownAgent:
         """
         Plan E 批次處理方法：處理多個貼文並寫入存儲
         
+        這是 Plan E 工作流的核心方法，負責：
+        - 批次處理 Crawler 提供的 URL
+        - 寫入雙重存儲
+        - 為需要 Vision 補值的貼文建立佇列
+        
         Args:
-            posts: PostMetrics 列表
+            posts: PostMetrics 列表（來自 Crawler Agent）
             task_id: 任務 ID
             
         Yields:
@@ -257,7 +271,7 @@ class JinaMarkdownAgent:
             success_count = 0
             vision_needed_count = 0
             
-            yield stream_status(TaskState.RUNNING, f"開始批次處理 {total_posts} 個貼文")
+            yield stream_status(TaskState.RUNNING, f"開始 Jina Markdown 批次處理 {total_posts} 個貼文")
             
             # 更新任務狀態
             if task_id:
@@ -269,6 +283,9 @@ class JinaMarkdownAgent:
                     "vision_needed": 0,
                     "start_time": datetime.utcnow()
                 }
+            
+            # 需要 Vision 補值的 URL 列表
+            vision_queue_urls = []
             
             for i, post in enumerate(posts):
                 try:
@@ -284,10 +301,10 @@ class JinaMarkdownAgent:
                     processed_count += 1
                     success_count += 1
                     
+                    # 檢查是否需要 Vision 補值
                     if result.get("needs_vision", False):
                         vision_needed_count += 1
-                        # 添加到 Vision 處理佇列
-                        self.redis_client.push_to_queue("vision_fill", [post.url])
+                        vision_queue_urls.append(post.url)
                     
                     # 更新進度
                     progress = processed_count / total_posts
@@ -306,21 +323,31 @@ class JinaMarkdownAgent:
                         progress
                     )
                     
+                    # 避免過於頻繁的 API 調用
+                    await asyncio.sleep(0.2)
+                    
                 except Exception as e:
                     processed_count += 1
                     yield stream_text(f"處理貼文失敗 {post.url}: {str(e)}")
                     continue
             
+            # 批次添加到 Vision 處理佇列
+            if vision_queue_urls:
+                queued_count = self.redis_client.push_to_queue("vision_fill", vision_queue_urls)
+                yield stream_text(f"已將 {queued_count} 個需要 Vision 補值的貼文加入佇列")
+            
             # 完成處理
             completion_rate = success_count / total_posts if total_posts > 0 else 0
             
             final_result = {
+                "agent": "jina_markdown",
                 "total_posts": total_posts,
                 "success_count": success_count,
                 "vision_needed_count": vision_needed_count,
                 "completion_rate": completion_rate,
                 "processing_time": (datetime.utcnow() - self.active_tasks.get(task_id, {}).get("start_time", datetime.utcnow())).total_seconds() if task_id else 0,
-                "next_stage": "vision_fill" if vision_needed_count > 0 else "ranking"
+                "next_stage": "vision_fill" if vision_needed_count > 0 else "ranking",
+                "vision_queue_length": self.redis_client.get_queue_length("vision_fill")
             }
             
             if task_id:
@@ -330,7 +357,7 @@ class JinaMarkdownAgent:
             yield stream_data(final_result, final=True)
             
         except Exception as e:
-            error_msg = f"批次處理失敗: {str(e)}"
+            error_msg = f"Jina Markdown 批次處理失敗: {str(e)}"
             
             if task_id:
                 self.active_tasks[task_id]["status"] = "failed"
@@ -356,7 +383,7 @@ class JinaMarkdownAgent:
         for task_id in tasks_to_remove:
             del self.active_tasks[task_id]
     
-    def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> Dict[str, Any]:
         """健康檢查"""
         try:
             # 測試 Jina Reader 連線
@@ -367,22 +394,34 @@ class JinaMarkdownAgent:
                 timeout=10
             )
             
-            if response.status_code == 200:
-                return {
-                    "status": "healthy",
-                    "service": "Jina Agent",
-                    "jina_reader": "available"
-                }
-            else:
-                return {
-                    "status": "unhealthy",
-                    "error": f"Jina Reader 回應異常: {response.status_code}"
-                }
+            # 檢查 Redis 連接
+            redis_health = self.redis_client.health_check()
+            
+            # 檢查資料庫連接
+            db_client = await get_db_client()
+            db_health = await db_client.health_check()
+            
+            overall_status = "healthy" if all([
+                response.status_code == 200,
+                redis_health.get("status") == "healthy",
+                db_health.get("status") == "healthy"
+            ]) else "unhealthy"
+            
+            return {
+                "status": overall_status,
+                "service": "Jina Markdown Agent",
+                "components": {
+                    "jina_reader": "available" if response.status_code == 200 else "unavailable",
+                    "redis": redis_health,
+                    "database": db_health
+                },
+                "active_tasks": len(self.active_tasks)
+            }
                 
         except Exception as e:
             return {
                 "status": "unhealthy",
-                "error": f"Jina Agent 健康檢查失敗: {str(e)}"
+                "error": f"Jina Markdown Agent 健康檢查失敗: {str(e)}"
             }
 
 
@@ -402,4 +441,4 @@ async def process_posts_batch(posts: List[PostMetrics], task_id: str = None) -> 
 async def health_check() -> Dict[str, Any]:
     """健康檢查便利函數"""
     agent = create_jina_markdown_agent()
-    return agent.health_check()
+    return await agent.health_check()
