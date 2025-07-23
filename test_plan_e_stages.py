@@ -279,19 +279,20 @@ class PlanEStageTest:
             jina_agent = JinaMarkdownAgent()
             
             jina_results = []
+            final_result_content = None
             async for result in jina_agent.batch_process_posts_with_storage(
                 posts=test_posts,
                 task_id="e2e_test"
             ):
-                if result.get("type") == "data" and result.get("final"):
-                    jina_results.append(result["content"])
-                    break
+                # 我們只關心最終的結果摘要
+                if result.get("response_type") == "data" and result.get("is_task_complete"):
+                    final_result_content = result.get("content")
             
-            if not jina_results:
-                print("❌ JinaMarkdown 處理失敗")
+            if not final_result_content:
+                print("❌ JinaMarkdown 處理失敗，未收到最終結果")
                 return False
             
-            jina_result = jina_results[0]
+            jina_result = final_result_content
             print(f"JinaMarkdown 結果: 成功 {jina_result.get('success_count', 0)} 個")
             
             # 3. VisionFill 處理（如果需要）
@@ -305,17 +306,19 @@ class PlanEStageTest:
                     
                     # 處理 vision_fill 佇列
                     vision_results = []
+                    final_vision_content = None
                     async for result in vision_agent.process_vision_queue(
                         queue_name="vision_fill",
                         batch_size=10,
                         task_id="e2e_vision_test"
                     ):
-                        if result.get("type") == "data" and result.get("final"):
-                            vision_results.append(result["content"])
-                            break
+                        if result.get("response_type") == "data" and result.get("is_task_complete"):
+                            final_vision_content = result.get("content")
                     
-                    if vision_results:
-                        print(f"VisionFill 結果: 處理了 {vision_results[0].get('total_processed', 0)} 個項目")
+                    if final_vision_content:
+                        print(f"VisionFill 結果: 處理了 {final_vision_content.get('total_processed', 0)} 個項目")
+                    else:
+                        print("VisionFill 未返回最終結果")
                 else:
                     print("⚠️ 跳過 VisionFill（未設定 API Key）")
             

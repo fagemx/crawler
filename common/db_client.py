@@ -9,6 +9,7 @@
 
 import asyncio
 import asyncpg
+import json  # <<< 導入 json 模組
 from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime
 from contextlib import asynccontextmanager
@@ -72,10 +73,13 @@ class DatabaseClient:
             bool: 是否成功
         """
         try:
+            # 將 list 轉換為 JSON 字串，如果存在的話
+            media_urls_json = json.dumps(media_urls) if media_urls is not None else None
+            
             async with self.get_connection() as conn:
                 await conn.execute("""
                     SELECT upsert_post($1, $2, $3, $4)
-                """, url, author, markdown, media_urls)
+                """, url, author, markdown, media_urls_json)
                 
                 return True
                 
@@ -103,13 +107,17 @@ class DatabaseClient:
                 async with conn.transaction():
                     for post in posts:
                         try:
+                            # 批次處理中同樣需要轉換
+                            media_urls = post.get("media_urls")
+                            media_urls_json = json.dumps(media_urls) if media_urls is not None else None
+
                             await conn.execute("""
                                 SELECT upsert_post($1, $2, $3, $4)
                             """, 
                             post.get("url"),
                             post.get("author"),
                             post.get("markdown"),
-                            post.get("media_urls")
+                            media_urls_json
                             )
                             success_count += 1
                             
@@ -366,12 +374,15 @@ class DatabaseClient:
             bool: 是否成功
         """
         try:
+            # 將 dict 轉換為 JSON 字串，如果存在的話
+            metadata_json = json.dumps(metadata) if metadata is not None else None
+
             async with self.get_connection() as conn:
                 await conn.execute("""
                     INSERT INTO processing_log 
                     (url, agent_name, stage, status, error_msg, metadata, started_at)
                     VALUES ($1, $2, $3, $4, $5, $6, $7)
-                """, url, agent_name, stage, status, error_msg, metadata, datetime.utcnow())
+                """, url, agent_name, stage, status, error_msg, metadata_json, datetime.utcnow())
                 
                 return True
                 
