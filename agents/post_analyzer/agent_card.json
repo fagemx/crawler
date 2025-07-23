@@ -1,0 +1,56 @@
+{
+  "agent_id": "post_analyzer_agent",
+  "name": "Post Analyzer Agent",
+  "description": "Analyzes top posts to extract success patterns, styles, and structures. Supports multiple analysis modes.",
+  "capabilities": {
+    "tools": [],
+    "input_modes": ["JSON"],
+    "output_modes": ["JSON"],
+    "actions": [
+      {
+        "name": "analyze_posts",
+        "description": "Analyzes a list of post URLs based on a specified analysis mode.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "post_urls": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uri"
+              },
+              "description": "A list of post URLs to be analyzed."
+            },
+            "analysis_mode": {
+              "type": "integer",
+              "enum": [1, 2, 3],
+              "description": "The analysis mode to use: 1 for quick rewrite, 2 for style/structure analysis, 3 for in-depth multi-LLM report."
+            }
+          },
+          "required": ["post_urls", "analysis_mode"]
+        },
+        "output_schema": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": ["success", "error"]
+            },
+            "analysis_type": {
+              "type": "string",
+              "description": "Describes the type of analysis performed."
+            },
+            "result": {
+              "type": "object",
+              "description": "The structured result of the analysis, format depends on the mode."
+            },
+            "message": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    ],
+    "endpoint": "/agents/analyzer"
+  }
+} 

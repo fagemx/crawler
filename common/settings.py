@@ -6,14 +6,23 @@
 
 import os
 from typing import Optional, List, Any
-from pydantic import Field, validator
-from pydantic_settings import BaseSettings
+from pydantic import Field, validator, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import BaseModel
 
 
-class DatabaseSettings(BaseSettings):
+class ApifySettings(BaseModel):
+    """Apify 配置 - 簡化版本"""
+    token: Optional[str] = None
+    threads_actor_id: str = Field(default="curious_coder/threads-scraper")
+    default_max_posts: int = Field(default=50, description="預設單次爬取最大貼文數")
+    timeout_seconds: int = Field(default=300)
+
+
+class DatabaseSettings(BaseModel):
     """資料庫配置"""
-    url: str = Field(default="postgresql://postgres:password@localhost:5432/social_media_db")
-    pool_size: int = Field(default=10)
+    pool_size: int = 10
+    url: str = "postgresql://postgres:password@localhost:5432/social_media_db"
     max_overflow: int = Field(default=20)
     echo: bool = Field(default=False)
     
@@ -21,9 +30,9 @@ class DatabaseSettings(BaseSettings):
         env_prefix = "DATABASE_"
 
 
-class RedisSettings(BaseSettings):
+class RedisSettings(BaseModel):
     """Redis 配置"""
-    url: str = Field(default="redis://localhost:6379/0")
+    url: str = "redis://localhost:6379/0"
     session_db: int = Field(default=1)
     cache_db: int = Field(default=2)
     max_connections: int = Field(default=10)
@@ -42,17 +51,6 @@ class NATSSettings(BaseSettings):
         env_prefix = "NATS_"
 
 
-class ApifySettings(BaseSettings):
-    """Apify 配置 - 簡化版本"""
-    token: str = Field(default="")
-    threads_actor_id: str = Field(default="curious_coder/threads-scraper")
-    max_posts_limit: int = Field(default=25)  # 降低限制
-    timeout_seconds: int = Field(default=300)
-    
-    class Config:
-        env_prefix = "APIFY_"
-
-
 class GeminiSettings(BaseSettings):
     """Gemini AI 配置"""
     api_key: str = Field(default="")
@@ -67,10 +65,10 @@ class GeminiSettings(BaseSettings):
         env_prefix = "GEMINI_"
 
 
-class MCPSettings(BaseSettings):
+class MCPSettings(BaseModel):
     """MCP Server 配置"""
-    server_host: str = Field(default="localhost")
-    server_port: int = Field(default=10100)
+    server_host: str = "0.0.0.0"
+    server_port: int = 10100
     server_url: str = Field(default="http://localhost:10100")
     
     class Config:
@@ -144,80 +142,71 @@ class FeatureFlags(BaseSettings):
         env_prefix = "FEATURE_"
 
 
+class LLMSettings(BaseModel):
+    """Settings for a single LLM provider."""
+    api_key: str = ""
+    base_url: str = ""
+    # Store models as a simple comma-separated string to avoid parsing issues from .env
+    models: str = ""
+
+class LLMProviderSettings(BaseModel):
+    """Container for different LLM providers."""
+    t8star_cn: LLMSettings = Field(default_factory=LLMSettings)
+    openrouter: LLMSettings = Field(default_factory=LLMSettings)
+    # Add other providers here in the future, e.g., openai: LLMSettings = Field(default_factory=LLMSettings)
+
 class Settings(BaseSettings):
-    """主配置類別"""
+    """Main settings for the application."""
+    app_name: str = "Social Media Content Generator"
+    development_mode: bool = False
     
-    # 基本設定
-    debug: bool = Field(default=False)
-    development_mode: bool = Field(default=False)
-    environment: str = Field(default="development")
-    
-    # 子配置
+    apify: ApifySettings = Field(default_factory=ApifySettings)
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
     redis: RedisSettings = Field(default_factory=RedisSettings)
-    nats: NATSSettings = Field(default_factory=NATSSettings)
-    apify: ApifySettings = Field(default_factory=ApifySettings)
-    gemini: GeminiSettings = Field(default_factory=GeminiSettings)
     mcp: MCPSettings = Field(default_factory=MCPSettings)
-    agents: AgentSettings = Field(default_factory=AgentSettings)
-    security: SecuritySettings = Field(default_factory=SecuritySettings)
-    monitoring: MonitoringSettings = Field(default_factory=MonitoringSettings)
-    performance: PerformanceSettings = Field(default_factory=PerformanceSettings)
-    features: FeatureFlags = Field(default_factory=FeatureFlags)
-    
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
-        extra = 'ignore'
-    
-    @validator('environment')
-    def validate_environment(cls, v):
-        allowed = ['development', 'testing', 'staging', 'production']
-        if v not in allowed:
-            raise ValueError(f'Environment must be one of {allowed}')
-        return v
-    
-    def is_production(self) -> bool:
-        """檢查是否為生產環境"""
-        return self.environment == "production"
-    
+    llm_providers: LLMProviderSettings = Field(default_factory=LLMProviderSettings)
+
+    model_config = SettingsConfigDict(
+        env_file=".env", 
+        env_nested_delimiter='_',
+        case_sensitive=False,
+        extra='ignore'  # Ignore extra fields from .env file
+    )
+
     def is_development(self) -> bool:
-        """檢查是否為開發環境"""
-        return self.environment == "development"
+        """Checks if the application is in development mode."""
+        return self.development_mode
 
-
-# 全域設定實例
+# Global settings instance
 settings = Settings()
 
-
 def get_settings() -> Settings:
-    """獲取設定實例"""
+    """Returns the global settings instance."""
     return settings
 
 
 def get_database_url() -> str:
     """獲取資料庫連接 URL"""
-    return settings.database.url
+    return get_settings().database.url
 
 
 def get_redis_url() -> str:
     """獲取 Redis 連接 URL"""
-    return settings.redis.url
+    return get_settings().redis.url
 
 
 def get_mcp_server_url() -> str:
     """獲取 MCP Server URL"""
-    return settings.mcp.server_url
+    return get_settings().mcp.server_url
 
 
 def get_agent_port(agent_name: str) -> int:
     """獲取指定 Agent 的端口"""
     port_mapping = {
-        "orchestrator": settings.agents.orchestrator_port,
-        "crawler": settings.agents.crawler_agent_port,
-        "analysis": settings.agents.analysis_agent_port,
-        "content_writer": settings.agents.content_writer_port,
+        "orchestrator": get_settings().agents.orchestrator_port,
+        "crawler": get_settings().agents.crawler_agent_port,
+        "analysis": get_settings().agents.analysis_agent_port,
+        "content_writer": get_settings().agents.content_writer_port,
     }
     return port_mapping.get(agent_name, 8000)
 
@@ -225,11 +214,11 @@ def get_agent_port(agent_name: str) -> int:
 def is_feature_enabled(feature_name: str) -> bool:
     """檢查功能是否啟用"""
     feature_mapping = {
-        "media_analysis": settings.features.enable_media_analysis,
-        "video_stt": settings.features.enable_video_stt,
-        "auto_hashtags": settings.features.enable_auto_hashtags,
-        "multi_language": settings.features.enable_multi_language,
-        "redis_cache": settings.features.enable_redis_cache,
+        "media_analysis": get_settings().features.enable_media_analysis,
+        "video_stt": get_settings().features.enable_video_stt,
+        "auto_hashtags": get_settings().features.enable_auto_hashtags,
+        "multi_language": get_settings().features.enable_multi_language,
+        "redis_cache": get_settings().features.enable_redis_cache,
     }
     return feature_mapping.get(feature_name, False)
 
@@ -238,7 +227,7 @@ class ConfigManager:
     """配置管理器"""
     
     def __init__(self):
-        self._settings = settings
+        self._settings = get_settings()
     
     def get(self, key: str, default: Any = None) -> Any:
         """獲取配置值"""
@@ -287,14 +276,14 @@ def validate_required_configs() -> List[str]:
     missing_configs = []
     
     # 檢查必要的 API 金鑰
-    if not settings.apify.token:
+    if not get_settings().apify.token:
         missing_configs.append("APIFY_TOKEN")
     
-    if not settings.gemini.api_key:
+    if not get_settings().gemini.api_key:
         missing_configs.append("GEMINI_API_KEY")
     
     # 檢查資料庫連接
-    if not settings.database.url:
+    if not get_settings().database.url:
         missing_configs.append("DATABASE_URL")
     
     return missing_configs
@@ -303,13 +292,13 @@ def validate_required_configs() -> List[str]:
 def print_config_summary() -> None:
     """打印配置摘要"""
     print("=== 配置摘要 ===")
-    print(f"環境: {settings.environment}")
-    print(f"除錯模式: {settings.debug}")
-    print(f"資料庫: {settings.database.url}")
-    print(f"Redis: {settings.redis.url}")
-    print(f"MCP Server: {settings.mcp.server_url}")
-    print(f"Apify Token: {'已設置' if settings.apify.token else '未設置'}")
-    print(f"Gemini API Key: {'已設置' if settings.gemini.api_key else '未設置'}")
+    print(f"環境: {get_settings().environment}")
+    print(f"除錯模式: {get_settings().debug}")
+    print(f"資料庫: {get_settings().database.url}")
+    print(f"Redis: {get_settings().redis.url}")
+    print(f"MCP Server: {get_settings().mcp.server_url}")
+    print(f"Apify Token: {'已設置' if get_settings().apify.token else '未設置'}")
+    print(f"Gemini API Key: {'已設置' if get_settings().gemini.api_key else '未設置'}")
     print("================")
 
 
@@ -323,3 +312,9 @@ if __name__ == "__main__":
     
     # 打印配置摘要
     print_config_summary()
+
+    # For debugging purposes
+    settings = get_settings()
+    import json
+    # Pydantic models have a model_dump_json method
+    print(settings.model_dump_json(indent=2))

@@ -47,7 +47,7 @@ class CrawlerLogic:
     async def fetch_threads_post_urls(
         self, 
         username: str, 
-        max_posts: int = 10,
+        max_posts: Optional[int] = None,
         task_id: Optional[str] = None
     ) -> AsyncIterable[Dict[str, Any]]:
         """
@@ -59,6 +59,9 @@ class CrawlerLogic:
         - 只返回貼文 URL
         - 預設抓取 10 則貼文
         """
+        if max_posts is None:
+            max_posts = self.settings.apify.default_max_posts
+
         start_time = time.time()
         
         try:
@@ -231,7 +234,7 @@ class CrawlerLogic:
     async def fetch_threads_post_metrics(
         self, 
         username: str, 
-        max_posts: int = 100,
+        max_posts: Optional[int] = None,
         task_id: Optional[str] = None
     ) -> AsyncIterable[Dict[str, Any]]:
         """
@@ -242,6 +245,9 @@ class CrawlerLogic:
         - 轉換為 PostMetrics 格式
         - 為後續的 Jina 和 Vision 處理做準備
         """
+        if max_posts is None:
+            max_posts = self.settings.apify.default_max_posts
+            
         start_time = time.time()
         
         try:
