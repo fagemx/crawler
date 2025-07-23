@@ -20,6 +20,8 @@ from common.redis_client import get_redis_client
 from common.db_client import get_db_client
 from common.a2a import stream_text, stream_status, stream_data, stream_error
 
+# 僅允許數字 . , K M 的正規表示式
+NUM_RE = re.compile(r'^[\d\.,]+[KkMm]?$')
 
 class JinaMarkdownAgent:
     """
@@ -40,28 +42,22 @@ class JinaMarkdownAgent:
         # Redis 和資料庫客戶端
         self.redis_client = get_redis_client()
         
-        # 正則表達式模式 - 針對 Threads 優化
-        self.metrics_pattern = re.compile(
-            r'\*\*?Thread.*? (?P<views>[\d\.KM,]+) views.*?'
-            r'愛心.*? (?P<likes>[\d\.KM,]*) .*?'
-            r'留言.*? (?P<comments>[\d\.KM,]*) .*?'
-            r'轉發.*? (?P<reposts>[\d\.KM,]*) .*?'
-            r'分享.*? (?P<shares>[\d\.KM,]*)', 
-            re.S
+        # 根據新的解析規則，定義更精準的正規表示式
+        # 1. 提取觀看數，例如: "[Thread ====== 3.9K views]"
+        self.views_pattern = re.compile(
+            r"\[Thread\s*======\s*([\d\.,KkMm]+)\s*views\]",
+            re.IGNORECASE
         )
         
         # 任務狀態追蹤
         self.active_tasks = {}
     
+    def _clean_num(self, s: str) -> str:
+        """移除數字字串中的不可見字元，例如 U+FE0F"""
+        return re.sub(r'[\u200d\u200c\uFE0F]', '', s)
+
     def _parse_number(self, text: str) -> Optional[int]:
-        """
-        解析數字字串（支援 K, M 後綴）
-        
-        Examples:
-            "1.2K" -> 1200
-            "5M" -> 5000000
-            "123" -> 123
-        """
+        """解析數字字串（支援 K, M 後綴）"""
         if not text:
             return None
         
@@ -79,34 +75,60 @@ class JinaMarkdownAgent:
         except (ValueError, TypeError):
             return None
     
-    def _extract_metrics_from_markdown(self, markdown_text: str) -> Dict[str, Optional[int]]:
-        """
-        從 Markdown 文本提取指標
+    def _extract_metrics_from_markdown(self, md: str) -> Dict[str, Optional[int]]:
+        """從 Jina Markdown 中提取互動指標"""
         
-        Args:
-            markdown_text: Jina Reader 返回的 Markdown 文本
+        # 1️⃣ 提取 views (從各種可能的 views 格式)
+        views = None
+        views_patterns = [
+            r'Thread\s*=+\s*([\d.,KMB]+)\s*views?',
+            r'([\d.,KMB]+)\s*views?',
+            r'views?\s*[:\-]?\s*([\d.,KMB]+)'
+        ]
+        
+        for pattern in views_patterns:
+            match = re.search(pattern, md, re.IGNORECASE)
+            if match:
+                views = self._parse_number(match.group(1))
+                break
+        
+        # 2️⃣ 尋找互動數據 - 簡化策略
+        # 在 Translate 後尋找連續的數字行
+        parts = re.split(r'translate', md, maxsplit=1, flags=re.IGNORECASE)
+        after_translate = parts[1] if len(parts) > 1 else ""
+        
+        # 收集所有數字
+        all_numbers = []
+        lines = after_translate.splitlines()
+        
+        for line in lines:
+            cleaned = self._clean_num(line.strip())
+            if cleaned and re.match(r'^[\d.,KMB]+$', cleaned):
+                num = self._parse_number(cleaned)
+                if num is not None and num > 0:  # 排除0值
+                    all_numbers.append(num)
+        
+        # 3️⃣ 尋找最可能的互動數據序列
+        # 策略：尋找3-4個連續數字的序列
+        likes = comments = reposts = shares = None
+        
+        if len(all_numbers) >= 3:
+            # 取前4個數字作為 likes, comments, reposts, shares
+            if len(all_numbers) >= 4:
+                likes, comments, reposts, shares = all_numbers[0], all_numbers[1], all_numbers[2], all_numbers[3]
+            else:  # 3個數字
+                likes, comments, reposts = all_numbers[0], all_numbers[1], all_numbers[2]
+        elif len(all_numbers) == 2:
+            likes, comments = all_numbers[0], all_numbers[1]
+        elif len(all_numbers) == 1:
+            likes = all_numbers[0]
             
-        Returns:
-            Dict[str, Optional[int]]: 提取的指標，None 表示未找到
-        """
-        match = self.metrics_pattern.search(markdown_text)
-        
-        if not match:
-            return {
-                "views": None,
-                "likes": None, 
-                "comments": None,
-                "reposts": None,
-                "shares": None
-            }
-        
-        groups = match.groupdict()
         return {
-            "views": self._parse_number(groups.get("views")),
-            "likes": self._parse_number(groups.get("likes")),
-            "comments": self._parse_number(groups.get("comments")),
-            "reposts": self._parse_number(groups.get("reposts")),
-            "shares": self._parse_number(groups.get("shares"))
+            'views': views,
+            'likes': likes, 
+            'comments': comments,
+            'reposts': reposts,
+            'shares': shares
         }
     
     def _extract_media_urls(self, markdown_text: str) -> Optional[List[str]]:
