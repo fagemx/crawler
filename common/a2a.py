@@ -266,7 +266,7 @@ class A2AClient:
     
     async def _stream_response(
         self, 
-        client: httpx.AsyncClient, 
+        client, 
         url: str, 
         message: A2AMessage
     ) -> AsyncIterable[Dict[str, Any]]:

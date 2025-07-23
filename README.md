@@ -61,7 +61,11 @@ docker-compose up -d
 
 4. **安裝依賴**
 ```bash
-pip install -r requirements.txt
+# 基礎功能（爬蟲）
+pip install -e .
+
+# 或安裝完整功能
+pip install -e .[full]
 ```
 
 5. **啟動系統**

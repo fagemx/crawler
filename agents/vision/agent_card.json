@@ -1,0 +1,38 @@
+{
+  "name": "vision_agent",
+  "version": "1.0.0",
+  "description": "Vision Agent - 使用 Screenshot + Gemini 2.5 Flash 提取缺失的社交媒體互動數據",
+  "author": "Social Media Content Generator Team",
+  "capabilities": [
+    "screenshot_capture",
+    "visual_analysis", 
+    "metrics_extraction",
+    "gemini_vision"
+  ],
+  "dependencies": [
+    "screenshotone",
+    "google-generativeai",
+    "httpx",
+    "pillow"
+  ],
+  "endpoints": {
+    "health": "/health",
+    "analyze_posts": "/analyze_posts",
+    "screenshot": "/screenshot",
+    "status": "/status/{task_id}"
+  },
+  "input_format": "PostMetricsBatch",
+  "output_format": "PostMetricsBatch",
+  "processing_stage": "vision_analysis",
+  "next_stage": "ranking",
+  "mcp_tools": [
+    {
+      "name": "analyze_incomplete_posts",
+      "description": "使用視覺分析補完缺失的社交媒體互動數據"
+    },
+    {
+      "name": "capture_screenshot", 
+      "description": "捕獲網頁截圖用於視覺分析"
+    }
+  ]
+}

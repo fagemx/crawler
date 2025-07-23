@@ -15,6 +15,7 @@ import httpx
 
 from common.settings import get_settings
 from common.a2a import stream_text, stream_data, stream_status, stream_error, TaskState
+from common.models import PostMetrics, PostMetricsBatch
 
 
 @dataclass
@@ -227,6 +228,113 @@ class CrawlerLogic:
         for task_id in tasks_to_remove:
             del self.active_tasks[task_id]
     
+    async def fetch_threads_post_metrics(
+        self, 
+        username: str, 
+        max_posts: int = 100,
+        task_id: Optional[str] = None
+    ) -> AsyncIterable[Dict[str, Any]]:
+        """
+        新方法：抓取貼文並返回 PostMetrics 格式
+        
+        這是 planD.md 工作流的第一步：
+        - 使用 Apify 抓取 URL
+        - 轉換為 PostMetrics 格式
+        - 為後續的 Jina 和 Vision 處理做準備
+        """
+        start_time = time.time()
+        
+        try:
+            yield stream_status(TaskState.RUNNING, f"開始抓取 @{username} 的貼文，目標 {max_posts} 則")
+            
+            # 使用現有的 URL 抓取邏輯
+            run_input = {
+                "urls": [f"@{username}"],
+                "postsPerSource": max_posts,
+            }
+            
+            if task_id:
+                self.active_tasks[task_id] = {
+                    "status": "running",
+                    "progress": 0.0,
+                    "posts_collected": 0,
+                    "start_time": start_time
+                }
+            
+            yield stream_text(f"調用 Apify Actor: {self.threads_actor}")
+            
+            # 執行 Apify Actor
+            run = await self._run_apify_actor(run_input)
+            yield stream_status(TaskState.RUNNING, "Apify Actor 執行中，等待結果...")
+            
+            # 獲取結果
+            raw_posts = await self._get_apify_results(run, task_id)
+            
+            # 轉換為 PostMetrics 格式
+            post_metrics = []
+            for i, raw_post in enumerate(raw_posts):
+                try:
+                    post_url_obj = self._extract_post_url(raw_post, username)
+                    if post_url_obj:
+                        # 創建 PostMetrics 對象
+                        metrics = PostMetrics(
+                            url=post_url_obj.url,
+                            post_id=post_url_obj.post_id,
+                            username=username,
+                            source="apify",
+                            processing_stage="url_extracted"
+                        )
+                        post_metrics.append(metrics)
+                    
+                    # 更新進度
+                    progress = (i + 1) / len(raw_posts)
+                    if task_id:
+                        self.active_tasks[task_id]["progress"] = progress
+                        self.active_tasks[task_id]["posts_collected"] = len(post_metrics)
+                    
+                    yield stream_status(
+                        TaskState.RUNNING, 
+                        f"轉換貼文格式 {i + 1}/{len(raw_posts)}", 
+                        progress
+                    )
+                    
+                except Exception as e:
+                    yield stream_text(f"處理貼文時發生錯誤: {str(e)}")
+                    continue
+            
+            processing_time = time.time() - start_time
+            
+            # 創建批次對象
+            batch = PostMetricsBatch(
+                posts=post_metrics,
+                username=username,
+                total_count=len(post_metrics),
+                processing_stage="apify_completed"
+            )
+            
+            # 返回結果
+            result = {
+                "batch": batch.dict(),
+                "processing_time": processing_time,
+                "timestamp": datetime.utcnow().isoformat(),
+                "next_stage": "jina_enhancement"
+            }
+            
+            if task_id:
+                self.active_tasks[task_id]["status"] = "completed"
+                self.active_tasks[task_id]["progress"] = 1.0
+            
+            yield stream_data(result, final=True)
+            
+        except Exception as e:
+            error_msg = f"抓取貼文 PostMetrics 失敗: {str(e)}"
+            
+            if task_id:
+                self.active_tasks[task_id]["status"] = "failed"
+                self.active_tasks[task_id]["error"] = error_msg
+            
+            yield stream_error(error_msg)
+
     async def health_check(self) -> Dict[str, Any]:
         """健康檢查"""
         try:

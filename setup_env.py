@@ -79,11 +79,11 @@ def install_dependencies():
     system = platform.system().lower()
     
     if system == "windows":
-        pip_command = "venv\\Scripts\\pip install -r requirements.txt"
+        pip_command = "venv\\Scripts\\pip install -e ."
     else:
-        pip_command = "venv/bin/pip install -r requirements.txt"
+        pip_command = "venv/bin/pip install -e ."
     
-    return run_command(pip_command, "安裝依賴包")
+    return run_command(pip_command, "安裝依賴包（可編輯模式）")
 
 
 def setup_env_file():
@@ -152,7 +152,11 @@ def print_next_steps():
     print(f"   用戶主頁：https://www.threads.com/@09johan24")
     print(f"   範例貼文：https://www.threads.com/@09johan24/post/DMaHMSqTdFs")
     
-    print(f"\n🔧 如需添加更多功能，編輯 requirements.txt 取消註解相關依賴")
+    print(f"\n🔧 如需添加更多功能：")
+    print(f"   # 安裝 AI 功能: pip install -e .[ai]")
+    print(f"   # 安裝 UI 功能: pip install -e .[ui]") 
+    print(f"   # 安裝完整功能: pip install -e .[full]")
+    print(f"   # 開發環境: pip install -e .[dev]")
 
 
 def main():
@@ -161,7 +165,7 @@ def main():
     print("="*60)
     
     # 檢查當前目錄
-    if not Path("requirements.txt").exists():
+    if not Path("pyproject.toml").exists():
         print("❌ 請在專案根目錄執行此腳本")
         sys.exit(1)
     

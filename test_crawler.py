@@ -14,6 +14,10 @@ from pathlib import Path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
+# 載入環境變數
+from dotenv import load_dotenv
+load_dotenv()
+
 from agents.crawler.crawler_logic import CrawlerLogic
 from common.settings import get_settings
 

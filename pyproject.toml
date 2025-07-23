@@ -1,0 +1,365 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "social-media-content-generator"
+version = "1.0.0"
+description = "基於 A2A + MCP 架構的社交媒體內容生成系統"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Social Media Content Generator Team"},
+]
+maintainers = [
+    {name = "Social Media Content Generator Team"},
+]
+keywords = [
+    "social-media",
+    "content-generation",
+    "ai",
+    "threads",
+    "apify",
+    "a2a",
+    "mcp",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.8"
+
+# 核心依賴 - 當前爬蟲功能必需
+dependencies = [
+    # Web 框架
+    "fastapi>=0.100.0",
+    "uvicorn[standard]>=0.20.0",
+    "sse-starlette>=1.6.0",
+    
+    # 數據驗證和配置
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "python-dotenv>=1.0.0",
+    
+    # HTTP 客戶端和爬蟲
+    "apify-client>=1.0.0",
+    "httpx>=0.24.0",
+    "requests>=2.28.0",
+    
+    # 基礎工具
+    "click>=8.0.0",
+    "python-dateutil>=2.8.0",
+]
+
+[project.optional-dependencies]
+# AI 和 LLM 功能（Analysis Agent 需要）
+ai = [
+    "google-genai>=0.2.0",
+    "google-generativeai>=0.3.0",
+    "openai>=1.0.0",
+    "anthropic>=0.7.0",
+]
+
+# UI 框架（Streamlit UI 需要）
+ui = [
+    "streamlit>=1.28.0",
+]
+
+# 資料庫支援（數據持久化需要）
+database = [
+    "sqlalchemy>=2.0.0",
+    "asyncpg>=0.28.0",
+    "psycopg2-binary>=2.9.0",
+    "alembic>=1.13.0",
+]
+
+# 快取和訊息佇列（擴展功能需要）
+messaging = [
+    "redis>=5.0.0",
+    "nats-py>=2.6.0",
+    "celery>=5.3.0",
+    "rq>=1.15.0",
+]
+
+# 監控和追蹤（生產環境需要）
+monitoring = [
+    "opentelemetry-api>=1.20.0",
+    "opentelemetry-sdk>=1.20.0",
+    "opentelemetry-exporter-jaeger>=1.20.0",
+    "opentelemetry-instrumentation-fastapi>=0.40b0",
+    "prometheus-client>=0.19.0",
+    "structlog>=23.0.0",
+]
+
+# 數據處理（分析功能需要）
+data = [
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "scipy>=1.10.0",
+]
+
+# 安全和認證
+security = [
+    "bcrypt>=4.0.0",
+    "python-jose[cryptography]>=3.3.0",
+    "python-multipart>=0.0.6",
+    "passlib>=1.7.0",
+]
+
+# 開發工具
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
+    "httpx-mock>=0.10.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "mypy>=1.5.0",
+    "pre-commit>=3.0.0",
+]
+
+# 完整安裝（包含所有功能）
+full = [
+    "social-media-content-generator[ai,ui,database,messaging,monitoring,data,security]",
+]
+
+# 生產環境（不包含開發工具）
+production = [
+    "social-media-content-generator[ai,ui,database,messaging,monitoring,data,security]",
+]
+
+[project.urls]
+Homepage = "https://github.com/your-org/social-media-content-generator"
+Documentation = "https://github.com/your-org/social-media-content-generator#readme"
+Repository = "https://github.com/your-org/social-media-content-generator.git"
+Issues = "https://github.com/your-org/social-media-content-generator/issues"
+Changelog = "https://github.com/your-org/social-media-content-generator/blob/main/CHANGELOG.md"
+
+[project.scripts]
+# 命令行工具
+smcg-setup = "setup_env:main"
+smcg-test = "test_crawler:main"
+smcg-dev = "scripts.start_dev:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["agents", "common", "mcp_server", "ui", "scripts"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/agents",
+    "/common", 
+    "/mcp_server",
+    "/ui",
+    "/scripts",
+    "/tests",
+    "/docs",
+    "/*.md",
+    "/*.toml",
+    "/*.txt",
+    "/*.yml",
+    "/*.yaml",
+]
+
+# =============================================================================
+# 開發工具配置
+# =============================================================================
+
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+src_paths = ["agents", "common", "mcp_server", "ui", "scripts", "tests"]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "apify_client.*",
+    "sse_starlette.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=agents",
+    "--cov=common", 
+    "--cov=mcp_server",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+[tool.coverage.run]
+source = ["agents", "common", "mcp_server", "ui", "scripts"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/build/*",
+    "*/dist/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.flake8]
+max-line-length = 100
+extend-ignore = [
+    "E203",  # whitespace before ':'
+    "E501",  # line too long (handled by black)
+    "W503",  # line break before binary operator
+]
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    ".venv",
+    "venv",
+    ".eggs",
+    "*.egg",
+]
+
+# =============================================================================
+# 環境和部署配置
+# =============================================================================
+
+[tool.hatch.envs.default]
+dependencies = [
+    "pytest",
+    "pytest-asyncio", 
+    "pytest-cov",
+    "black",
+    "isort",
+    "flake8",
+    "mypy",
+]
+
+[tool.hatch.envs.default.scripts]
+# 測試命令
+test = "pytest {args:tests}"
+test-cov = "pytest --cov {args:tests}"
+test-fast = "pytest -x {args:tests}"
+
+# 代碼格式化
+format = [
+    "black {args:.}",
+    "isort {args:.}",
+]
+format-check = [
+    "black --check {args:.}",
+    "isort --check-only {args:.}",
+]
+
+# 代碼檢查
+lint = [
+    "flake8 {args:.}",
+    "mypy {args:.}",
+]
+
+# 完整檢查
+check = [
+    "format-check",
+    "lint", 
+    "test-cov",
+]
+
+# 開發環境設置
+setup = "python setup_env.py"
+dev = "python scripts/start_dev.py"
+
+[tool.hatch.envs.test]
+dependencies = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "pytest-mock",
+    "httpx-mock",
+]
+
+[[tool.hatch.envs.test.matrix]]
+python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+[tool.hatch.envs.docs]
+dependencies = [
+    "mkdocs",
+    "mkdocs-material",
+    "mkdocs-mermaid2-plugin",
+]
+
+[tool.hatch.envs.docs.scripts]
+build = "mkdocs build"
+serve = "mkdocs serve"
+deploy = "mkdocs gh-deploy"

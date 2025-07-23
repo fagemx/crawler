@@ -6,11 +6,11 @@
 
 import os
 from typing import Optional, List, Any
-from pydantic import BaseSettings, Field, validator
-from pydantic_settings import BaseSettings as PydanticBaseSettings
+from pydantic import Field, validator
+from pydantic_settings import BaseSettings
 
 
-class DatabaseSettings(PydanticBaseSettings):
+class DatabaseSettings(BaseSettings):
     """資料庫配置"""
     url: str = Field(default="postgresql://postgres:password@localhost:5432/social_media_db")
     pool_size: int = Field(default=10)
@@ -21,7 +21,7 @@ class DatabaseSettings(PydanticBaseSettings):
         env_prefix = "DATABASE_"
 
 
-class RedisSettings(PydanticBaseSettings):
+class RedisSettings(BaseSettings):
     """Redis 配置"""
     url: str = Field(default="redis://localhost:6379/0")
     session_db: int = Field(default=1)
@@ -32,7 +32,7 @@ class RedisSettings(PydanticBaseSettings):
         env_prefix = "REDIS_"
 
 
-class NATSSettings(PydanticBaseSettings):
+class NATSSettings(BaseSettings):
     """NATS 配置"""
     url: str = Field(default="nats://localhost:4222")
     stream_name: str = Field(default="social_media_tasks")
@@ -42,7 +42,7 @@ class NATSSettings(PydanticBaseSettings):
         env_prefix = "NATS_"
 
 
-class ApifySettings(PydanticBaseSettings):
+class ApifySettings(BaseSettings):
     """Apify 配置 - 簡化版本"""
     token: str = Field(default="")
     threads_actor_id: str = Field(default="curious_coder/threads-scraper")
@@ -53,7 +53,7 @@ class ApifySettings(PydanticBaseSettings):
         env_prefix = "APIFY_"
 
 
-class GeminiSettings(PydanticBaseSettings):
+class GeminiSettings(BaseSettings):
     """Gemini AI 配置"""
     api_key: str = Field(default="")
     model_text: str = Field(default="gemini-2.5-pro")
@@ -67,7 +67,7 @@ class GeminiSettings(PydanticBaseSettings):
         env_prefix = "GEMINI_"
 
 
-class MCPSettings(PydanticBaseSettings):
+class MCPSettings(BaseSettings):
     """MCP Server 配置"""
     server_host: str = Field(default="localhost")
     server_port: int = Field(default=10100)
@@ -77,18 +77,20 @@ class MCPSettings(PydanticBaseSettings):
         env_prefix = "MCP_"
 
 
-class AgentSettings(PydanticBaseSettings):
+class AgentSettings(BaseSettings):
     """Agent 服務配置"""
     orchestrator_port: int = Field(default=8000)
     crawler_agent_port: int = Field(default=8001)
     analysis_agent_port: int = Field(default=8002)
     content_writer_port: int = Field(default=8003)
+    jina_agent_port: int = Field(default=8004)
+    vision_agent_port: int = Field(default=8005)
     
     class Config:
         env_prefix = "AGENT_"
 
 
-class SecuritySettings(PydanticBaseSettings):
+class SecuritySettings(BaseSettings):
     """安全配置"""
     secret_key: str = Field(default="your-super-secret-key-change-this-in-production")
     jwt_secret_key: str = Field(default="your-jwt-secret-key")
@@ -100,7 +102,7 @@ class SecuritySettings(PydanticBaseSettings):
         env_prefix = "SECURITY_"
 
 
-class MonitoringSettings(PydanticBaseSettings):
+class MonitoringSettings(BaseSettings):
     """監控配置"""
     jaeger_endpoint: str = Field(default="http://localhost:14268/api/traces")
     service_name: str = Field(default="social-media-content-generator")
@@ -113,7 +115,7 @@ class MonitoringSettings(PydanticBaseSettings):
         env_prefix = "MONITORING_"
 
 
-class PerformanceSettings(PydanticBaseSettings):
+class PerformanceSettings(BaseSettings):
     """性能配置"""
     max_concurrent_crawls: int = Field(default=3)
     max_concurrent_analysis: int = Field(default=2)
@@ -129,7 +131,7 @@ class PerformanceSettings(PydanticBaseSettings):
         env_prefix = "PERFORMANCE_"
 
 
-class FeatureFlags(PydanticBaseSettings):
+class FeatureFlags(BaseSettings):
     """功能開關"""
     enable_media_analysis: bool = Field(default=True)
     enable_video_stt: bool = Field(default=True)
@@ -142,7 +144,7 @@ class FeatureFlags(PydanticBaseSettings):
         env_prefix = "FEATURE_"
 
 
-class Settings(PydanticBaseSettings):
+class Settings(BaseSettings):
     """主配置類別"""
     
     # 基本設定
@@ -167,6 +169,7 @@ class Settings(PydanticBaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = False
+        extra = 'ignore'
     
     @validator('environment')
     def validate_environment(cls, v):

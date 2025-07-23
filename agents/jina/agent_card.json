@@ -1,0 +1,109 @@
+{
+  "name": "Jina Agent",
+  "description": "使用 Jina AI 增強貼文數據，特別是 views 數據 - planD.md 工作流第二步",
+  "version": "1.0.0",
+  "url": "http://localhost:8004",
+  "capabilities": {
+    "streaming": true,
+    "batch_processing": true,
+    "multi_platform": false,
+    "rate_limiting": true
+  },
+  "skills": [
+    {
+      "id": "enhance_with_jina",
+      "name": "Jina 數據增強",
+      "description": "使用 https://r.jina.ai/ 增強貼文的 views 和其他互動數據",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "posts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "url": {"type": "string", "description": "貼文 URL"},
+                "post_id": {"type": "string", "description": "貼文 ID"},
+                "username": {"type": "string", "description": "用戶名"},
+                "views_count": {"type": "integer", "description": "瀏覽數"},
+                "likes_count": {"type": "integer", "description": "愛心數"},
+                "comments_count": {"type": "integer", "description": "留言數"},
+                "reposts_count": {"type": "integer", "description": "轉發數"},
+                "shares_count": {"type": "integer", "description": "分享數"}
+              },
+              "required": ["url", "post_id", "username"]
+            }
+          }
+        },
+        "required": ["posts"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "batch": {
+            "type": "object",
+            "properties": {
+              "posts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "description": "增強後的 PostMetrics 對象"
+                }
+              },
+              "total_count": {"type": "integer"},
+              "processing_stage": {"type": "string"}
+            }
+          },
+          "successful_count": {"type": "integer", "description": "成功處理的貼文數量"},
+          "complete_count": {"type": "integer", "description": "數據完整的貼文數量"},
+          "completion_rate": {"type": "number", "description": "完成率"},
+          "next_stage": {"type": "string", "description": "下一個處理階段"},
+          "processing_time": {"type": "number", "description": "處理時間（秒）"}
+        }
+      },
+      "tags": ["jina", "enhancement", "views", "metrics"],
+      "examples": [
+        {
+          "input": {
+            "posts": [
+              {
+                "url": "https://www.threads.com/@09johan24/post/DMaHMSqTdFs",
+                "post_id": "DMaHMSqTdFs",
+                "username": "09johan24"
+              }
+            ]
+          },
+          "description": "使用 Jina 增強單個貼文的數據"
+        }
+      ]
+    }
+  ],
+  "requirements": {
+    "api_keys": [],
+    "dependencies": ["httpx", "pydantic"],
+    "external_services": ["Jina AI - r.jina.ai"]
+  },
+  "metadata": {
+    "author": "Social Media Content Generator Team",
+    "created_at": "2025-01-23",
+    "updated_at": "2025-01-23",
+    "workflow_stage": "step_2",
+    "planD_role": "數據增強 - 獲取 views 和部分互動數據",
+    "processing_flow": "Apify URLs → Jina Enhancement → Vision Analysis → Ranking",
+    "rate_limits": {
+      "concurrent_requests": 5,
+      "timeout_seconds": 30
+    },
+    "cost_info": {
+      "jina_api_cost": "免費使用 r.jina.ai",
+      "estimated_time_per_post": "2-3 秒"
+    },
+    "data_completeness": {
+      "guaranteed": ["views_count"],
+      "possible": ["likes_count", "comments_count", "reposts_count", "shares_count"],
+      "fallback_required": "Vision Agent 用於補齊缺失數據"
+    }
+  },
+  "health_check_url": "http://localhost:8004/health",
+  "documentation_url": "http://localhost:8004/docs"
+}
