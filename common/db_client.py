@@ -183,6 +183,30 @@ class DatabaseClient:
         except Exception as e:
             print(f"獲取作者貼文失敗 {author}: {e}")
             return []
+
+    async def update_post_metadata(self, url: str, metadata: Dict[str, Any]) -> bool:
+        """
+        更新貼文的 metadata
+        
+        Args:
+            url: 貼文 URL
+            metadata: 新的 metadata 內容
+            
+        Returns:
+            bool: 是否成功
+        """
+        try:
+            metadata_json = json.dumps(metadata) if metadata is not None else None
+            async with self.get_connection() as conn:
+                await conn.execute("""
+                    UPDATE posts
+                    SET metadata = $2
+                    WHERE url = $1
+                """, url, metadata_json)
+                return True
+        except Exception as e:
+            print(f"更新 metadata 失敗 {url}: {e}")
+            return False
     
     # ============================================================================
     # Tier-1: 貼文指標 (post_metrics 表)

@@ -1,0 +1,60 @@
+{
+  "agent_id": "ranker_agent",
+  "name": "Post Ranker Agent",
+  "description": "An agent that ranks social media posts based on engagement metrics.",
+  "capabilities": {
+    "tools": [],
+    "input_modes": [
+      "TEXT"
+    ],
+    "output_modes": [
+      "TEXT",
+      "JSON"
+    ],
+    "actions": [
+      {
+        "name": "rank_posts",
+        "description": "Ranks posts for a given author based on a weighted score of their engagement metrics (views, likes, comments, etc.).",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "author_id": {
+              "type": "string",
+              "description": "The author's username to rank posts for, e.g., '@victor31429'"
+            },
+            "top_n": {
+                "type": "integer",
+                "description": "The number of top posts to return.",
+                "default": 5
+            }
+          },
+          "required": ["author_id"]
+        },
+        "output_schema": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": ["success", "error"]
+            },
+            "ranked_posts": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "url": { "type": "string" },
+                  "score": { "type": "number" },
+                  "rank": { "type": "integer" }
+                }
+              }
+            },
+            "message": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    ],
+    "endpoint": "/agents/ranker"
+  }
+} 

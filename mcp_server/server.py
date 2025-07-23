@@ -13,8 +13,11 @@ from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 import redis.asyncio as redis
 from contextlib import asynccontextmanager
+from pydantic import BaseModel
 
 from common.settings import get_settings
+from agents.ranker.ranker_logic import RankerAgent
+from common.db_client import get_db_client
 
 
 class AgentCard:
@@ -302,6 +305,34 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Pydantic model for the ranker request
+class RankRequest(BaseModel):
+    author_id: str
+    top_n: Optional[int] = 5
+
+@app.post("/agents/ranker/rank_posts")
+async def rank_posts_endpoint(request: RankRequest):
+    """Endpoint to trigger the RankerAgent."""
+    try:
+        ranker = RankerAgent()
+        result = await ranker.rank_posts(author_id=request.author_id, top_n=request.top_n)
+        
+        # Ensure the shared db client pool is closed after use
+        db_client = await get_db_client()
+        if db_client and db_client.pool:
+            await db_client.close_pool()
+
+        if result.get("status") == "success":
+            return result
+        else:
+            raise HTTPException(status_code=500, detail=result.get("message", "Ranking failed"))
+    except Exception as e:
+        # Also ensure pool is closed on exception
+        db_client = await get_db_client()
+        if db_client and db_client.pool:
+            await db_client.close_pool()
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/health")
