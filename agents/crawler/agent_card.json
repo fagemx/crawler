@@ -1,0 +1,114 @@
+{
+  "name": "Crawler Agent",
+  "description": "簡化的社交媒體內容抓取代理，基於 Apify curious_coder/threads-scraper 實現貼文 URL 收集",
+  "version": "1.0.0",
+  "url": "http://localhost:8001",
+  "capabilities": {
+    "streaming": true,
+    "batch_processing": false,
+    "multi_platform": false,
+    "rate_limiting": true
+  },
+  "skills": [
+    {
+      "id": "fetch_threads_post_urls",
+      "name": "抓取 Threads 貼文 URL",
+      "description": "透過 Apify curious_coder/threads-scraper Actor 抓取指定用戶的貼文 URL，簡化版本只返回 URL 資訊",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "目標 Threads 用戶名（不需要 @ 前綴）"
+          },
+          "max_posts": {
+            "type": "integer",
+            "description": "最大抓取貼文數量",
+            "minimum": 1,
+            "maximum": 25,
+            "default": 10
+          }
+        },
+        "required": ["username"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "post_urls": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "url": {"type": "string", "description": "完整的 Threads 貼文 URL"},
+                "post_id": {"type": "string", "description": "貼文 ID"},
+                "username": {"type": "string", "description": "用戶名"}
+              }
+            }
+          },
+          "total_count": {"type": "integer"},
+          "processing_time": {"type": "number"},
+          "username": {"type": "string"},
+          "timestamp": {"type": "string"}
+        }
+      },
+      "tags": ["crawler", "threads", "url", "apify"],
+      "examples": [
+        {
+          "input": {
+            "username": "zuck",
+            "max_posts": 10
+          },
+          "description": "抓取 zuck 的最新 10 則貼文 URL"
+        }
+      ]
+    },
+    {
+      "id": "get_crawl_status",
+      "name": "獲取抓取狀態",
+      "description": "查詢當前抓取任務的執行狀態和進度",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "任務 ID"
+          }
+        },
+        "required": ["task_id"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "status": {"type": "string", "enum": ["pending", "running", "completed", "failed"]},
+          "progress": {"type": "number", "minimum": 0, "maximum": 1},
+          "message": {"type": "string"},
+          "posts_collected": {"type": "integer"}
+        }
+      },
+      "tags": ["status", "monitoring"]
+    }
+  ],
+  "requirements": {
+    "api_keys": ["APIFY_TOKEN"],
+    "dependencies": ["apify-client", "httpx", "pydantic"],
+    "external_services": ["Apify Platform - curious_coder/threads-scraper"]
+  },
+  "metadata": {
+    "author": "Social Media Content Generator Team",
+    "created_at": "2025-01-23",
+    "updated_at": "2025-01-23",
+    "supported_platforms": ["Threads"],
+    "apify_actor": "curious_coder/threads-scraper",
+    "rate_limits": {
+      "requests_per_minute": 10,
+      "posts_per_request": 25
+    },
+    "cost_info": {
+      "apify_cu_per_request": "< 1 CU",
+      "estimated_cost_per_10_posts": "$0.10 USD"
+    },
+    "output_format": "URLs only - simplified for downstream processing"
+  },
+  "health_check_url": "http://localhost:8001/health",
+  "documentation_url": "http://localhost:8001/docs"
+}

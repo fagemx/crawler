@@ -1,0 +1,380 @@
+version: '3.8'
+
+services:
+  # =============================================================================
+  # 基礎設施服務
+  # =============================================================================
+  
+  # PostgreSQL 主資料庫
+  postgres:
+    image: postgres:15-alpine
+    container_name: social-media-postgres
+    environment:
+      POSTGRES_DB: social_media_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - social-media-network
+
+  # Redis 快取和會話管理
+  redis:
+    image: redis:7-alpine
+    container_name: social-media-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - social-media-network
+
+  # NATS JetStream 訊息佇列
+  nats:
+    image: nats:2.10-alpine
+    container_name: social-media-nats
+    ports:
+      - "4222:4222"
+      - "8222:8222"  # HTTP monitoring
+    command: 
+      - "--jetstream"
+      - "--store_dir=/data"
+      - "--http_port=8222"
+    volumes:
+      - nats_data:/data
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8222/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - social-media-network
+
+  # =============================================================================
+  # 監控和追蹤服務
+  # =============================================================================
+
+  # Jaeger 分散式追蹤
+  jaeger:
+    image: jaegertracing/all-in-one:1.50
+    container_name: social-media-jaeger
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "14268:14268"  # HTTP collector
+    environment:
+      COLLECTOR_OTLP_ENABLED: true
+    networks:
+      - social-media-network
+
+  # Prometheus 監控
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: social-media-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - social-media-network
+
+  # Grafana 視覺化
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: social-media-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - social-media-network
+
+  # =============================================================================
+  # MCP Server 和核心服務
+  # =============================================================================
+
+  # MCP Server - Agent 註冊中心
+  mcp-server:
+    build:
+      context: .
+      dockerfile: mcp_server/Dockerfile
+    container_name: social-media-mcp-server
+    ports:
+      - "10100:10100"
+    environment:
+      - MCP_SERVER_PORT=10100
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:10100/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - social-media-network
+
+  # =============================================================================
+  # AI Agent 服務
+  # =============================================================================
+
+  # Orchestrator Agent - 總協調器
+  orchestrator-agent:
+    build:
+      context: .
+      dockerfile: agents/orchestrator/Dockerfile
+    container_name: social-media-orchestrator
+    ports:
+      - "8000:8000"
+    environment:
+      - AGENT_PORT=8000
+      - MCP_SERVER_URL=http://mcp-server:10100
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/social_media_db
+      - REDIS_URL=redis://redis:6379/0
+      - NATS_URL=nats://nats:4222
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+      mcp-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - social-media-network
+
+  # Crawler Agent - 爬蟲代理
+  crawler-agent:
+    build:
+      context: .
+      dockerfile: agents/crawler/Dockerfile
+    container_name: social-media-crawler
+    ports:
+      - "8001:8001"
+    environment:
+      - AGENT_PORT=8001
+      - MCP_SERVER_URL=http://mcp-server:10100
+      - REDIS_URL=redis://redis:6379/0
+      - NATS_URL=nats://nats:4222
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+      mcp-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - social-media-network
+
+  # Analysis Agent - 分析代理（合併 Media + Ranker）
+  analysis-agent:
+    build:
+      context: .
+      dockerfile: agents/analysis/Dockerfile
+    container_name: social-media-analysis
+    ports:
+      - "8002:8002"
+    environment:
+      - AGENT_PORT=8002
+      - MCP_SERVER_URL=http://mcp-server:10100
+      - REDIS_URL=redis://redis:6379/0
+      - NATS_URL=nats://nats:4222
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+      mcp-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - social-media-network
+
+  # Content Writer Agent - 內容生成代理
+  content-writer-agent:
+    build:
+      context: .
+      dockerfile: agents/content_writer/Dockerfile
+    container_name: social-media-writer
+    ports:
+      - "8003:8003"
+    environment:
+      - AGENT_PORT=8003
+      - MCP_SERVER_URL=http://mcp-server:10100
+      - REDIS_URL=redis://redis:6379/0
+      - NATS_URL=nats://nats:4222
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+      mcp-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - social-media-network
+
+  # =============================================================================
+  # 用戶介面
+  # =============================================================================
+
+  # Streamlit UI
+  streamlit-ui:
+    build:
+      context: .
+      dockerfile: ui/Dockerfile
+    container_name: social-media-ui
+    ports:
+      - "8501:8501"
+    environment:
+      - STREAMLIT_SERVER_PORT=8501
+      - ORCHESTRATOR_URL=http://orchestrator-agent:8000
+      - MCP_SERVER_URL=http://mcp-server:10100
+    env_file:
+      - .env
+    depends_on:
+      orchestrator-agent:
+        condition: service_healthy
+    networks:
+      - social-media-network
+
+  # =============================================================================
+  # 工具和維護服務
+  # =============================================================================
+
+  # 資料庫管理工具
+  pgadmin:
+    image: dpage/pgadmin4:7.8
+    container_name: social-media-pgadmin
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - social-media-network
+    profiles:
+      - tools
+
+  # Redis 管理工具
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: social-media-redis-commander
+    ports:
+      - "8081:8081"
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - social-media-network
+    profiles:
+      - tools
+
+# =============================================================================
+# 網路和存儲配置
+# =============================================================================
+
+networks:
+  social-media-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  nats_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+# =============================================================================
+# 使用說明
+# =============================================================================
+
+# 基本啟動：
+# docker-compose up -d
+
+# 包含管理工具：
+# docker-compose --profile tools up -d
+
+# 只啟動基礎設施：
+# docker-compose up -d postgres redis nats jaeger
+
+# 查看日誌：
+# docker-compose logs -f [service-name]
+
+# 停止所有服務：
+# docker-compose down
+
+# 清理所有數據：
+# docker-compose down -v
+
+# 重建特定服務：
+# docker-compose up -d --build [service-name]
