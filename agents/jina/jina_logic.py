@@ -235,7 +235,55 @@ class JinaMarkdownAgent:
             return urls if urls else None
         except:
             return None
-    
+
+    async def enrich_batch(self, batch: PostMetricsBatch) -> PostMetricsBatch:
+        """
+        Plan F 核心方法：接收一個可能不完整的 batch，
+        使用 Jina Reader 進行資料豐富化和後備填補。
+        """
+        for post in batch.posts:
+            try:
+                # 1. 呼叫 Jina API (這部分邏輯可以複用)
+                jina_url = self.base_url.format(url=post.url)
+                response = requests.get(jina_url, headers=self.headers_markdown, timeout=30)
+                response.raise_for_status()
+                markdown_text = response.text
+
+                # 2. 從 Markdown 中解析所有 Jina 能找到的指標
+                jina_metrics = self._extract_metrics_from_markdown(markdown_text)
+
+                # 3. 執行「補洞」邏輯
+                
+                # 任務 1: 無條件更新/填補 views
+                if jina_metrics.get("views") is not None:
+                    post.views_count = jina_metrics["views"]
+                
+                # 任務 2: 檢查 Playwright 提供的四大指標是否缺失，如果缺失，才用 Jina 的值
+                if post.likes_count is None and jina_metrics.get("likes") is not None:
+                    post.likes_count = jina_metrics["likes"]
+                
+                if post.comments_count is None and jina_metrics.get("comments") is not None:
+                    post.comments_count = jina_metrics["comments"]
+
+                if post.reposts_count is None and jina_metrics.get("reposts") is not None:
+                    post.reposts_count = jina_metrics["reposts"]
+                
+                if post.shares_count is None and jina_metrics.get("shares") is not None:
+                    post.shares_count = jina_metrics["shares"]
+
+                # 4. 更新貼文的處理狀態
+                post.processing_stage = "jina_enriched"
+                post.last_updated = datetime.utcnow()
+
+            except Exception as e:
+                # 如果 Jina 處理失敗，保持原樣，僅記錄錯誤
+                print(f"Jina enrich 失敗 for {post.url}: {e}")
+                continue # 繼續處理下一個 post
+        
+        # 返回被 Jina "加持" 過的 batch
+        batch.processing_stage = "jina_completed"
+        return batch
+
     async def batch_process_posts_with_storage(
         self, 
         posts: List[PostMetrics], 

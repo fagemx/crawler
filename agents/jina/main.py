@@ -14,14 +14,16 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from sse_starlette.sse import EventSourceResponse
+from starlette.responses import StreamingResponse
 
 from common.a2a import (
     A2AMessage, BaseAgent, stream_text, stream_error, 
-    MessageFormatError, TaskExecutionError
+    MessageFormatError, TaskExecutionError, A2APostMetricsRequest
 )
 from common.settings import get_settings
 from common.models import PostMetrics, PostMetricsBatch
 from .jina_logic import JinaLogic
+from .jina_markdown_agent import create_jina_markdown_agent
 
 
 class JinaAgent(BaseAgent):
@@ -131,7 +133,7 @@ class JinaAgent(BaseAgent):
 
 
 # 全域 Agent 實例
-jina_agent = JinaAgent()
+jina_agent = create_jina_markdown_agent()
 
 
 async def register_to_mcp():
@@ -248,41 +250,50 @@ async def handle_a2a_message(message_data: Dict[str, Any]):
         raise HTTPException(status_code=400, detail=f"處理訊息失敗: {str(e)}")
 
 
-@app.get("/tasks/{task_id}/status")
-async def get_task_status(task_id: str):
-    """獲取任務狀態 - 與現有架構一致"""
-    status = jina_agent.jina_logic.get_task_status(task_id)
-    
-    if status:
-        return status
-    else:
-        raise HTTPException(status_code=404, detail="任務未找到")
-
-
-@app.post("/enhance")
-async def enhance_posts(
-    posts_data: Dict[str, Any],
-    background_tasks: BackgroundTasks = None
-):
-    """直接增強端點（非 A2A 協議）- 與現有架構一致"""
+@app.post("/v1/jina/enrich", response_model=PostMetricsBatch, tags=["Plan F"])
+async def enrich_metrics_batch(batch: PostMetricsBatch):
+    """
+    Plan F - 資料豐富化端點
+    接收一個 PostMetricsBatch，使用 Jina Reader 填補缺失的指標，並返回更新後的 Batch。
+    """
     try:
-        posts = [PostMetrics(**post) for post in posts_data.get("posts", [])]
-        task_id = str(uuid.uuid4())
-        
-        async def event_stream():
-            async for result in jina_agent.jina_logic.enhance_posts_with_jina(
-                posts=posts,
-                task_id=task_id
-            ):
-                yield {
-                    "event": "data",
-                    "data": json.dumps(result)
-                }
-        
-        return EventSourceResponse(event_stream())
-        
+        # 使用 agent 的新方法來處理
+        enriched_batch = await jina_agent.enrich_batch(batch)
+        return enriched_batch
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"增強失敗: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Jina enrich 處理失敗: {str(e)}")
+
+
+@app.post("/v1/jina/process_and_store", response_model=Dict[str, Any], tags=["Plan E - Legacy"])
+async def process_and_store_posts(request: A2APostMetricsRequest):
+    """
+    Plan E (舊版) - 處理貼文 URL 並寫入儲存層
+    """
+    task_id = str(uuid.uuid4())
+    
+    # 從 request 中提取 posts
+    posts_to_process = request.posts
+    if not posts_to_process:
+        raise HTTPException(status_code=400, detail="請求中缺少貼文數據")
+        
+    async def event_generator():
+        # 啟動背景任務
+        try:
+            async for event in jina_agent.batch_process_posts_with_storage(posts_to_process, task_id):
+                yield f"data: {json.dumps(event)}\n\n"
+        except Exception as e:
+            error_event = stream_error(f"背景任務啟動失敗: {str(e)}")
+            yield f"data: {json.dumps(error_event)}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+@app.get("/v1/jina/tasks/{task_id}", response_model=Dict[str, Any], tags=["Plan E - Legacy"])
+def get_task_status(task_id: str):
+    """獲取 Plan E 任務的狀態"""
+    status = jina_agent.get_task_status(task_id)
+    if not status:
+        raise HTTPException(status_code=404, detail="找不到任務")
+    return status
 
 
 @app.get("/")

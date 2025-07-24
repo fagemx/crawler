@@ -7,6 +7,7 @@ import tempfile
 import uuid
 from pathlib import Path
 from typing import Dict, List, Optional, AsyncIterable
+from datetime import datetime
 
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
@@ -257,8 +258,15 @@ class PlaywrightLogic:
                         
             if new_count > 0:
                 logging.info(f"✅ [{qname}] +{new_count} (總 {len(posts)}/{max_posts})")
-                # 使用回調函數發送串流訊息
-                stream_callback(f"✅ 從 {qname} 解析到 {new_count} 則新貼文，總數: {len(posts)}")
+                # 使用回調函數發送串流訊息 (如果有的話)
+                if stream_callback:
+                    stream_callback(f"✅ 從 {qname} 解析到 {new_count} 則新貼文，總數: {len(posts)}")
+            
+            # 檢查是否已達到目標數量
+            if len(posts) >= max_posts:
+                logging.info(f"達到目標貼文數 {max_posts}，將盡快停止滾動。")
+                # 這裡可以觸發一個事件來停止滾動，但目前架構下會自然停止
+                pass
                 
             # 記錄新發現的查詢名稱（用於除錯）
             if qname not in self.known_queries:
@@ -279,78 +287,43 @@ class PlaywrightLogic:
         max_posts: int,
         auth_json_content: Dict,
         task_id: str = None
-    ) -> AsyncIterable[Dict]:
+    ) -> PostMetricsBatch:
         """
         使用指定的認證內容爬取貼文。
-
-        Args:
-            username: 目標使用者名稱 (不含 @)
-            max_posts: 最大貼文數
-            auth_json_content: auth.json 的內容
-            task_id: 任務 ID
-
-        Yields:
-            串流回傳的狀態和資料
+        此版本會聚合所有結果，並一次性返回 PostMetricsBatch。
         """
         target_url = f"https://www.threads.com/@{username}"
-        posts = {}
+        posts: Dict[str, PostMetrics] = {}
         
-        # 1. 安全地處理 auth.json
-        # 使用有唯一性的臨時檔案，並確保任務結束後刪除
+        # 1. 安全地將 auth.json 內容寫入臨時檔案
         auth_file = Path(tempfile.gettempdir()) / f"{task_id or uuid.uuid4()}_auth.json"
-        
         try:
-            with open(auth_file, "w") as f:
+            with open(auth_file, 'w', encoding='utf-8') as f:
                 json.dump(auth_json_content, f)
-
-            yield stream_status(TaskState.RUNNING, "Playwright 爬蟲準備中...", 0.1)
 
             async with async_playwright() as p:
                 browser = await p.chromium.launch(
                     headless=self.settings.headless,
                     timeout=self.settings.navigation_timeout,
-                    args=["--no-sandbox", "--disable-dev-shm-usage"]
+                    args=["--no-sandbox", "--disable-dev-shm-usage", "--disable-blink-features=AutomationControlled"]
                 )
                 ctx = await browser.new_context(
                     storage_state=str(auth_file),
-                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+                    user_agent=self.settings.user_agent, # 從設定讀取
                     viewport={"width": 1920, "height": 1080},
                     locale="en-US",
                     has_touch=True,
                     accept_downloads=False
                 )
                 page = await ctx.new_page()
-
-                # 修正 console handler（.text 是屬性不是方法）
                 page.on("console", lambda m: logging.info(f"CONSOLE [{m.type}] {m.text}"))
 
-                # 建立串流回調函數（用 list 儲存訊息供後續 yield）
-                stream_messages = []
-                def add_stream_message(message):
-                    stream_messages.append(stream_text(message))
-
-                # 先掛載 response listener（在 goto 之前）
-                response_handler = self._build_response_handler(
-                    username, posts, task_id, max_posts, add_stream_message
-                )
+                # Response handler
+                response_handler = self._build_response_handler(username, posts, task_id, max_posts, stream_callback=None)
                 page.on("response", response_handler)
 
-                yield stream_text(f"導覽至目標頁面: {target_url}")
+                logging.info(f"導覽至目標頁面: {target_url}")
                 await page.goto(target_url, wait_until="networkidle", timeout=self.settings.navigation_timeout)
-
-                # 檢查登入狀態
-                try:
-                    current_url = page.url
-                    is_login_page = "/login" in current_url or await page.locator("text=Log in").count() > 0
-                    if is_login_page:
-                        yield stream_text("⚠️ 偵測到登入頁面，認證可能已過期")
-                        logging.warning(f"目前 URL: {current_url}，可能需要重新產生 auth.json")
-                    else:
-                        yield stream_text("✅ 成功載入使用者頁面")
-                except Exception as e:
-                    logging.warning(f"檢查登入狀態時發生錯誤: {e}")
-
-                yield stream_text("頁面載入完成，開始滾動...")
 
                 # --- 滾動與延遲邏輯 ---
                 scroll_attempts_without_new_posts = 0
@@ -358,59 +331,56 @@ class PlaywrightLogic:
 
                 while len(posts) < max_posts:
                     posts_before_scroll = len(posts)
-                    
                     await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
 
                     try:
-                        # 等待 GraphQL 請求，增加穩定性
-                        async with page.expect_response(lambda res: GRAPHQL_RE.search(res.url), timeout=10000):
+                        async with page.expect_response(lambda res: GRAPHQL_RE.search(res.url), timeout=15000):
                             pass
                     except PlaywrightTimeoutError:
                         logging.warning(f"⏳ [Task: {task_id}] 滾動後等待網路回應逾時。")
 
-                    # 加入您指定的隨機延遲
-                    delay = random.uniform(2.0, 3.5)
+                    delay = random.uniform(self.settings.scroll_delay_min, self.settings.scroll_delay_max) # 從設定讀取
                     await asyncio.sleep(delay)
-
-                    # 發送累積的串流訊息
-                    for message in stream_messages:
-                        yield message
-                    stream_messages.clear()
 
                     if len(posts) == posts_before_scroll:
                         scroll_attempts_without_new_posts += 1
-                        yield stream_text(f"滾動後未發現新貼文 (嘗試 {scroll_attempts_without_new_posts}/{max_retries})")
+                        logging.info(f"滾動後未發現新貼文 (嘗試 {scroll_attempts_without_new_posts}/{max_retries})")
                         if scroll_attempts_without_new_posts >= max_retries:
-                            yield stream_text("已達頁面末端或無新內容，停止滾動。")
+                            logging.info("已達頁面末端或無新內容，停止滾動。")
                             break
                     else:
                         scroll_attempts_without_new_posts = 0
-
-
-
-                await ctx.close()
+                
+                await browser.close()
 
             # --- 整理並回傳結果 ---
             final_posts = list(posts.values())
-            logging.info(f"🔄 [Task: {task_id}] 準備發送最終資料：共 {len(final_posts)} 則貼文")
+            total_found = len(final_posts)
+            
+            # 根據 max_posts 截斷結果
+            if total_found > max_posts:
+                try:
+                    final_posts.sort(key=lambda p: p.created_at or datetime.min, reverse=True)
+                except Exception:
+                    pass 
+                final_posts = final_posts[:max_posts]
+            
+            logging.info(f"🔄 [Task: {task_id}] 準備回傳最終資料：共發現 {total_found} 則貼文, 回傳 {len(final_posts)} 則")
             
             batch = PostMetricsBatch(
-                posts=final_posts[:max_posts], # 確保不會超過請求的數量
+                posts=final_posts,
                 username=username,
-                total_count=len(final_posts),
+                total_count=total_found,
                 processing_stage="playwright_completed"
             )
+            return batch
             
-            logging.info(f"📤 [Task: {task_id}] 發送 PostMetricsBatch：{len(batch.posts)} 則貼文")
-            yield stream_data(batch.dict(), final=True)
-            logging.info(f"✅ [Task: {task_id}] 最終資料已發送完成")
-
         except Exception as e:
-            logging.error(f"❌ [Task: {task_id}] Playwright 爬取過程中發生錯誤: {e}", exc_info=True)
-            yield stream_error(f"Playwright 爬取失敗: {e}")
+            error_message = f"Playwright 核心邏輯出錯: {e}"
+            logging.error(error_message, exc_info=True)
+            raise
+        
         finally:
-            # 暫時註解掉，以便除錯
-            # if auth_file.exists():
-            #     auth_file.unlink()
-            #     logging.info(f"🗑️ [Task: {task_id}] 已刪除臨時認證檔案: {auth_file}")
-            pass 
+            if auth_file.exists():
+                auth_file.unlink()
+                logging.info(f"🗑️ [Task: {task_id}] 已刪除臨時認證檔案: {auth_file}") 

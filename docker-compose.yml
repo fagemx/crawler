@@ -280,6 +280,20 @@ services:
       - .:/app
     command: uvicorn agents.vision.main:app --host 0.0.0.0 --port 8005 --reload
 
+  jina-agent:
+    build:
+      context: .
+      dockerfile: ./agents/jina/Dockerfile
+    container_name: social-media-jina
+    ports:
+      - "${AGENT_JINA_AGENT_PORT:-8004}:8004"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+    volumes:
+      - .:/app
+    command: python -m uvicorn agents.jina.main:app --host 0.0.0.0 --port 8004 --reload
+
   playwright-crawler-agent:
     build:
       context: .

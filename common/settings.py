@@ -94,6 +94,12 @@ class PlaywrightSettings(BaseSettings):
     headless: bool = Field(default=True, description="是否以無頭模式運行 Playwright")
     concurrency: int = Field(default=3, description="每台機器同時運行的瀏覽器實例數")
     navigation_timeout: int = Field(default=60000, description="頁面導航超時時間（毫秒）")
+    scroll_delay_min: float = Field(default=2.0, description="每次滾動後的最小延遲（秒）")
+    scroll_delay_max: float = Field(default=3.5, description="每次滾動後的最大延遲（秒）")
+    user_agent: str = Field(
+        default="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+        description="Playwright 使用的 User-Agent"
+    )
     
     class Config:
         env_prefix = "PLAYWRIGHT_"
