@@ -266,29 +266,65 @@ services:
     networks:
       - social-media-network
 
+  vision-agent:
+    build:
+      context: .
+      dockerfile: ./agents/vision/Dockerfile
+    container_name: social-media-vision
+    ports:
+      - "${AGENT_VISION_AGENT_PORT:-8005}:8005"
+    environment:
+      - PYTHONPATH=/app
+      - POETRY_NO_INTERACTION=1
+    volumes:
+      - .:/app
+    command: uvicorn agents.vision.main:app --host 0.0.0.0 --port 8005 --reload
+
+  playwright-crawler-agent:
+    build:
+      context: .
+      dockerfile: ./agents/playwright_crawler/Dockerfile
+    container_name: social-media-playwright-crawler
+    ports:
+      - "${AGENT_PLAYWRIGHT_CRAWLER_AGENT_PORT:-8006}:8006"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+      - POETRY_NO_INTERACTION=1
+    volumes:
+      - .:/app
+      # 持久化瀏覽器快取，避免每次重啟都重新下載
+      - playwright_cache:/root/.cache/ms-playwright
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: '4G'
+    command: python -m uvicorn agents.playwright_crawler.main:app --host 0.0.0.0 --port 8006 --reload
+
   # =============================================================================
   # 用戶介面
   # =============================================================================
 
-  # Streamlit UI
-  streamlit-ui:
-    build:
-      context: .
-      dockerfile: ui/Dockerfile
-    container_name: social-media-ui
-    ports:
-      - "8501:8501"
-    environment:
-      - STREAMLIT_SERVER_PORT=8501
-      - ORCHESTRATOR_URL=http://orchestrator-agent:8000
-      - MCP_SERVER_URL=http://mcp-server:10100
-    env_file:
-      - .env
-    depends_on:
-      orchestrator-agent:
-        condition: service_healthy
-    networks:
-      - social-media-network
+  # Streamlit UI (暫時禁用，直到 ui/ 資料夾和 Dockerfile 被建立)
+  # streamlit-ui:
+  #   build:
+  #     context: .
+  #     dockerfile: ui/Dockerfile
+  #   container_name: social-media-ui
+  #   ports:
+  #     - "8501:8501"
+  #   environment:
+  #     - STREAMLIT_SERVER_PORT=8501
+  #     - ORCHESTRATOR_URL=http://orchestrator-agent:8000
+  #     - MCP_SERVER_URL=http://mcp-server:10100
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     orchestrator-agent:
+  #       condition: service_healthy
+  #   networks:
+  #     - social-media-network
 
   # =============================================================================
   # 工具和維護服務
@@ -352,6 +388,8 @@ volumes:
   grafana_data:
     driver: local
   pgadmin_data:
+    driver: local
+  playwright_cache:
     driver: local
 
 # =============================================================================

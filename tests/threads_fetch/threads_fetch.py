@@ -122,7 +122,7 @@ async def main():
     posts = {}
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=False)
+        browser = await p.chromium.launch(headless=True)
         ctx = await browser.new_context(storage_state=AUTH_FILE)
         page = await ctx.new_page()
 

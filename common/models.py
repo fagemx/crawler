@@ -55,6 +55,11 @@ class PostMetrics(BaseModel):
     reposts_count: Optional[int] = Field(None, description="轉發數")
     shares_count: Optional[int] = Field(None, description="分享數")
     
+    # 內容資料（可選，供即時使用）
+    content: Optional[str] = Field(None, description="貼文內容文字")
+    media_urls: Optional[List[str]] = Field(None, description="媒體 URL 列表")
+    created_at: Optional[datetime] = Field(None, description="貼文建立時間")
+    
     # 處理元數據
     source: str = Field(default="unknown", description="數據來源: apify, jina, vision")
     processing_stage: str = Field(default="initial", description="處理階段")

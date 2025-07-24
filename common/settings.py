@@ -83,9 +83,20 @@ class AgentSettings(BaseSettings):
     content_writer_port: int = Field(default=8003)
     jina_agent_port: int = Field(default=8004)
     vision_agent_port: int = Field(default=8005)
+    playwright_crawler_agent_port: int = Field(default=8006)
     
     class Config:
         env_prefix = "AGENT_"
+
+
+class PlaywrightSettings(BaseSettings):
+    """Playwright 爬蟲配置"""
+    headless: bool = Field(default=True, description="是否以無頭模式運行 Playwright")
+    concurrency: int = Field(default=3, description="每台機器同時運行的瀏覽器實例數")
+    navigation_timeout: int = Field(default=60000, description="頁面導航超時時間（毫秒）")
+    
+    class Config:
+        env_prefix = "PLAYWRIGHT_"
 
 
 class SecuritySettings(BaseSettings):
@@ -164,6 +175,7 @@ class Settings(BaseSettings):
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
     redis: RedisSettings = Field(default_factory=RedisSettings)
     mcp: MCPSettings = Field(default_factory=MCPSettings)
+    playwright: PlaywrightSettings = Field(default_factory=PlaywrightSettings)
     llm_providers: LLMProviderSettings = Field(default_factory=LLMProviderSettings)
 
     model_config = SettingsConfigDict(

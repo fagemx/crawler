@@ -1,0 +1,32 @@
+{
+    "name": "Playwright Crawler Agent",
+    "version": "1.0.0",
+    "description": "使用 Playwright 和使用者提供的認證狀態來爬取 Threads 貼文，以繞過 API 限制。",
+    "author": "AI Assistant",
+    "tags": ["crawler", "playwright", "threads", "scraping"],
+    "endpoints": [
+        {
+            "route": "/v1/playwright/crawl",
+            "method": "POST",
+            "description": "啟動一個新的爬取任務，使用提供的認證檔案。",
+            "request_schema": {
+                "username": "string",
+                "max_posts": "integer",
+                "auth_json_content": "object"
+            },
+            "response_schema": {
+                "status": "string",
+                "task_id": "string"
+            }
+        }
+    ],
+    "dependencies": [
+        "fastapi",
+        "uvicorn",
+        "playwright"
+    ],
+    "resources": {
+        "cpu": "1",
+        "memory": "2Gi"
+    }
+} 
