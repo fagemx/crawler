@@ -65,6 +65,17 @@ class GeminiSettings(BaseSettings):
         env_prefix = "GEMINI_"
 
 
+class JinaSettings(BaseSettings):
+    """Jina AI 配置"""
+    api_key: str = Field(default="")
+    base_url: str = Field(default="https://r.jina.ai/{url}")
+    
+    model_config = SettingsConfigDict(
+        env_prefix="JINA_",
+        extra='ignore'
+    )
+
+
 class MCPSettings(BaseModel):
     """MCP Server 配置"""
     server_host: str = "0.0.0.0"
@@ -177,11 +188,15 @@ class Settings(BaseSettings):
     app_name: str = "Social Media Content Generator"
     development_mode: bool = False
     
+    # 簡化的 Jina 設定
+    jina_api_key: str = Field(default="", env="JINA_API_KEY")
+    
     apify: ApifySettings = Field(default_factory=ApifySettings)
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
     redis: RedisSettings = Field(default_factory=RedisSettings)
     mcp: MCPSettings = Field(default_factory=MCPSettings)
     playwright: PlaywrightSettings = Field(default_factory=PlaywrightSettings)
+    jina: JinaSettings = Field(default_factory=JinaSettings)
     llm_providers: LLMProviderSettings = Field(default_factory=LLMProviderSettings)
 
     model_config = SettingsConfigDict(

@@ -1,19 +1,26 @@
-import asyncio
 import json
+import asyncio
 import logging
 import random
 import re
 import tempfile
 import uuid
 from pathlib import Path
-from typing import Dict, List, Optional, AsyncIterable
+from typing import Dict, List, Optional, AsyncIterable, Callable
 from datetime import datetime
 
-from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
+from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError, Browser, BrowserContext, Page
 
 from common.settings import get_settings
 from common.a2a import stream_text, stream_data, stream_status, stream_error, TaskState
 from common.models import PostMetrics, PostMetricsBatch
+
+# 調試檔案路徑
+DEBUG_DIR = Path(__file__).parent / "debug"
+DEBUG_DIR.mkdir(exist_ok=True)
+DEBUG_FAILED_ITEM_FILE = DEBUG_DIR / "failed_post_sample.json"
+SAMPLE_THREAD_ITEM_FILE = DEBUG_DIR / "sample_thread_item.json"
+RAW_CRAWL_DATA_FILE = DEBUG_DIR / "raw_crawl_data.json"
 
 # 設定日誌
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -139,7 +146,6 @@ def parse_post_data(post_data: dict, username: str) -> Optional[PostMetrics]:
         
         # 自動儲存第一筆 raw JSON 供分析
         try:
-            from .config import DEBUG_FAILED_ITEM_FILE
             if not DEBUG_FAILED_ITEM_FILE.exists():
                 DEBUG_FAILED_ITEM_FILE.write_text(json.dumps(post_data, indent=2, ensure_ascii=False))
                 logging.info(f"📝 已儲存失敗範例至 {DEBUG_FAILED_ITEM_FILE}")
@@ -243,7 +249,6 @@ class PlaywrightLogic:
                 # 自動儲存第一筆成功的 thread_item 供分析
                 if thread_items and new_count == 0:
                     try:
-                        from .config import SAMPLE_THREAD_ITEM_FILE
                         if not SAMPLE_THREAD_ITEM_FILE.exists():
                             SAMPLE_THREAD_ITEM_FILE.write_text(json.dumps(thread_items[0], indent=2, ensure_ascii=False))
                             logging.info(f"📝 已儲存成功範例至 {SAMPLE_THREAD_ITEM_FILE}")
@@ -273,7 +278,6 @@ class PlaywrightLogic:
                 self.known_queries.add(qname)
                 # 可選：寫入檔案以供日後分析
                 try:
-                    from pathlib import Path
                     with open("seen_queries.txt", "a", encoding="utf-8") as f:
                         f.write(f"{qname}\n")
                 except Exception:
@@ -366,6 +370,38 @@ class PlaywrightLogic:
                 final_posts = final_posts[:max_posts]
             
             logging.info(f"🔄 [Task: {task_id}] 準備回傳最終資料：共發現 {total_found} 則貼文, 回傳 {len(final_posts)} 則")
+            
+            # 保存原始抓取資料供調試
+            try:
+                raw_data = {
+                    "task_id": task_id,
+                    "username": username, 
+                    "timestamp": datetime.now().isoformat(),
+                    "total_found": total_found,
+                    "returned_count": len(final_posts),
+                    "posts": [
+                        {
+                            "url": post.url,
+                            "post_id": post.post_id,
+                            "likes_count": post.likes_count,
+                            "comments_count": post.comments_count,
+                            "reposts_count": post.reposts_count,
+                            "shares_count": post.shares_count,
+                            "views_count": post.views_count,
+                            "content": post.content,
+                            "created_at": post.created_at.isoformat() if post.created_at else None
+                        } for post in final_posts
+                    ]
+                }
+                
+                # 使用時間戳記避免檔案衝突
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                raw_file = DEBUG_DIR / f"crawl_data_{timestamp}_{task_id[:8]}.json"
+                raw_file.write_text(json.dumps(raw_data, indent=2, ensure_ascii=False))
+                logging.info(f"💾 [Task: {task_id}] 已保存原始抓取資料至: {raw_file}")
+                
+            except Exception as e:
+                logging.warning(f"⚠️ [Task: {task_id}] 保存調試資料失敗: {e}")
             
             batch = PostMetricsBatch(
                 posts=final_posts,

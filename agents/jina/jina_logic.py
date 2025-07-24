@@ -12,12 +12,14 @@ Jina Markdown Agent 核心邏輯 - Plan E 重構版
 import re
 import requests
 import asyncio
+import logging
 from typing import Dict, Any, Optional, List, AsyncIterable
 from datetime import datetime
 
 from common.models import PostMetrics, PostMetricsBatch, TaskState
 from common.redis_client import get_redis_client
 from common.db_client import get_db_client
+from common.settings import get_settings
 from common.a2a import stream_text, stream_status, stream_data, stream_error
 
 
@@ -26,26 +28,35 @@ class JinaMarkdownAgent:
     
     def __init__(self):
         """初始化 Jina Markdown Agent"""
+        # 獲取設定
+        self.settings = get_settings()
+        
         # Jina API 設定
         self.base_url = "https://r.jina.ai/{url}"
-        self.headers_markdown = {"x-respond-with": "markdown"}
+        self.headers_markdown = {
+            "X-Return-Format": "markdown"
+        }
+        
+        # 如果有 API Key，則添加認證標頭
+        if self.settings.jina_api_key:
+            self.headers_markdown["Authorization"] = f"Bearer {self.settings.jina_api_key}"
         
         # Redis 和資料庫客戶端
         self.redis_client = get_redis_client()
         
-        # 正則表達式模式
+        # 正則表達式模式 - 更新以匹配實際的 Jina 回應格式
         self.metrics_pattern = re.compile(
-            r'\*\*?Thread.*? (?P<views>[\d\.KM,]+) views.*?'
-            r'愛心.*? (?P<likes>[\d\.KM,]*) .*?'
-            r'留言.*? (?P<comments>[\d\.KM,]*) .*?'
-            r'轉發.*? (?P<reposts>[\d\.KM,]*) .*?'
-            r'分享.*? (?P<shares>[\d\.KM,]*)', 
-            re.S
+            r'Thread.*?(?P<views>[\d\.KM,]+)\s*views',
+            re.IGNORECASE | re.DOTALL
         )
         
         # 任務狀態追蹤
         self.active_tasks = {}
     
+    def _clean_num(self, s: str) -> str:
+        """移除數字字串中的不可見字元，例如 U+FE0F"""
+        return re.sub(r'[\u200d\u200c\uFE0F]', '', s)
+
     def _parse_number(self, text: str) -> Optional[int]:
         """解析數字字串（支援 K, M 後綴）"""
         if not text:
@@ -205,25 +216,37 @@ class JinaMarkdownAgent:
     
     def _extract_metrics_from_markdown(self, markdown_text: str) -> Dict[str, Optional[int]]:
         """從 Markdown 文本提取指標"""
-        match = self.metrics_pattern.search(markdown_text)
-        
-        if not match:
-            return {
-                "views": None,
-                "likes": None, 
-                "comments": None,
-                "reposts": None,
-                "shares": None
-            }
-        
-        groups = match.groupdict()
-        return {
-            "views": self._parse_number(groups.get("views")),
-            "likes": self._parse_number(groups.get("likes")),
-            "comments": self._parse_number(groups.get("comments")),
-            "reposts": self._parse_number(groups.get("reposts")),
-            "shares": self._parse_number(groups.get("shares"))
+        result = {
+            "views": None,
+            "likes": None, 
+            "comments": None,
+            "reposts": None,
+            "shares": None
         }
+        
+        # 提取 views 
+        views_match = self.metrics_pattern.search(markdown_text)
+        if views_match:
+            views_value = views_match.groupdict().get("views")
+            result["views"] = self._parse_number(views_value)
+        
+        # 嘗試提取其他指標 - 使用更靈活的方法
+        # 查找數字後面跟著 "likes", "comments", "reposts", "shares" 等字樣
+        patterns = {
+            "likes": [r'(\d+(?:\.\d+)?[KM]?)\s*(?:likes?|愛心|👍)', r'(\d+(?:\.\d+)?[KM]?)\s*(?:like|heart)'],
+            "comments": [r'(\d+(?:\.\d+)?[KM]?)\s*(?:comments?|留言|💬)', r'(\d+(?:\.\d+)?[KM]?)\s*(?:comment|reply)'],
+            "reposts": [r'(\d+(?:\.\d+)?[KM]?)\s*(?:reposts?|轉發|🔄)', r'(\d+(?:\.\d+)?[KM]?)\s*(?:repost|retweet)'],
+            "shares": [r'(\d+(?:\.\d+)?[KM]?)\s*(?:shares?|分享|📤)', r'(\d+(?:\.\d+)?[KM]?)\s*(?:share|forward)']
+        }
+        
+        for metric, pattern_list in patterns.items():
+            for pattern in pattern_list:
+                match = re.search(pattern, markdown_text, re.IGNORECASE)
+                if match:
+                    result[metric] = self._parse_number(match.group(1))
+                    break  # 找到第一個匹配就停止
+        
+        return result
     
     def _extract_media_urls(self, markdown_text: str) -> Optional[List[str]]:
         """從 Markdown 文本提取媒體 URL（簡單實現）"""
@@ -241,7 +264,13 @@ class JinaMarkdownAgent:
         Plan F 核心方法：接收一個可能不完整的 batch，
         使用 Jina Reader 進行資料豐富化和後備填補。
         """
-        for post in batch.posts:
+        logging.info(f"🚀 [JinaLogic] enrich_batch 方法被調用！")
+        
+        enriched_count = 0
+        total_count = len(batch.posts)
+        logging.info(f"🔄 [Jina] 開始豐富化 {total_count} 個貼文...")
+        
+        for i, post in enumerate(batch.posts, 1):
             try:
                 # 1. 呼叫 Jina API (這部分邏輯可以複用)
                 jina_url = self.base_url.format(url=post.url)
@@ -274,14 +303,24 @@ class JinaMarkdownAgent:
                 # 4. 更新貼文的處理狀態
                 post.processing_stage = "jina_enriched"
                 post.last_updated = datetime.utcnow()
+                enriched_count += 1
+                
+                # 詳細日誌
+                views_info = f"views: {jina_metrics.get('views', 'N/A')}"
+                likes_info = f"likes: {jina_metrics.get('likes', 'N/A')}"
+                logging.info(f"✅ [Jina] ({i}/{total_count}) 成功豐富化 {post.url[:50]}... - {views_info}, {likes_info}")
 
             except Exception as e:
                 # 如果 Jina 處理失敗，保持原樣，僅記錄錯誤
-                print(f"Jina enrich 失敗 for {post.url}: {e}")
+                logging.error(f"❌ [Jina] ({i}/{total_count}) 處理失敗 {post.url}: {e}")
                 continue # 繼續處理下一個 post
         
         # 返回被 Jina "加持" 過的 batch
         batch.processing_stage = "jina_completed"
+        
+        # 總結性日誌
+        logging.info(f"🎯 [Jina] 豐富化完成！成功處理 {enriched_count}/{total_count} 個貼文")
+        
         return batch
 
     async def batch_process_posts_with_storage(

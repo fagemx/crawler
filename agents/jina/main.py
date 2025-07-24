@@ -7,9 +7,16 @@ Jina Agent 主程式
 
 import asyncio
 import json
+import logging
 import uuid
 from typing import Dict, Any, AsyncIterable
 from contextlib import asynccontextmanager
+
+# 配置日誌
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,12 +25,11 @@ from starlette.responses import StreamingResponse
 
 from common.a2a import (
     A2AMessage, BaseAgent, stream_text, stream_error, 
-    MessageFormatError, TaskExecutionError, A2APostMetricsRequest
+    MessageFormatError, TaskExecutionError
 )
 from common.settings import get_settings
-from common.models import PostMetrics, PostMetricsBatch
-from .jina_logic import JinaLogic
-from .jina_markdown_agent import create_jina_markdown_agent
+from common.models import PostMetrics, PostMetricsBatch, TaskState, A2APostMetricsRequest
+from .jina_logic import JinaMarkdownAgent
 
 
 class JinaAgent(BaseAgent):
@@ -31,10 +37,9 @@ class JinaAgent(BaseAgent):
     
     def __init__(self):
         super().__init__(
-            agent_name="Jina Agent",
+            agent_name="Jina增強代理",
             agent_description="使用 Jina AI 增強貼文數據，特別是 views 數據"
         )
-        self.jina_logic = JinaLogic()
         self.settings = get_settings()
     
     async def handle_message(self, message: A2AMessage) -> AsyncIterable[Dict[str, Any]]:
@@ -96,8 +101,8 @@ class JinaAgent(BaseAgent):
                 yield stream_error("貼文列表為空")
                 return
             
-            # 執行 Jina 增強任務
-            async for result in self.jina_logic.enhance_posts_with_jina(
+            # 執行 Jina 增強任務  
+            async for result in jina_agent.enhance_posts_with_jina(
                 posts=posts,
                 task_id=message.task_id
             ):
@@ -133,7 +138,7 @@ class JinaAgent(BaseAgent):
 
 
 # 全域 Agent 實例
-jina_agent = create_jina_markdown_agent()
+jina_agent = JinaMarkdownAgent()
 
 
 async def register_to_mcp():
@@ -180,7 +185,7 @@ async def periodic_cleanup():
     while True:
         try:
             await asyncio.sleep(3600)  # 每小時清理一次
-            jina_agent.jina_logic.cleanup_completed_tasks()
+            jina_agent.cleanup_completed_tasks()
         except asyncio.CancelledError:
             break
         except Exception as e:
@@ -208,7 +213,7 @@ app.add_middleware(
 @app.get("/health")
 async def health_check():
     """健康檢查端點 - 與現有架構一致"""
-    health_status = await jina_agent.jina_logic.health_check()
+    health_status = jina_agent.health_check()
     
     return {
         "agent": "Jina Agent",
@@ -257,10 +262,16 @@ async def enrich_metrics_batch(batch: PostMetricsBatch):
     接收一個 PostMetricsBatch，使用 Jina Reader 填補缺失的指標，並返回更新後的 Batch。
     """
     try:
+        logging.info(f"📥 [端點] 收到豐富化請求：{len(batch.posts)} 個貼文")
+        logging.info(f"📥 [端點] Batch ID: {batch.batch_id}, Username: {batch.username}")
+        
         # 使用 agent 的新方法來處理
         enriched_batch = await jina_agent.enrich_batch(batch)
+        
+        logging.info(f"📤 [端點] 豐富化完成，返回 {len(enriched_batch.posts)} 個貼文")
         return enriched_batch
     except Exception as e:
+        logging.error(f"❌ [端點] Jina enrich 處理失敗: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Jina enrich 處理失敗: {str(e)}")
 
 
@@ -310,8 +321,6 @@ async def root():
             "direct_enhance": "/enhance"
         }
     }
-
-
 if __name__ == "__main__":
     import uvicorn
     
@@ -324,3 +333,4 @@ if __name__ == "__main__":
         reload=settings.is_development(),
         log_level="info"
     )
+
