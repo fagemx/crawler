@@ -6,7 +6,7 @@
 
 import uuid
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 
@@ -59,6 +59,17 @@ class PostMetrics(BaseModel):
     content: Optional[str] = Field(None, description="貼文內容文字")
     media_urls: Optional[List[str]] = Field(None, description="媒體 URL 列表")
     created_at: Optional[datetime] = Field(None, description="貼文建立時間")
+    
+    # --- 新增媒體欄位 ---
+    images: List[str] = Field(default_factory=list)
+    videos: List[str] = Field(default_factory=list)
+    media_urls: Optional[List[str]] = Field(default_factory=list) # 可選：保留舊欄位以相容
+
+    @validator('created_at', pre=True, always=True)
+    def parse_created_at(cls, v):
+        if isinstance(v, str):
+            return datetime.fromisoformat(v)
+        return v
     
     # 處理元數據
     source: str = Field(default="unknown", description="數據來源: apify, jina, vision")

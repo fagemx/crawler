@@ -43,8 +43,12 @@ FIELD_MAP = {
         ["reply_info", "count"]
     ],
     "share_count": [
-        ["text_post_app_info", "repost_count"],
-        "repostCount", "share_count", "shareCount"
+        ["text_post_app_info", "reshare_count"],  # 真正的 shares 欄位
+        "reshareCount", "share_count", "shareCount"
+    ],
+    "repost_count": [
+        ["text_post_app_info", "repost_count"],  # reposts 欄位
+        "repostCount", "repost_count"
     ],
     "content": [
         ["caption", "text"],
@@ -147,10 +151,13 @@ def parse_post_data(post_data: dict, username: str) -> Optional[PostMetrics]:
         # 自動儲存第一筆 raw JSON 供分析
         try:
             if not DEBUG_FAILED_ITEM_FILE.exists():
-                DEBUG_FAILED_ITEM_FILE.write_text(json.dumps(post_data, indent=2, ensure_ascii=False))
+                DEBUG_FAILED_ITEM_FILE.write_text(
+                    json.dumps(post_data, indent=2, ensure_ascii=False),
+                    encoding="utf-8" # 明確指定 UTF-8
+                )
                 logging.info(f"📝 已儲存失敗範例至 {DEBUG_FAILED_ITEM_FILE}")
         except Exception:
-            pass
+            pass  # 寫檔失敗不影響主要功能
             
         return None
 
@@ -166,7 +173,10 @@ def parse_post_data(post_data: dict, username: str) -> Optional[PostMetrics]:
         logging.info(f"❌ 找不到有效的 code，可用欄位: {list(post.keys())}")
         return None
 
-    url = f"https://www.threads.net/t/{code}"
+    # --- URL 修復：使用正確的格式 ---
+    # 舊格式 (錯誤): f"https://www.threads.net/t/{code}"
+    # 新格式 (正確): f"https://www.threads.com/@{username}/post/{code}"
+    url = f"https://www.threads.com/@{username}/post/{code}"
 
     # 使用多鍵 fallback 解析所有欄位
     author = first_of(post, *FIELD_MAP["author"]) or username
@@ -174,6 +184,7 @@ def parse_post_data(post_data: dict, username: str) -> Optional[PostMetrics]:
     like_count = first_of(post, *FIELD_MAP["like_count"]) or 0
     comment_count = first_of(post, *FIELD_MAP["comment_count"]) or 0
     share_count = first_of(post, *FIELD_MAP["share_count"]) or 0
+    repost_count = first_of(post, *FIELD_MAP["repost_count"]) or 0
     created_at = first_of(post, *FIELD_MAP["created_at"])
     
     # 偵測未知欄位（用於調試和改進）
@@ -197,8 +208,43 @@ def parse_post_data(post_data: dict, username: str) -> Optional[PostMetrics]:
         except Exception:
             pass  # 寫檔失敗不影響主要功能
 
+    # --- MEDIA -------------------------------------------------------------
+    images, videos = [], []
+
+    def append_image(url):
+        if url and url not in images:
+            images.append(url)
+
+    def append_video(url):
+        if url and url not in videos:
+            videos.append(url)
+
+    def best_candidate(candidates: list[dict], prefer_mp4=False):
+        """
+        從 image_versions2 或 video_versions 裡挑「寬度最大的那個」URL
+        """
+        if not candidates:
+            return None
+        key = "url"
+        return max(candidates, key=lambda c: c.get("width", 0)).get(key)
+
+    # 1) 單圖 / 單片
+    if "image_versions2" in post:
+        append_image(best_candidate(post["image_versions2"].get("candidates", [])))
+    if "video_versions" in post:
+        append_video(best_candidate(post.get("video_versions", []), prefer_mp4=True))
+
+    # 2) 輪播 carousel_media (加入 None 的安全處理)
+    for media in post.get("carousel_media") or []:
+        if "image_versions2" in media:
+            append_image(best_candidate(media["image_versions2"].get("candidates", [])))
+        if "video_versions" in media:
+            append_video(best_candidate(media.get("video_versions", []), prefer_mp4=True))
+    # -----------------------------------------------------------------------
+
+
     # 成功解析，記錄部分資訊供除錯
-    logging.info(f"✅ 成功解析貼文 {post_id}: 作者={author}, 讚數={like_count}, 內容前50字={content[:50]}...")
+    logging.info(f"✅ 成功解析貼文 {post_id}: 作者={author}, 讚數={like_count}, 圖片={len(images)}, 影片={len(videos)}")
     
     return PostMetrics(
         url=url,
@@ -208,9 +254,12 @@ def parse_post_data(post_data: dict, username: str) -> Optional[PostMetrics]:
         processing_stage="playwright_crawled",
         likes_count=int(like_count) if isinstance(like_count, (int, str)) and str(like_count).isdigit() else 0,
         comments_count=int(comment_count) if isinstance(comment_count, (int, str)) and str(comment_count).isdigit() else 0,
-        reposts_count=int(share_count) if isinstance(share_count, (int, str)) and str(share_count).isdigit() else 0,
+        reposts_count=int(repost_count) if isinstance(repost_count, (int, str)) and str(repost_count).isdigit() else 0,
+        shares_count=int(share_count) if isinstance(share_count, (int, str)) and str(share_count).isdigit() else 0,
         content=content,
         created_at=created_at,
+        images=images,
+        videos=videos,
     )
 
 
@@ -250,7 +299,10 @@ class PlaywrightLogic:
                 if thread_items and new_count == 0:
                     try:
                         if not SAMPLE_THREAD_ITEM_FILE.exists():
-                            SAMPLE_THREAD_ITEM_FILE.write_text(json.dumps(thread_items[0], indent=2, ensure_ascii=False))
+                            SAMPLE_THREAD_ITEM_FILE.write_text(
+                                json.dumps(thread_items[0], indent=2, ensure_ascii=False),
+                                encoding="utf-8" # 明確指定 UTF-8
+                            )
                             logging.info(f"📝 已儲存成功範例至 {SAMPLE_THREAD_ITEM_FILE}")
                     except Exception:
                         pass
@@ -397,7 +449,10 @@ class PlaywrightLogic:
                 # 使用時間戳記避免檔案衝突
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 raw_file = DEBUG_DIR / f"crawl_data_{timestamp}_{task_id[:8]}.json"
-                raw_file.write_text(json.dumps(raw_data, indent=2, ensure_ascii=False))
+                raw_file.write_text(
+                    json.dumps(raw_data, indent=2, ensure_ascii=False),
+                    encoding="utf-8" # 明確指定 UTF-8
+                )
                 logging.info(f"💾 [Task: {task_id}] 已保存原始抓取資料至: {raw_file}")
                 
             except Exception as e:

@@ -67,13 +67,38 @@ class GeminiSettings(BaseSettings):
 
 class JinaSettings(BaseSettings):
     """Jina AI 配置"""
-    api_key: str = Field(default="")
+    api_key: str = Field(default="", description="設定為空字串以使用免費版。會被 JINA_API_KEY 環境變數覆蓋。")
     base_url: str = Field(default="https://r.jina.ai/{url}")
+    max_posts_per_batch: int = Field(default=100, description="每批次最大處理貼文數量")
+    concurrent_requests: int = Field(default=5, description="同時並發請求數量，0=自動, 10=壓力測試, 5=快速模式穩定值")
+    
+    # 根據 Jina API 文檔的速率限制
+    free_tier_rpm: int = Field(default=20, description="免費版每分鐘請求限制")
+    paid_tier_rpm: int = Field(default=5000, description="付費版每分鐘請求限制")
     
     model_config = SettingsConfigDict(
-        env_prefix="JINA_",
+        env_prefix="JINA_", # <-- 恢復，使其能從 .env 讀取 JINA_API_KEY
         extra='ignore'
     )
+    
+    def get_optimal_concurrency(self) -> int:
+        """根據是否有 API Key 自動計算最佳並發數 (防呆加強版)"""
+        # 1. 優先使用手動設定，但要過濾掉 0
+        if self.concurrent_requests > 0:
+            return self.concurrent_requests
+        
+        # 2. 根據 API Key 計算，並設置安全邊界
+        concurrency = 1 # 預設值，確保永不為 0
+        if self.api_key:
+            # 付費版：RPM / 60s = RPS。用 min 限制上限，用 max 確保下限
+            # 即使 paid_tier_rpm 被設為 0，max(1, ...) 也能確保結果至少為 1
+            concurrency = max(1, min(20, self.paid_tier_rpm // 60))
+        else:
+            # 免費版：固定為 1 就好，因為 20 RPM 太低，不適合並發
+            concurrency = 1
+            
+        # 3. 最後再檢查一次，確保不會是 0
+        return max(1, concurrency)
 
 
 class MCPSettings(BaseModel):
@@ -86,7 +111,7 @@ class MCPSettings(BaseModel):
         env_prefix = "MCP_"
 
 
-class AgentSettings(BaseSettings):
+class AgentSettings(BaseModel):
     """Agent 服務配置"""
     orchestrator_port: int = Field(default=8000)
     crawler_agent_port: int = Field(default=8001)
@@ -188,8 +213,7 @@ class Settings(BaseSettings):
     app_name: str = "Social Media Content Generator"
     development_mode: bool = False
     
-    # 簡化的 Jina 設定
-    jina_api_key: str = Field(default="", env="JINA_API_KEY")
+    # 此處不再需要 jina_api_key，它已經被移到 JinaSettings 內
     
     apify: ApifySettings = Field(default_factory=ApifySettings)
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
@@ -203,7 +227,7 @@ class Settings(BaseSettings):
         env_file=".env", 
         env_nested_delimiter='_',
         case_sensitive=False,
-        extra='ignore'  # Ignore extra fields from .env file
+        extra='ignore'
     )
 
     def is_development(self) -> bool:

@@ -1,0 +1,2411 @@
+{
+  "batch_info": {
+    "batch_id": "54d21f47-c5e0-40c5-b5a1-6eef7c4c8814",
+    "username": "starettoday",
+    "total_posts": 100,
+    "processing_stage": "jina_completed",
+    "timestamp": "20250724_194048"
+  },
+  "posts": [
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMSvgzSyGt0",
+      "post_id": "3680212807800351604",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 1600000,
+        "likes_count": 6614,
+        "comments_count": 165,
+        "reposts_count": 51,
+        "shares_count": 1194,
+        "calculated_score": 1602158.2
+      },
+      "content": {
+        "text": "汪東城這自爆⋯已經太炸裂了🤯😳‼️",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:39:08.800382",
+        "created_at": "2025-07-19T14:33:44+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMSHQpmyQHq",
+      "post_id": "3680035776026444266",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 586000,
+        "likes_count": 8203,
+        "comments_count": 251,
+        "reposts_count": 95,
+        "shares_count": 3333,
+        "calculated_score": 588879.0000000001
+      },
+      "content": {
+        "text": "【快訊／鄧佳華女友首現身談分手內幕出獄日曝光　網紅瑋哥直接踢館要接收簡簡】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:39:27.906140",
+        "created_at": "2025-07-19T08:41:12+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMUNAFrys7e",
+      "post_id": "3680623976176602846",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 467000,
+        "likes_count": 3010,
+        "comments_count": 47,
+        "reposts_count": 17,
+        "shares_count": 711,
+        "calculated_score": 467989.89999999997
+      },
+      "content": {
+        "text": "【演唱會開一半！女歌手突強拉男星讓位　「緊擁千萬男友爆哭」】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:38:48.468451",
+        "created_at": "2025-07-20T04:09:51+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMP-AQpSclo",
+      "post_id": "3679432117341243752",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 341000,
+        "likes_count": 6767,
+        "comments_count": 76,
+        "reposts_count": 140,
+        "shares_count": 3100,
+        "calculated_score": 343376.89999999997
+      },
+      "content": {
+        "text": "【YG老闆梁鉉錫確定有罪！強迫韓瑞希掩蓋買毒案　遭判6月徒刑緩刑1年】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:40:12.439029",
+        "created_at": "2025-07-18T12:41:50+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMX2ikSyc39",
+      "post_id": "3681651090342399485",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 312000,
+        "likes_count": 2671,
+        "comments_count": 83,
+        "reposts_count": 27,
+        "shares_count": 119,
+        "calculated_score": 312840.80000000005
+      },
+      "content": {
+        "text": "這位大哥知道自己在說什麼嗎❓❓❓",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:37:27.027847",
+        "created_at": "2025-07-21T14:11:35+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMUcq2Ty1cT",
+      "post_id": "3680692885303023379",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 310000,
+        "likes_count": 2945,
+        "comments_count": 26,
+        "reposts_count": 51,
+        "shares_count": 1217,
+        "calculated_score": 311018.1
+      },
+      "content": {
+        "text": "Gulf被拉走以後，還在旁邊幫忙拍手😅",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:38:44.816871",
+        "created_at": "2025-07-20T06:26:45+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMaGO8TSDqy",
+      "post_id": "3682283060428552882",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 303000,
+        "likes_count": 8580,
+        "comments_count": 45,
+        "reposts_count": 162,
+        "shares_count": 529,
+        "calculated_score": 305656.60000000003
+      },
+      "content": {
+        "text": "【劉宇寧守約已故粉絲6年！　演唱會22排9號永遠空著：給妳留位，記得來】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:36:46.567355",
+        "created_at": "2025-07-22T11:06:09+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMXfklDSyZl",
+      "post_id": "3681550073525380709",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 279000,
+        "likes_count": 5682,
+        "comments_count": 85,
+        "reposts_count": 227,
+        "shares_count": 4633,
+        "calculated_score": 281216.1
+      },
+      "content": {
+        "text": "【鄧紫棋親證實「台灣演唱會」消息！　歌迷狂喜：等了6年終於】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:37:26.999608",
+        "created_at": "2025-07-21T10:49:50+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMePo9byENf",
+      "post_id": "3683450330676740959",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 276000,
+        "likes_count": 2352,
+        "comments_count": 56,
+        "reposts_count": 16,
+        "shares_count": 652,
+        "calculated_score": 276789.19999999995
+      },
+      "content": {
+        "text": "【小A辣開房美球星「進房玩到撞斷牙」！超哈她百萬身材　過程全曝光】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:35:14.209858",
+        "created_at": "2025-07-24T01:45:18+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMZFXAPyqij",
+      "post_id": "3681997741397551267",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 269000,
+        "likes_count": 15520,
+        "comments_count": 84,
+        "reposts_count": 57,
+        "shares_count": 39,
+        "calculated_score": 273690.80000000005
+      },
+      "content": {
+        "text": "【台電員工殉職器捐！　陳文茜深夜悼念：你一生付出都是不認識的人】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:37:17.234362",
+        "created_at": "2025-07-22T01:39:16+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMQE-flSXja",
+      "post_id": "3679462782266865882",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 245000,
+        "likes_count": 4908,
+        "comments_count": 10,
+        "reposts_count": 30,
+        "shares_count": 136,
+        "calculated_score": 246492.0
+      },
+      "content": {
+        "text": "【不藏了！瘦子當萬人面前宣布重大喜訊：來都來了...全場嗨到暴動】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:40:05.882575",
+        "created_at": "2025-07-18T13:42:45+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMcqQT0yH_L",
+      "post_id": "3683004434033967051",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 239000,
+        "likes_count": 3138,
+        "comments_count": 162,
+        "reposts_count": 30,
+        "shares_count": 453,
+        "calculated_score": 240038.3
+      },
+      "content": {
+        "text": "【「吳姍儒道歉劉宇寧」登微博熱搜！2000萬粉絲炸鍋　吳宗憲護航也遭噴】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:35:41.386682",
+        "created_at": "2025-07-23T10:59:23+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMZKEcXyU4_",
+      "post_id": "3682018456158948927",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 221000,
+        "likes_count": 1775,
+        "comments_count": 10,
+        "reposts_count": 1,
+        "shares_count": 27,
+        "calculated_score": 221538.30000000002
+      },
+      "content": {
+        "text": "【女星「闖」飛機駕駛艙拍照挨轟！　機師尪急護妻：停在地上可拍】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:37:10.715572",
+        "created_at": "2025-07-22T02:20:25+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMXP8swSJHB",
+      "post_id": "3681481362319643073",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 201000,
+        "likes_count": 992,
+        "comments_count": 17,
+        "reposts_count": 0,
+        "shares_count": 28,
+        "calculated_score": 201305.5
+      },
+      "content": {
+        "text": "【Joeman激瘦32公斤變歐爸！　疑認愛掌鏡人「同遊歐洲」霸氣喊：不是渣男】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:37:46.848954",
+        "created_at": "2025-07-21T08:33:19+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMVS3-WykuU",
+      "post_id": "3680931281808018324",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 193000,
+        "likes_count": 815,
+        "comments_count": 14,
+        "reposts_count": 9,
+        "shares_count": 385,
+        "calculated_score": 193288.1
+      },
+      "content": {
+        "text": "【鄭乃馨宣布改名「是時候讓Nene安息了」　詭異飛升影片挨轟：癲狂】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:38:22.073828",
+        "created_at": "2025-07-20T14:20:24+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMb-C21SKoj",
+      "post_id": "3682809995504167459",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 192000,
+        "likes_count": 1671,
+        "comments_count": 187,
+        "reposts_count": 25,
+        "shares_count": 545,
+        "calculated_score": 192614.4
+      },
+      "content": {
+        "text": "【吳姍儒把劉宇寧頭像踩地上！粉痛批「太不尊重」　製作單位火速道歉了】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:36:05.527805",
+        "created_at": "2025-07-23T04:33:04+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMZnTxvyT2a",
+      "post_id": "3682147053251149210",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 169000,
+        "likes_count": 355,
+        "comments_count": 6,
+        "reposts_count": 0,
+        "shares_count": 7,
+        "calculated_score": 169109.0
+      },
+      "content": {
+        "text": "【李小璐出軌遭網暴4年「甜馨首護母開嗆」！　點讚爆賈乃亮：不是好老公】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:36:55.931496",
+        "created_at": "2025-07-22T06:35:55+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMbf5eDSAsz",
+      "post_id": "3682677409024838451",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 168000,
+        "likes_count": 502,
+        "comments_count": 55,
+        "reposts_count": 1,
+        "shares_count": 59,
+        "calculated_score": 168173.1
+      },
+      "content": {
+        "text": "【Sandy轉賣公關品丟代言「爆小S背後操弄」！友洩口風：委屈到極點】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:36:24.237469",
+        "created_at": "2025-07-23T00:09:39+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMZ3Dv4ybQE",
+      "post_id": "3682216320487240708",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 160000,
+        "likes_count": 677,
+        "comments_count": 16,
+        "reposts_count": 0,
+        "shares_count": 34,
+        "calculated_score": 160211.3
+      },
+      "content": {
+        "text": "【丫頭又被爆離婚　經紀人火速回應　她曾說「沒看過這麼專情的男人」】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:36:52.229660",
+        "created_at": "2025-07-22T08:53:33+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMVGMjHS843",
+      "post_id": "3680875521061408311",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 148000,
+        "likes_count": 10718,
+        "comments_count": 8,
+        "reposts_count": 153,
+        "shares_count": 221,
+        "calculated_score": 151255.19999999998
+      },
+      "content": {
+        "text": "比了兩次愛心ㄚ💗✨\n＼為什麼江坤宇可以／",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:38:29.264945",
+        "created_at": "2025-07-20T12:30:38+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMR8rBNylz0",
+      "post_id": "3679989209571679476",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 146000,
+        "likes_count": 299,
+        "comments_count": 4,
+        "reposts_count": 0,
+        "shares_count": 5,
+        "calculated_score": 146091.40000000002
+      },
+      "content": {
+        "text": "【袁惟仁「口頭承諾全跳票」！　陸元琪獨扛2孩還債：我們不富裕但很幸福】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:39:37.278442",
+        "created_at": "2025-07-19T07:08:40+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMU5_EySBKa",
+      "post_id": "3680821818585256602",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 131000,
+        "likes_count": 3141,
+        "comments_count": 8,
+        "reposts_count": 23,
+        "shares_count": 742,
+        "calculated_score": 132021.19999999998
+      },
+      "content": {
+        "text": "【獨家／李珠珢宣布推出首本寫真！　生日前夕不藏了「絕美照片搶先曝」】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:38:37.617576",
+        "created_at": "2025-07-20T10:42:55+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMWdzk7yabw",
+      "post_id": "3681260833121871600",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 124000,
+        "likes_count": 1999,
+        "comments_count": 40,
+        "reposts_count": 46,
+        "shares_count": 1317,
+        "calculated_score": 124748.0
+      },
+      "content": {
+        "text": "【唐綺陽運勢／射手有望脫單！金牛「有金桃花」 天秤感情能量低】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:38:03.765695",
+        "created_at": "2025-07-21T01:15:10+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMSHRHqyAV6",
+      "post_id": "3680035808305743226",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 111000,
+        "likes_count": 186,
+        "comments_count": 5,
+        "reposts_count": 0,
+        "shares_count": 58,
+        "calculated_score": 111063.1
+      },
+      "content": {
+        "text": "原來兩人早分手⋯！！\nhttps://star.ettoday.net/news/2999358?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:39:23.592520",
+        "created_at": "2025-07-19T08:41:15+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMXb0vSy28N",
+      "post_id": "3681533591848447757",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 100000,
+        "likes_count": 3366,
+        "comments_count": 11,
+        "reposts_count": 33,
+        "shares_count": 38,
+        "calculated_score": 101020.20000000001
+      },
+      "content": {
+        "text": "好聽到⋯耳朵懷孕😻‼️\n第一名實至名歸ㄚ～～～",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:37:38.147575",
+        "created_at": "2025-07-21T10:29:13+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMZ-7n2yc-E",
+      "post_id": "3682250946480033668",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 99300,
+        "likes_count": 1021,
+        "comments_count": 16,
+        "reposts_count": 16,
+        "shares_count": 199,
+        "calculated_score": 99632.6
+      },
+      "content": {
+        "text": "大展鴻圖這樣真的有好聽嗎⋯😅？？",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:36:48.031652",
+        "created_at": "2025-07-22T10:04:19+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMbtAcxSTOp",
+      "post_id": "3682735063290164137",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 98800,
+        "likes_count": 1107,
+        "comments_count": 2,
+        "reposts_count": 2,
+        "shares_count": 18,
+        "calculated_score": 99134.70000000001
+      },
+      "content": {
+        "text": "【樂天女孩嘎琳夜奔商辦大樓　行李箱一推消失3天…球團回應行蹤】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:36:21.222649",
+        "created_at": "2025-07-23T02:04:12+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMcCP40y7y9",
+      "post_id": "3682828483182705853",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 93200,
+        "likes_count": 249,
+        "comments_count": 19,
+        "reposts_count": 3,
+        "shares_count": 16,
+        "calculated_score": 93282.3
+      },
+      "content": {
+        "text": "【快訊／吳姍儒踩劉宇寧照片「發聲道歉了」！　愧認：我應該負責的錯誤】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:36:00.444711",
+        "created_at": "2025-07-23T05:09:48+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMUNAvSSX93",
+      "post_id": "3680624020845854583",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 88800,
+        "likes_count": 39,
+        "comments_count": 2,
+        "reposts_count": 0,
+        "shares_count": 23,
+        "calculated_score": 88814.6
+      },
+      "content": {
+        "text": "情緒整個失控.....@@\n\nhttps://star.ettoday.net/news/2999649?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:38:49.981043",
+        "created_at": "2025-07-20T04:09:56+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMWYXaGybA7",
+      "post_id": "3681236907117359163",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 87900,
+        "likes_count": 249,
+        "comments_count": 7,
+        "reposts_count": 0,
+        "shares_count": 7,
+        "calculated_score": 87977.5
+      },
+      "content": {
+        "text": "【何妤玟遭索賠600萬！　「妹妹菸蒂燒掉租房」拒背鍋…身心出狀況】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:38:14.536118",
+        "created_at": "2025-07-21T00:27:38+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMUJN1mSAMa",
+      "post_id": "3680607328790905626",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 81300,
+        "likes_count": 1224,
+        "comments_count": 4,
+        "reposts_count": 3,
+        "shares_count": 19,
+        "calculated_score": 81670.59999999999
+      },
+      "content": {
+        "text": "【12歲創業當老闆！　郭靜純驕傲「兒3領域全靠自己」】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:38:55.853638",
+        "created_at": "2025-07-20T03:36:46+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMS2Hp9SI36",
+      "post_id": "3680241866114633210",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 79600,
+        "likes_count": 2695,
+        "comments_count": 2,
+        "reposts_count": 20,
+        "shares_count": 93,
+        "calculated_score": 80420.40000000001
+      },
+      "content": {
+        "text": "【LE SSERAFIM九份逛街「竟遇到成員親媽」　櫻花嚇壞：喔，我媽欸？】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:39:04.579782",
+        "created_at": "2025-07-19T15:30:39+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMc94C-yEbY",
+      "post_id": "3683090727610894040",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 71900,
+        "likes_count": 524,
+        "comments_count": 8,
+        "reposts_count": 0,
+        "shares_count": 53,
+        "calculated_score": 72064.9
+      },
+      "content": {
+        "text": "【吳宗憲《玩很大》驚傳將收攤！　《大熱門》轉週末播出1原因卡關】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:35:27.081691",
+        "created_at": "2025-07-23T13:50:50+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMRazi6yUAs",
+      "post_id": "3679840261934497836",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 67000,
+        "likes_count": 242,
+        "comments_count": 1,
+        "reposts_count": 2,
+        "shares_count": 14,
+        "calculated_score": 67074.5
+      },
+      "content": {
+        "text": "【愛紗「子宮肌瘤半年速長到12cm」！延後手術原因曝：比什麼都重要】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:39:56.389910",
+        "created_at": "2025-07-19T02:12:45+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMePpYEynFT",
+      "post_id": "3683450359282037075",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 63400,
+        "likes_count": 25,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 13,
+        "calculated_score": 63408.8
+      },
+      "content": {
+        "text": "只好隔天緊急去找醫生補救😅\n\nhttps://star.ettoday.net/news/3002013?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:35:05.944596",
+        "created_at": "2025-07-24T01:45:22+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMSYzlVyygD",
+      "post_id": "3680112943418779651",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 63100,
+        "likes_count": 311,
+        "comments_count": 6,
+        "reposts_count": 1,
+        "shares_count": 29,
+        "calculated_score": 63198.100000000006
+      },
+      "content": {
+        "text": "【汪東城熱戀1年想婚「才發現自己是小王」　崩潰首曝情傷：新郎不是我】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:39:21.668542",
+        "created_at": "2025-07-19T11:14:31+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMWxVSMyqcT",
+      "post_id": "3681346712351975187",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 59300,
+        "likes_count": 538,
+        "comments_count": 6,
+        "reposts_count": 1,
+        "shares_count": 33,
+        "calculated_score": 59466.600000000006
+      },
+      "content": {
+        "text": "【李珠珢爆熱戀「早被拍到交往跡象」！　大5歲朴洙鍾資歷起底】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:38:00.447414",
+        "created_at": "2025-07-21T04:05:47+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMP-CeSSzbp",
+      "post_id": "3679432269426800361",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 59200,
+        "likes_count": 82,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 54,
+        "calculated_score": 59230.0
+      },
+      "content": {
+        "text": "最終結果出爐了👀\nhttps://star.ettoday.net/news/2998966?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:40:11.950036",
+        "created_at": "2025-07-18T12:42:08+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMP4a_kSl4J",
+      "post_id": "3679407566150589961",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 58800,
+        "likes_count": 143,
+        "comments_count": 1,
+        "reposts_count": 0,
+        "shares_count": 19,
+        "calculated_score": 58845.100000000006
+      },
+      "content": {
+        "text": "【青龍系列大獎／人氣女星禮服尷尬往下滑⋯　胸前走光畫面全放送】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:40:24.778332",
+        "created_at": "2025-07-18T11:53:03+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMR4wZySa-2",
+      "post_id": "3679971987365146550",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 53700,
+        "likes_count": 1356,
+        "comments_count": 3,
+        "reposts_count": 2,
+        "shares_count": 1,
+        "calculated_score": 54108.0
+      },
+      "content": {
+        "text": "【Sweety 驚喜合體！　劉品言挺孕肚同框曾之喬　網掀回憶殺】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:39:37.234743",
+        "created_at": "2025-07-19T06:34:27+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMZanOJS9Yb",
+      "post_id": "3682091214809323035",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 53700,
+        "likes_count": 558,
+        "comments_count": 7,
+        "reposts_count": 9,
+        "shares_count": 212,
+        "calculated_score": 53891.6
+      },
+      "content": {
+        "text": "【「短劇CP」何聰睿、劉念爆戀情！　私約看演唱會…甜蜜互動被直擊】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:37:10.488192",
+        "created_at": "2025-07-22T04:44:59+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMXflEkSTgk",
+      "post_id": "3681550107364898852",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 51100,
+        "likes_count": 189,
+        "comments_count": 3,
+        "reposts_count": 3,
+        "shares_count": 303,
+        "calculated_score": 51188.200000000004
+      },
+      "content": {
+        "text": "終於😭‼️‼️‼️‼️‼️\nhttps://star.ettoday.net/news/3000489?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:37:22.840024",
+        "created_at": "2025-07-21T10:49:54+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMXD6MtSu46",
+      "post_id": "3681428413912641082",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 50400,
+        "likes_count": 557,
+        "comments_count": 2,
+        "reposts_count": 3,
+        "shares_count": 4,
+        "calculated_score": 50568.4
+      },
+      "content": {
+        "text": "【曾之喬陷低潮「痛哭打給辰亦儒」　6年前跨海對話曝光：被接住了】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:37:54.180123",
+        "created_at": "2025-07-21T06:48:07+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMcqSzFyrZQ",
+      "post_id": "3683004605044274768",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 50300,
+        "likes_count": 110,
+        "comments_count": 3,
+        "reposts_count": 0,
+        "shares_count": 22,
+        "calculated_score": 50336.1
+      },
+      "content": {
+        "text": "風波延燒到微博了＠＠\nhttps://star.ettoday.net/news/3001869?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:35:36.326995",
+        "created_at": "2025-07-23T10:59:44+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMeE8plyG_7",
+      "post_id": "3683403305247600635",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 49100,
+        "likes_count": 474,
+        "comments_count": 14,
+        "reposts_count": 3,
+        "shares_count": 354,
+        "calculated_score": 49282.1
+      },
+      "content": {
+        "text": "【BL男星梓渝驚爆劈腿2女！女友PO「貼臉親密照」痛訴…他深夜道歉停工】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:35:17.416153",
+        "created_at": "2025-07-24T00:11:52+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMStYyAyPAu",
+      "post_id": "3680203460575817774",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 48000,
+        "likes_count": 1353,
+        "comments_count": 2,
+        "reposts_count": 8,
+        "shares_count": 12,
+        "calculated_score": 48408.5
+      },
+      "content": {
+        "text": "【蔡依林無預警現身LE SSERAFIM演唱會！　心情曝光「大讚5件事」】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:39:16.388966",
+        "created_at": "2025-07-19T14:14:21+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMVS4mySAHH",
+      "post_id": "3680931325218914759",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 45100,
+        "likes_count": 25,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 8,
+        "calculated_score": 45108.3
+      },
+      "content": {
+        "text": "Nene精神狀態⋯還好嗎🥹‼️\nhttps://star.ettoday.net/news/2999936?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:38:16.027507",
+        "created_at": "2025-07-20T14:20:29+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMQOYofyI0C",
+      "post_id": "3679504160963202306",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 43500,
+        "likes_count": 568,
+        "comments_count": 5,
+        "reposts_count": 3,
+        "shares_count": 141,
+        "calculated_score": 43686.3
+      },
+      "content": {
+        "text": "【朴軫永曬父女同框照！　女兒真面目「根本複製貼上」網驚：也長太像】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:40:03.180942",
+        "created_at": "2025-07-18T15:04:58+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMehnERy5QI",
+      "post_id": "3683529365423625224",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 39100,
+        "likes_count": 154,
+        "comments_count": 2,
+        "reposts_count": 0,
+        "shares_count": 27,
+        "calculated_score": 39149.49999999999
+      },
+      "content": {
+        "text": "【Coldplay偷情CEO「妻爆毀滅性證據」！　砸117萬露骨視訊20歲情色網紅】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:35:07.577698",
+        "created_at": "2025-07-24T04:22:20+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMXXTo4ySy6",
+      "post_id": "3681513725040864442",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 38900,
+        "likes_count": 619,
+        "comments_count": 4,
+        "reposts_count": 15,
+        "shares_count": 19,
+        "calculated_score": 39090.299999999996
+      },
+      "content": {
+        "text": "【丁禹兮跳爆紅掃腿舞！「腿P到比身體長2倍」崩潰笑場　29秒片衝熱搜】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:37:38.133091",
+        "created_at": "2025-07-21T09:37:37+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMesoyhSdZy",
+      "post_id": "3683577862306780786",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 39000,
+        "likes_count": 151,
+        "comments_count": 6,
+        "reposts_count": 1,
+        "shares_count": 4,
+        "calculated_score": 39047.600000000006
+      },
+      "content": {
+        "text": "【吳姍儒踩劉宇寧頭像遭炎上！　電視台滅爭議畫面「證實整集不會露出」】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:34:56.948128",
+        "created_at": "2025-07-24T05:58:41+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMcdidUSKKH",
+      "post_id": "3682948506572071559",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 37800,
+        "likes_count": 835,
+        "comments_count": 3,
+        "reposts_count": 0,
+        "shares_count": 4,
+        "calculated_score": 38051.8
+      },
+      "content": {
+        "text": "【恭喜！曾子余結婚了「娶回交往2年圈外女友」　納豆、黃鐙輝見證幸福】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:35:45.195215",
+        "created_at": "2025-07-23T09:08:16+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMb12jwSnXr",
+      "post_id": "3682773966013494763",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 35800,
+        "likes_count": 143,
+        "comments_count": 5,
+        "reposts_count": 0,
+        "shares_count": 4,
+        "calculated_score": 35844.8
+      },
+      "content": {
+        "text": "【遭爆罵大小S！吳宗憲喊冤「我是說黃子佼」　預告下午2點開直播：太離譜】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:36:11.027135",
+        "created_at": "2025-07-23T03:21:29+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMT7PknSIl3",
+      "post_id": "3680545875341904247",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 35700,
+        "likes_count": 395,
+        "comments_count": 1,
+        "reposts_count": 3,
+        "shares_count": 20,
+        "calculated_score": 35821.100000000006
+      },
+      "content": {
+        "text": "星期天早上，就要看一些顧眼睛的～～～\n謝謝小樂😍😍😍",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:39:00.963752",
+        "created_at": "2025-07-20T01:34:40+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMVaHUWSS5w",
+      "post_id": "3680963122539605616",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 34400,
+        "likes_count": 195,
+        "comments_count": 2,
+        "reposts_count": 2,
+        "shares_count": 8,
+        "calculated_score": 34460.1
+      },
+      "content": {
+        "text": "超ㄎㄧㄤ的A-Lin真的就「隨便」唸😆💗\n太勾錐ㄌ～～～",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:38:16.253055",
+        "created_at": "2025-07-20T15:24:15+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMcOVmxS6bB",
+      "post_id": "3682881652671620801",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 33000,
+        "likes_count": 124,
+        "comments_count": 39,
+        "reposts_count": 2,
+        "shares_count": 28,
+        "calculated_score": 33051.899999999994
+      },
+      "content": {
+        "text": "【吳姍儒惹怒劉宇寧粉絲！吳宗憲護航「就是綜藝梗」　叮嚀女兒對話曝光】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:35:51.807351",
+        "created_at": "2025-07-23T06:55:27+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMQFBBZyqgL",
+      "post_id": "3679462956020181003",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 31800,
+        "likes_count": 37,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 27,
+        "calculated_score": 31813.8
+      },
+      "content": {
+        "text": "來都來了🤩🤩頑童就不會讓大家失望🫵\nhttps://star.ettoday.net/news/2999007?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:40:01.971191",
+        "created_at": "2025-07-18T13:43:06+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMVC5_7yId8",
+      "post_id": "3680861052197177212",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 28900,
+        "likes_count": 821,
+        "comments_count": 2,
+        "reposts_count": 9,
+        "shares_count": 8,
+        "calculated_score": 29148.6
+      },
+      "content": {
+        "text": "【直擊／LE SSERAFIM再邀大咖到場！許光漢現身觀眾席熱舞　萬人嗨翻】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:38:33.286925",
+        "created_at": "2025-07-20T12:00:52+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMbf59byVmI",
+      "post_id": "3682677442721962376",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 28800,
+        "likes_count": 49,
+        "comments_count": 1,
+        "reposts_count": 0,
+        "shares_count": 3,
+        "calculated_score": 28815.3
+      },
+      "content": {
+        "text": "S姐最近應該都在忙著照顧家人吧…🥺\n\nhttps://star.ettoday.net/news/3001266?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:36:20.481213",
+        "created_at": "2025-07-23T00:09:43+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMb-DPty0JU",
+      "post_id": "3682810022222053972",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 27100,
+        "likes_count": 53,
+        "comments_count": 10,
+        "reposts_count": 0,
+        "shares_count": 30,
+        "calculated_score": 27121.9
+      },
+      "content": {
+        "text": "雖然製作單位已經道歉…\n但還是很難澆熄粉絲的怒火呀😥\n\nhttps://star.ettoday.net/news/3001526?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:36:03.654297",
+        "created_at": "2025-07-23T04:33:08+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMZKE50yZeT",
+      "post_id": "3682018487784019859",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 26400,
+        "likes_count": 12,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 3,
+        "calculated_score": 26403.899999999998
+      },
+      "content": {
+        "text": "網友先別急著罵啊∑(✘Д✘๑ )\n\nhttps://star.ettoday.net/news/3000570?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:37:09.791178",
+        "created_at": "2025-07-22T02:20:29+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMRnRp_yr9w",
+      "post_id": "3679895107677110128",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 25300,
+        "likes_count": 80,
+        "comments_count": 1,
+        "reposts_count": 0,
+        "shares_count": 3,
+        "calculated_score": 25324.6
+      },
+      "content": {
+        "text": "【肖戰微博刪掉前綴！　X玖少年團「成員同步改名」間接宣告解散】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:39:51.516007",
+        "created_at": "2025-07-19T04:01:43+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMaGRcaSucK",
+      "post_id": "3682283232344860426",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 24600,
+        "likes_count": 105,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 5,
+        "calculated_score": 24632.0
+      },
+      "content": {
+        "text": "每一年他都沒有忘記啊😭\nhttps://star.ettoday.net/news/3000858?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:36:44.384820",
+        "created_at": "2025-07-22T11:06:29+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMaUN3IyIeK",
+      "post_id": "3682344558815381386",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 24100,
+        "likes_count": 89,
+        "comments_count": 1,
+        "reposts_count": 1,
+        "shares_count": 1,
+        "calculated_score": 24127.199999999997
+      },
+      "content": {
+        "text": "【陳柏霖分享舒華私下3優點…點出「3不怕」狂讚　親曝走出低潮秘訣】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:36:36.796936",
+        "created_at": "2025-07-22T13:08:20+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMS2INRSxCL",
+      "post_id": "3680241904031305867",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 23500,
+        "likes_count": 33,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 2,
+        "calculated_score": 23510.100000000002
+      },
+      "content": {
+        "text": "會不會太剛好(̨̡ ¨̮ )̧̢(̨̡ ¨̮ )̧̢↬❥\nhttps://star.ettoday.net/news/2999462?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:39:01.689013",
+        "created_at": "2025-07-19T15:30:44+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMXP9LayE7e",
+      "post_id": "3681481395244912350",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 22200,
+        "likes_count": 6,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 1,
+        "calculated_score": 22201.899999999998
+      },
+      "content": {
+        "text": "九妹說不想騙大家😳‼️\nhttps://star.ettoday.net/news/3000357?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:37:42.755939",
+        "created_at": "2025-07-21T08:33:23+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMc0bUTSstE",
+      "post_id": "3683049170925177668",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 21600,
+        "likes_count": 40,
+        "comments_count": 1,
+        "reposts_count": 0,
+        "shares_count": 0,
+        "calculated_score": 21612.3
+      },
+      "content": {
+        "text": "【滴妹出國騎馬過敏發作癢爆！　「滿臉紅腫氣喘」驚險過程曝】",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:35:32.682615",
+        "created_at": "2025-07-23T12:28:16+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMc96aUy3hN",
+      "post_id": "3683090890115217485",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 21100,
+        "likes_count": 27,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 9,
+        "calculated_score": 21109.0
+      },
+      "content": {
+        "text": "憲哥的節目都陸續熄燈了😮\nhttps://star.ettoday.net/news/3001920?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:35:20.382004",
+        "created_at": "2025-07-23T13:51:10+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMZ3FWTSIKu",
+      "post_id": "3682216430453424814",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 21000,
+        "likes_count": 21,
+        "comments_count": 2,
+        "reposts_count": 0,
+        "shares_count": 0,
+        "calculated_score": 21006.899999999998
+      },
+      "content": {
+        "text": "目前暫時沒聯絡到丫頭本人…\nhttps://star.ettoday.net/news/3001011?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:36:46.399181",
+        "created_at": "2025-07-22T08:53:46+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMZnUJcSMLu",
+      "post_id": "3682147078693765870",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 18800,
+        "likes_count": 9,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 0,
+        "calculated_score": 18802.7
+      },
+      "content": {
+        "text": "母女之間的感情很好！\n\nhttps://star.ettoday.net/news/3000671?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:36:55.331523",
+        "created_at": "2025-07-22T06:35:59+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMZFXZayQ9r",
+      "post_id": "3681997768425541483",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 14900,
+        "likes_count": 116,
+        "comments_count": 3,
+        "reposts_count": 0,
+        "shares_count": 1,
+        "calculated_score": 14935.8
+      },
+      "content": {
+        "text": "偉大的英雄🙏請在天堂好好休息吧！\n\nhttps://star.ettoday.net/news/3000616?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:37:16.159192",
+        "created_at": "2025-07-22T01:39:19+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMWd0KYS5X9",
+      "post_id": "3681260873328596477",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 14300,
+        "likes_count": 18,
+        "comments_count": 0,
+        "reposts_count": 1,
+        "shares_count": 18,
+        "calculated_score": 14307.3
+      },
+      "content": {
+        "text": "金牛本週有長輩緣！\n\nhttps://star.ettoday.net/news/2999780?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:38:01.306366",
+        "created_at": "2025-07-21T01:15:15+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMR8rkpypf9",
+      "post_id": "3679989247622420477",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 12600,
+        "likes_count": 8,
+        "comments_count": 1,
+        "reposts_count": 0,
+        "shares_count": 0,
+        "calculated_score": 12602.699999999999
+      },
+      "content": {
+        "text": "拉拔兩個孩子長大真的辛苦了....\n\nhttps://star.ettoday.net/news/2999229?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:39:31.969803",
+        "created_at": "2025-07-19T07:08:45+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMSY0PNSrfz",
+      "post_id": "3680112988373301235",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 12600,
+        "likes_count": 7,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 0,
+        "calculated_score": 12602.1
+      },
+      "content": {
+        "text": "感覺被傷🉐很深🥹‼️\nhttps://star.ettoday.net/news/2999313?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:39:16.833825",
+        "created_at": "2025-07-19T11:14:36+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMeE9Ghytsk",
+      "post_id": "3683403336319163172",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 12400,
+        "likes_count": 7,
+        "comments_count": 1,
+        "reposts_count": 0,
+        "shares_count": 27,
+        "calculated_score": 12405.1
+      },
+      "content": {
+        "text": "聊天記錄也都被公開了…😰\n\nhttps://star.ettoday.net/news/3002021?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:35:12.900381",
+        "created_at": "2025-07-24T00:11:56+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMPxDxkyjNL",
+      "post_id": "3679375184253039435",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 12200,
+        "likes_count": 17,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 2,
+        "calculated_score": 12205.300000000001
+      },
+      "content": {
+        "text": "都是漂亮女生呀😻😻\nhttps://star.ettoday.net/news/2998654?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:40:25.300714",
+        "created_at": "2025-07-18T10:48:43+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMcCRGzSiGL",
+      "post_id": "3682828566909297035",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 11500,
+        "likes_count": 8,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 0,
+        "calculated_score": 11502.4
+      },
+      "content": {
+        "text": "Sandy也道歉了‼️\n\nhttps://star.ettoday.net/news/3001568?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:35:58.278102",
+        "created_at": "2025-07-23T05:09:58+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMQObHry965",
+      "post_id": "3679504331889696441",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 11000,
+        "likes_count": 6,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 1,
+        "calculated_score": 11001.9
+      },
+      "content": {
+        "text": "不用身分證也知道爸爸是JYP😆💓\nhttps://star.ettoday.net/news/2998829?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:40:00.252014",
+        "created_at": "2025-07-18T15:05:19+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMbtA5mS2cX",
+      "post_id": "3682735094244271895",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 10900,
+        "likes_count": 26,
+        "comments_count": 1,
+        "reposts_count": 0,
+        "shares_count": 3,
+        "calculated_score": 10908.399999999998
+      },
+      "content": {
+        "text": "車子一停就是三天…😮\n\nhttps://star.ettoday.net/news/3001261?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:36:14.266256",
+        "created_at": "2025-07-23T02:04:15+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMWYXyoShVg",
+      "post_id": "3681236933449225568",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 10300,
+        "likes_count": 9,
+        "comments_count": 1,
+        "reposts_count": 0,
+        "shares_count": 0,
+        "calculated_score": 10303.0
+      },
+      "content": {
+        "text": "債務都壓在她身上....\n\nhttps://star.ettoday.net/news/2999988?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:38:07.955100",
+        "created_at": "2025-07-21T00:27:41+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMZanrCSclc",
+      "post_id": "3682091245830261084",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 9800,
+        "likes_count": 12,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 8,
+        "calculated_score": 9804.4
+      },
+      "content": {
+        "text": "好配好配～～嗑到真情侶了嗎？！😍\n\nhttps://star.ettoday.net/news/3000809?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:37:01.774239",
+        "created_at": "2025-07-22T04:45:03+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMU6ANKyVb2",
+      "post_id": "3680821896305792758",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 9500,
+        "likes_count": 14,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 4,
+        "calculated_score": 9504.6
+      },
+      "content": {
+        "text": "一定要買(՞⸝⸝ᵒ̴̶̷᷄꒳ᵒ̴̶̷᷅⸝⸝՞)💕✨‼️\nhttps://star.ettoday.net/news/2999838?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:38:34.263198",
+        "created_at": "2025-07-20T10:43:04+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMRa0GdSA3w",
+      "post_id": "3679840300094197232",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 9100,
+        "likes_count": 8,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 0,
+        "calculated_score": 9102.4
+      },
+      "content": {
+        "text": "生命無法重來，這個決定也是因為愛啊🥺\n\nhttps://star.ettoday.net/news/2999106?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:39:55.133678",
+        "created_at": "2025-07-19T02:12:49+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMStZPyyMFi",
+      "post_id": "3680203492553179490",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 8800,
+        "likes_count": 15,
+        "comments_count": 0,
+        "reposts_count": 1,
+        "shares_count": 1,
+        "calculated_score": 8804.7
+      },
+      "content": {
+        "text": "天后的演唱會觀後心得來嚕✨💞\nhttps://star.ettoday.net/news/2999495?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:39:09.855711",
+        "created_at": "2025-07-19T14:14:25+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMUJOOzywL9",
+      "post_id": "3680607355861140221",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 8700,
+        "likes_count": 12,
+        "comments_count": 1,
+        "reposts_count": 0,
+        "shares_count": 1,
+        "calculated_score": 8704.0
+      },
+      "content": {
+        "text": "孩子從小就有生意頭腦耶😎\n\nhttps://star.ettoday.net/news/2999593?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:38:52.478304",
+        "created_at": "2025-07-20T03:36:49+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMVC6ejSuzn",
+      "post_id": "3680861085072288999",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 8400,
+        "likes_count": 20,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 0,
+        "calculated_score": 8406.0
+      },
+      "content": {
+        "text": "昨天蔡依林～今天許光漢😻‼️\nhttps://star.ettoday.net/news/2999900?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:38:30.516730",
+        "created_at": "2025-07-20T12:00:56+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMP4dKayy0F",
+      "post_id": "3679407715241372933",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 8400,
+        "likes_count": 2,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 0,
+        "calculated_score": 8400.6
+      },
+      "content": {
+        "text": "主持人發現也來不及了QQ\nhttps://star.ettoday.net/news/2998967?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:40:46.717483",
+        "created_at": "2025-07-18T11:53:21+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMWxZMqyRAb",
+      "post_id": "3681346981290643483",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 8300,
+        "likes_count": 15,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 1,
+        "calculated_score": 8304.6
+      },
+      "content": {
+        "text": "手機桌面在跟粉絲互動的時候被拍到了～\nhttps://star.ettoday.net/news/3000174?from=threads_et_korea",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:37:52.529418",
+        "created_at": "2025-07-21T04:06:19+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMXD6nKScOy",
+      "post_id": "3681428442316391346",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 8000,
+        "likes_count": 11,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 2,
+        "calculated_score": 8003.5
+      },
+      "content": {
+        "text": "雖然分隔兩地，情緒還是有被好好接住\n\nhttps://star.ettoday.net/news/3000274?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:37:49.691296",
+        "created_at": "2025-07-21T06:48:10+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMaURCZSQyX",
+      "post_id": "3682344777061829783",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 7500,
+        "likes_count": 7,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 0,
+        "calculated_score": 7502.1
+      },
+      "content": {
+        "text": "舒華超放得開～很討人喜歡耶🥰\nhttps://star.ettoday.net/news/3001139?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:36:34.625900",
+        "created_at": "2025-07-22T13:08:46+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMcdkbySv2y",
+      "post_id": "3682948642367012274",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 6600,
+        "likes_count": 18,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 0,
+        "calculated_score": 6605.4
+      },
+      "content": {
+        "text": "恭喜～在巴黎求婚也太浪漫💗\nhttps://star.ettoday.net/news/3001730?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:35:40.839921",
+        "created_at": "2025-07-23T09:08:32+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMc0d0UyvuT",
+      "post_id": "3683049342749047699",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 6600,
+        "likes_count": 6,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 0,
+        "calculated_score": 6601.8
+      },
+      "content": {
+        "text": "好危險耶😰幸好有緊急治療緩解症狀\nhttps://star.ettoday.net/news/3001882?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:35:28.576426",
+        "created_at": "2025-07-23T12:28:37+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMRnSDAyirt",
+      "post_id": "3679895134537394925",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 5600,
+        "likes_count": 4,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 0,
+        "calculated_score": 5601.2
+      },
+      "content": {
+        "text": "祝福成員們未來一切順利🙌🏻😿\n\nhttps://star.ettoday.net/news/2999037?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:39:44.314827",
+        "created_at": "2025-07-19T04:01:46+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMXXUKaSPqm",
+      "post_id": "3681513761036368550",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 5100,
+        "likes_count": 16,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 2,
+        "calculated_score": 5105.0
+      },
+      "content": {
+        "text": "小丁自己都看不下去了😆💗\nhttps://star.ettoday.net/news/3000314?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:37:31.997515",
+        "created_at": "2025-07-21T09:37:41+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMb12_LygvI",
+      "post_id": "3682773995465870280",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 4600,
+        "likes_count": 3,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 0,
+        "calculated_score": 4600.9
+      },
+      "content": {
+        "text": "憲哥決定直接開直播說明‼️\n\nhttps://star.ettoday.net/news/3001457?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:36:07.610435",
+        "created_at": "2025-07-23T03:21:33+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMR4xC5yAP6",
+      "post_id": "3679972031514280954",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": 3900,
+        "likes_count": 7,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 0,
+        "calculated_score": 3902.1
+      },
+      "content": {
+        "text": "戀人手中櫻花草～言言和喬喬都找到幸福了，真好ヾ(*´∀ ˋ*)ﾉ\n\nhttps://star.ettoday.net/news/2999146?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:39:37.380483",
+        "created_at": "2025-07-19T06:34:33+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMagVWwyukP",
+      "post_id": "3682397850367093007",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": null,
+        "likes_count": 1859,
+        "comments_count": 80,
+        "reposts_count": 48,
+        "shares_count": 2087,
+        "calculated_score": 795.1999999999999
+      },
+      "content": {
+        "text": "太害羞了⋯男以置信🙉🔥",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:36:32.110854",
+        "created_at": "2025-07-22T14:56:12+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMehnf8yx3X",
+      "post_id": "3683529395136044503",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": null,
+        "likes_count": 7,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 1,
+        "calculated_score": 2.2
+      },
+      "content": {
+        "text": "正宮不忍了！🫣\n\nhttps://star.ettoday.net/news/3002206?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "playwright_crawled",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:34:29.074474",
+        "created_at": "2025-07-24T04:22:23+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMespQNyGzI",
+      "post_id": "3683577894191787208",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": null,
+        "likes_count": 3,
+        "comments_count": 1,
+        "reposts_count": 0,
+        "shares_count": 0,
+        "calculated_score": 1.2
+      },
+      "content": {
+        "text": "未來一定要更小心‼️\n\nhttps://star.ettoday.net/news/3002295?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "playwright_crawled",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:34:29.067001",
+        "created_at": "2025-07-24T05:58:45+00:00"
+      }
+    },
+    {
+      "url": "https://www.threads.com/@starettoday/post/DMcOWCsS9eK",
+      "post_id": "3682881682652518282",
+      "username": "starettoday",
+      "metrics": {
+        "views_count": null,
+        "likes_count": 3,
+        "comments_count": 0,
+        "reposts_count": 0,
+        "shares_count": 0,
+        "calculated_score": 0.8999999999999999
+      },
+      "content": {
+        "text": "玩梗還是要注意尺度呀><\n\nhttps://star.ettoday.net/news/3001627?from=threads_et_star",
+        "media_urls": []
+      },
+      "metadata": {
+        "source": "playwright",
+        "processing_stage": "jina_enriched",
+        "is_complete": false,
+        "last_updated": "2025-07-24T11:35:47.971249",
+        "created_at": "2025-07-23T06:55:30+00:00"
+      }
+    }
+  ]
+}

@@ -11,6 +11,7 @@ Jina Markdown Agent 核心邏輯 - Plan E 重構版
 
 import re
 import requests
+import aiohttp
 import asyncio
 import logging
 from typing import Dict, Any, Optional, List, AsyncIterable
@@ -38,8 +39,14 @@ class JinaMarkdownAgent:
         }
         
         # 如果有 API Key，則添加認證標頭
-        if self.settings.jina_api_key:
-            self.headers_markdown["Authorization"] = f"Bearer {self.settings.jina_api_key}"
+        if self.settings.jina.api_key:
+            self.headers_markdown["Authorization"] = f"Bearer {self.settings.jina.api_key}"
+            
+        # 優化：共用 session 和速率控制
+        self._session: Optional[aiohttp.ClientSession] = None
+        self._rate_lock = asyncio.Lock()
+        # 根據 API 類型設定速率限制
+        self._min_interval = 3.0 if not self.settings.jina.api_key else 0.05  # 免費版 3秒間隔，付費版 0.05秒
         
         # Redis 和資料庫客戶端
         self.redis_client = get_redis_client()
@@ -52,6 +59,30 @@ class JinaMarkdownAgent:
         
         # 任務狀態追蹤
         self.active_tasks = {}
+
+    async def _get_session(self) -> aiohttp.ClientSession:
+        """取得共用的 aiohttp session"""
+        if self._session is None or self._session.closed:
+            timeout = aiohttp.ClientTimeout(total=30)
+            connector = aiohttp.TCPConnector(
+                limit=self.settings.jina.get_optimal_concurrency() if hasattr(self.settings, 'jina') else 20
+            )
+            self._session = aiohttp.ClientSession(
+                headers=self.headers_markdown,
+                timeout=timeout,
+                connector=connector
+            )
+        return self._session
+
+    async def _rate_limit(self):
+        """速率限制 - 避免超過 API 限制"""
+        async with self._rate_lock:
+            await asyncio.sleep(self._min_interval)
+            
+    async def _cleanup_session(self):
+        """清理 session"""
+        if self._session and not self._session.closed:
+            await self._session.close()
     
     def _clean_num(self, s: str) -> str:
         """移除數字字串中的不可見字元，例如 U+FE0F"""
@@ -230,21 +261,33 @@ class JinaMarkdownAgent:
             views_value = views_match.groupdict().get("views")
             result["views"] = self._parse_number(views_value)
         
-        # 嘗試提取其他指標 - 使用更靈活的方法
-        # 查找數字後面跟著 "likes", "comments", "reposts", "shares" 等字樣
-        patterns = {
-            "likes": [r'(\d+(?:\.\d+)?[KM]?)\s*(?:likes?|愛心|👍)', r'(\d+(?:\.\d+)?[KM]?)\s*(?:like|heart)'],
-            "comments": [r'(\d+(?:\.\d+)?[KM]?)\s*(?:comments?|留言|💬)', r'(\d+(?:\.\d+)?[KM]?)\s*(?:comment|reply)'],
-            "reposts": [r'(\d+(?:\.\d+)?[KM]?)\s*(?:reposts?|轉發|🔄)', r'(\d+(?:\.\d+)?[KM]?)\s*(?:repost|retweet)'],
-            "shares": [r'(\d+(?:\.\d+)?[KM]?)\s*(?:shares?|分享|📤)', r'(\d+(?:\.\d+)?[KM]?)\s*(?:share|forward)']
-        }
+        # 使用更強大的數字解析邏輯（移植自 jina_markdown_logic.py）
+        # 先找到 "Translate" 或作者名稱後的部分
+        after_translate = markdown_text
         
-        for metric, pattern_list in patterns.items():
-            for pattern in pattern_list:
-                match = re.search(pattern, markdown_text, re.IGNORECASE)
-                if match:
-                    result[metric] = self._parse_number(match.group(1))
-                    break  # 找到第一個匹配就停止
+        # 嘗試找到 "Translate" 分隔線
+        translate_match = re.search(r'\nTranslate\n', markdown_text)
+        if translate_match:
+            after_translate = markdown_text[translate_match.end():]
+        
+        # 收集所有看起來像數字的行（使用 U+FE0F 清理）
+        all_numbers = []
+        lines = after_translate.splitlines()
+        
+        for line in lines:
+            cleaned = self._clean_num(line.strip())
+            if cleaned and re.match(r'^[\d.,KMB]+$', cleaned):
+                num = self._parse_number(cleaned)
+                if num is not None and num > 0:  # 排除0值
+                    all_numbers.append(num)
+        
+        # 尋找最可能的互動數據序列（通常是前3-4個數字）
+        if len(all_numbers) >= 3:
+            # 取前4個數字作為 likes, comments, reposts, shares
+            if len(all_numbers) >= 4:
+                result["likes"], result["comments"], result["reposts"], result["shares"] = all_numbers[0], all_numbers[1], all_numbers[2], all_numbers[3]
+            else:  # 3個數字
+                result["likes"], result["comments"], result["reposts"] = all_numbers[0], all_numbers[1], all_numbers[2]
         
         return result
     
@@ -268,58 +311,118 @@ class JinaMarkdownAgent:
         
         enriched_count = 0
         total_count = len(batch.posts)
-        logging.info(f"🔄 [Jina] 開始豐富化 {total_count} 個貼文...")
         
-        for i, post in enumerate(batch.posts, 1):
+        # 限制處理數量（根據設定）
+        max_posts = self.settings.jina.max_posts_per_batch if hasattr(self.settings, 'jina') else 50
+        posts_to_process = batch.posts[:max_posts]
+        actual_count = len(posts_to_process)
+        
+        if actual_count < total_count:
+            logging.info(f"🔄 [Jina] 限制處理數量：{actual_count}/{total_count} 個貼文（設定上限：{max_posts}）")
+        else:
+            logging.info(f"🔄 [Jina] 開始豐富化 {actual_count} 個貼文...")
+        
+        # 使用並發處理來加速
+        if hasattr(self.settings, 'jina'):
+            concurrent_limit = self.settings.jina.get_optimal_concurrency()
+        else:
+            concurrent_limit = 5
+        
+        api_type = "付費版 (API Key)" if self.settings.jina.api_key else "免費版"
+        logging.info(f"🚀 [Jina] 使用 {api_type}，並發數: {concurrent_limit}")
+        
+        async def process_single_post(post: PostMetrics, index: int) -> bool:
+            """處理單個貼文的異步方法（優化版）"""
+            logging.info(f"🔄 [Jina] ({index}/{actual_count}) 開始處理: {post.url}")
+            
+            max_retries = 3
+            for attempt in range(max_retries):
             try:
-                # 1. 呼叫 Jina API (這部分邏輯可以複用)
+                # 1. 速率限制
+                await self._rate_limit()
+                
+                # 2. 使用共用 session 呼叫 Jina API
                 jina_url = self.base_url.format(url=post.url)
-                response = requests.get(jina_url, headers=self.headers_markdown, timeout=30)
-                response.raise_for_status()
-                markdown_text = response.text
+                session = await self._get_session()
+                
+                    logging.debug(f"  [Jina-API] ({index}/{actual_count}, attempt {attempt+1}) 正在發送請求到: {jina_url}")
+                async with session.get(jina_url) as response:
+                        logging.debug(f"  [Jina-API] ({index}/{actual_count}) 收到回應狀態: {response.status}")
+                        
+                        # 如果是暫時性錯誤 (5xx)，則觸發重試
+                        if response.status >= 500:
+                            response.raise_for_status() 
+
+                        # 對於 402 或 404 等客戶端錯誤，則不重試，直接失敗
+                        if not response.ok:
+                    response.raise_for_status()
+
+                    markdown_text = await response.text()
+                        logging.debug(f"  [Jina-API] ({index}/{actual_count}) 收到 Markdown 長度: {len(markdown_text)}")
 
                 # 2. 從 Markdown 中解析所有 Jina 能找到的指標
                 jina_metrics = self._extract_metrics_from_markdown(markdown_text)
 
-                # 3. 執行「補洞」邏輯
-                
-                # 任務 1: 無條件更新/填補 views
+                    # --- 偵錯日誌：如果 views 提取失敗，則記錄原文 ---
+                    if jina_metrics.get("views") is None:
+                        logging.warning(f"⚠️ [Jina-Parse] ({index}/{actual_count}) 無法從 {post.url} 提取 'views'。")
+                        logging.debug(f"--- Markdown for {post.url} ---\n{markdown_text}\n--- END Markdown ---")
+                    # --- 結束偵錯日誌 ---
+
+                    # 3. Jina Agent 的單一職責：只更新 views_count
+                    # 我們信任 Playwright Crawler 提供的其他指標，並在此處完整保留它們。
                 if jina_metrics.get("views") is not None:
                     post.views_count = jina_metrics["views"]
-                
-                # 任務 2: 檢查 Playwright 提供的四大指標是否缺失，如果缺失，才用 Jina 的值
-                if post.likes_count is None and jina_metrics.get("likes") is not None:
-                    post.likes_count = jina_metrics["likes"]
-                
-                if post.comments_count is None and jina_metrics.get("comments") is not None:
-                    post.comments_count = jina_metrics["comments"]
-
-                if post.reposts_count is None and jina_metrics.get("reposts") is not None:
-                    post.reposts_count = jina_metrics["reposts"]
-                
-                if post.shares_count is None and jina_metrics.get("shares") is not None:
-                    post.shares_count = jina_metrics["shares"]
 
                 # 4. 更新貼文的處理狀態
                 post.processing_stage = "jina_enriched"
                 post.last_updated = datetime.utcnow()
-                enriched_count += 1
                 
                 # 詳細日誌
-                views_info = f"views: {jina_metrics.get('views', 'N/A')}"
-                likes_info = f"likes: {jina_metrics.get('likes', 'N/A')}"
-                logging.info(f"✅ [Jina] ({i}/{total_count}) 成功豐富化 {post.url[:50]}... - {views_info}, {likes_info}")
+                    views_info = f"views: {post.views_count or 'N/A'}"
+                    likes_info = f"likes: {post.likes_count or 'N/A'} (from crawler)"
+                logging.info(f"✅ [Jina] ({index}/{actual_count}) 成功豐富化 {post.url[:50]}... - {views_info}, {likes_info}")
+                    return True # 成功後直接返回
 
+                except aiohttp.ClientResponseError as e:
+                    # 如果是 5xx 錯誤且還有重試次數，則等待後重試
+                    if e.status >= 500 and attempt < max_retries - 1:
+                        wait_time = 2 ** attempt  # 指數退避
+                        logging.warning(f"⚠️ [Jina-API] ({index}/{actual_count}) 收到 {e.status} 錯誤，將在 {wait_time} 秒後重試...")
+                        await asyncio.sleep(wait_time)
+                        continue # 繼續下一次循環
+                    else:
+                        logging.error(f"❌ [Jina-API] ({index}/{actual_count}) 請求失敗 (最終嘗試) {post.url}: {e}")
+                        return False # 最終失敗
             except Exception as e:
-                # 如果 Jina 處理失敗，保持原樣，僅記錄錯誤
-                logging.error(f"❌ [Jina] ({i}/{total_count}) 處理失敗 {post.url}: {e}")
-                continue # 繼續處理下一個 post
+                    # 其他所有異常，直接失敗
+                logging.error(f"❌ [Jina] ({index}/{actual_count}) 處理失敗 {post.url}: {e}")
+                return False
+            
+            return False # 所有重試都失敗了
+
+        # 使用 semaphore 限制並發數量，並執行所有任務
+        semaphore = asyncio.Semaphore(concurrent_limit)
+        
+        async def limited_process(post, index):
+            async with semaphore:
+                return await process_single_post(post, index)
+        
+        # 並發執行所有貼文處理
+        tasks = [limited_process(post, i+1) for i, post in enumerate(posts_to_process)]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # 計算成功數量
+        enriched_count = sum(1 for result in results if result is True)
+        
+        # 清理 session
+        await self._cleanup_session()
         
         # 返回被 Jina "加持" 過的 batch
         batch.processing_stage = "jina_completed"
         
         # 總結性日誌
-        logging.info(f"🎯 [Jina] 豐富化完成！成功處理 {enriched_count}/{total_count} 個貼文")
+        logging.info(f"🎯 [Jina] 豐富化完成！成功處理 {enriched_count}/{actual_count} 個貼文")
         
         return batch
 
