@@ -6,14 +6,21 @@ import re
 import tempfile
 import uuid
 from pathlib import Path
-from typing import Dict, List, Optional, AsyncIterable, Callable
+from typing import Dict, List, Optional, AsyncIterable, Callable, Any
 from datetime import datetime
 
-from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError, Browser, BrowserContext, Page
+from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError, Browser, BrowserContext, Page, Route, APIResponse
 
 from common.settings import get_settings
 from common.a2a import stream_text, stream_data, stream_status, stream_error, TaskState
 from common.models import PostMetrics, PostMetricsBatch
+from common.utils import (
+    get_best_video_url,
+    get_best_image_url,
+    generate_post_url,
+    first_of,
+    parse_thread_item
+)
 
 # 調試檔案路徑
 DEBUG_DIR = Path(__file__).parent / "debug"
@@ -68,91 +75,34 @@ FIELD_MAP = {
     ],
     "code": [
         "code", "shortcode", "media_code"
-    ]
+    ],
+    # 增加直接從 API 嘗試獲取 views 的路徑
+    "view_count": [
+        ["feedback_info", "view_count"],
+        ["video_info", "play_count"],
+        "view_count",
+        "views",
+        "impression_count"
+    ],
 }
 
-def first_of(obj, *keys):
-    """
-    多鍵 fallback 機制：依序嘗試多個可能的鍵名，回傳第一個非空值。
-    支援巢狀鍵：["parent", "child"] 會取 obj["parent"]["child"]
-    """
-    for key in keys:
-        try:
-            if isinstance(key, (list, tuple)):
-                # 巢狀鍵處理
-                value = obj
-                for sub_key in key:
-                    if not isinstance(value, dict) or sub_key not in value:
-                        value = None
-                        break
-                    value = value[sub_key]
-            else:
-                # 單一鍵處理
-                value = obj.get(key) if isinstance(obj, dict) else None
-            
-            # 檢查值是否有效（非 None、空字串、空列表、空字典）
-            if value not in (None, "", [], {}):
-                return value
-        except (KeyError, TypeError, AttributeError):
-            continue
-    return None
-
-
-def find_post_dict(item: dict) -> Optional[dict]:
-    """
-    在 thread_item 裡自動找到真正的貼文 dict。
-    支援不同版本的 GraphQL 結構變化。
-    回傳含有 pk/id 的那層。
-    """
-    # 1) 傳統結構
-    if 'post' in item and isinstance(item['post'], dict):
-        return item['post']
-        
-    # 2) 新版結構：post_info / postInfo / postV2
-    for key in ('post_info', 'postInfo', 'postV2', 'media_data', 'thread_data'):
-        if key in item and isinstance(item[key], dict):
-            return item[key]
-    
-    # 3) 深度搜尋：找第一個有 pk 或 id 的子 dict
-    def search_for_post(obj, max_depth=3):
-        if max_depth <= 0:
-            return None
-            
-        if isinstance(obj, dict):
-            # 檢查當前層是否為貼文物件
-            if ('pk' in obj or 'id' in obj) and 'user' in obj:
-                return obj
-            # 遞歸搜尋子物件
-            for value in obj.values():
-                result = search_for_post(value, max_depth - 1)
-                if result:
-                    return result
-        elif isinstance(obj, list) and obj:
-            # 搜尋列表中的第一個元素
-            return search_for_post(obj[0], max_depth - 1)
-            
-        return None
-    
-    return search_for_post(item)
-
-
-def parse_post_data(post_data: dict, username: str) -> Optional[PostMetrics]:
+def parse_post_data(thread_item: Dict[str, Any], username: str) -> Optional[PostMetrics]:
     """
     強健的貼文解析器，使用多鍵 fallback 機制處理欄位變動。
     支援 Threads GraphQL API 的不同版本和欄位命名變化。
     """
     # 使用智能搜尋找到真正的貼文物件
-    post = find_post_dict(post_data)
+    post = parse_thread_item(thread_item)
     
     if not post:
-        logging.info(f"❌ 找不到有效的 post 物件，收到的資料鍵: {list(post_data.keys())}")
-        logging.info(f"❌ post_data 內容範例: {str(post_data)[:300]}...")
+        logging.info(f"❌ 找不到有效的 post 物件，收到的資料鍵: {list(thread_item.keys())}")
+        logging.info(f"❌ thread_item 內容範例: {str(thread_item)[:300]}...")
         
         # 自動儲存第一筆 raw JSON 供分析
         try:
             if not DEBUG_FAILED_ITEM_FILE.exists():
                 DEBUG_FAILED_ITEM_FILE.write_text(
-                    json.dumps(post_data, indent=2, ensure_ascii=False),
+                    json.dumps(thread_item, indent=2, ensure_ascii=False),
                     encoding="utf-8" # 明確指定 UTF-8
                 )
                 logging.info(f"📝 已儲存失敗範例至 {DEBUG_FAILED_ITEM_FILE}")
@@ -176,7 +126,7 @@ def parse_post_data(post_data: dict, username: str) -> Optional[PostMetrics]:
     # --- URL 修復：使用正確的格式 ---
     # 舊格式 (錯誤): f"https://www.threads.net/t/{code}"
     # 新格式 (正確): f"https://www.threads.com/@{username}/post/{code}"
-    url = f"https://www.threads.com/@{username}/post/{code}"
+    url = generate_post_url(username, code)
 
     # 使用多鍵 fallback 解析所有欄位
     author = first_of(post, *FIELD_MAP["author"]) or username
@@ -260,8 +210,49 @@ def parse_post_data(post_data: dict, username: str) -> Optional[PostMetrics]:
         created_at=created_at,
         images=images,
         videos=videos,
+        # 新增：直接從 API 解析 views_count（按指引優先嘗試 API）
+        views_count=first_of(post, *FIELD_MAP["view_count"]) if first_of(post, *FIELD_MAP["view_count"]) is not None else None,
     )
 
+# +++ 新增：從前端解析瀏覽數的輔助函式 +++
+def parse_views_text(text: Optional[str]) -> Optional[int]:
+    """將 '161.9萬次瀏覽' 或 '1.2M views' 這類文字轉換為整數"""
+    if not text:
+        return None
+    try:
+        original_text = text
+        text_lower = text.lower().replace(",", "").strip()
+        
+        # 移除「次瀏覽」和「views」等後綴
+        text_clean = text_lower.replace("次瀏覽", "").replace("views", "").replace("view", "").strip()
+        
+        # 提取數字部分
+        num_part = re.findall(r"[\d\.]+", text_clean)
+        if not num_part:
+            logging.debug(f"🔍 無法從 '{original_text}' 中提取數字")
+            return None
+        
+        num = float(num_part[0])
+        
+        # 處理中文單位
+        if "萬" in text:
+            result = int(num * 10000)
+        elif "億" in text:
+            result = int(num * 100000000)
+        # 處理英文單位
+        elif "m" in text_lower:
+            result = int(num * 1000000)
+        elif "k" in text_lower:
+            result = int(num * 1000)
+        else:
+            result = int(num)
+            
+        logging.debug(f"🔍 成功解析 '{original_text}' -> {result}")
+        return result
+        
+    except (ValueError, IndexError) as e:
+        logging.warning(f"⚠️ 無法解析瀏覽數文字: '{text}' - {e}")
+        return None
 
 class PlaywrightLogic:
     """
@@ -270,6 +261,7 @@ class PlaywrightLogic:
     def __init__(self):
         self.settings = get_settings().playwright
         self.known_queries = set()  # 追蹤已見過的查詢名稱
+        self.context = None  # 初始化 context
 
     def _build_response_handler(self, username: str, posts: dict, task_id: str, max_posts: int, stream_callback):
         """建立 GraphQL 回應處理器 - 使用結構判斷而非名稱白名單"""
@@ -363,15 +355,15 @@ class PlaywrightLogic:
                     timeout=self.settings.navigation_timeout,
                     args=["--no-sandbox", "--disable-dev-shm-usage", "--disable-blink-features=AutomationControlled"]
                 )
-                ctx = await browser.new_context(
+                self.context = await browser.new_context(
                     storage_state=str(auth_file),
                     user_agent=self.settings.user_agent, # 從設定讀取
                     viewport={"width": 1920, "height": 1080},
-                    locale="en-US",
+                    locale="zh-TW",  # 設定為繁體中文
                     has_touch=True,
                     accept_downloads=False
                 )
-                page = await ctx.new_page()
+                page = await self.context.new_page()
                 page.on("console", lambda m: logging.info(f"CONSOLE [{m.type}] {m.text}"))
 
                 # Response handler
@@ -407,21 +399,36 @@ class PlaywrightLogic:
                     else:
                         scroll_attempts_without_new_posts = 0
                 
-                await browser.close()
+                # 關閉 page 但保留 context 供 fill_views_from_page 使用
+                await page.close()
 
-            # --- 整理並回傳結果 ---
-            final_posts = list(posts.values())
-            total_found = len(final_posts)
-            
-            # 根據 max_posts 截斷結果
-            if total_found > max_posts:
+                # --- 整理並回傳結果 ---
+                final_posts = list(posts.values())
+                total_found = len(final_posts)
+                
+                # 根據 max_posts 截斷結果
+                if total_found > max_posts:
+                    try:
+                        final_posts.sort(key=lambda p: p.created_at or datetime.min, reverse=True)
+                    except Exception:
+                        pass 
+                    final_posts = final_posts[:max_posts]
+                
+                logging.info(f"🔄 [Task: {task_id}] 準備回傳最終資料：共發現 {total_found} 則貼文, 回傳 {len(final_posts)} 則")
+                
+                # --- 補齊觀看數 (在 browser context 還存在時執行) ---
+                logging.info(f"🔍 [Task: {task_id}] 開始補齊觀看數...")
                 try:
-                    final_posts.sort(key=lambda p: p.created_at or datetime.min, reverse=True)
-                except Exception:
-                    pass 
-                final_posts = final_posts[:max_posts]
-            
-            logging.info(f"🔄 [Task: {task_id}] 準備回傳最終資料：共發現 {total_found} 則貼文, 回傳 {len(final_posts)} 則")
+                    final_posts = await self.fill_views_from_page(final_posts)
+                    logging.info(f"✅ [Task: {task_id}] 觀看數補齊完成")
+                except Exception as e:
+                    logging.warning(f"⚠️ [Task: {task_id}] 補齊觀看數時發生錯誤: {e}")
+                    # 即使補齊失敗，也繼續返回基本數據
+
+                # 手動關閉 browser 和 context
+                await self.context.close()
+                await browser.close()
+                self.context = None
             
             # 保存原始抓取資料供調試
             try:
@@ -440,8 +447,11 @@ class PlaywrightLogic:
                             "reposts_count": post.reposts_count,
                             "shares_count": post.shares_count,
                             "views_count": post.views_count,
+                            "calculated_score": post.calculate_score(),  # 🆕 移到 views_count 下面
                             "content": post.content,
-                            "created_at": post.created_at.isoformat() if post.created_at else None
+                            "created_at": post.created_at.isoformat() if post.created_at else None,
+                            "images": post.images,  # 添加圖片 URL
+                            "videos": post.videos   # 添加影片 URL
                         } for post in final_posts
                     ]
                 }
@@ -472,6 +482,84 @@ class PlaywrightLogic:
             raise
         
         finally:
+            # 清理臨時認證檔案
             if auth_file.exists():
                 auth_file.unlink()
-                logging.info(f"🗑️ [Task: {task_id}] 已刪除臨時認證檔案: {auth_file}") 
+                logging.info(f"🗑️ [Task: {task_id}] 已刪除臨時認證檔案: {auth_file}")
+            
+            # 確保 context 被重置（browser 已在上面手動關閉）
+            self.context = None 
+
+    # +++ 新增：從前端補齊瀏覽數的核心方法 +++
+    async def fill_views_from_page(self, posts_to_fill: List[PostMetrics]) -> List[PostMetrics]:
+        """
+        遍歷貼文列表，導航到每個貼文的頁面以補齊 views_count。
+        使用並發處理來加速此過程。
+        """
+        if not self.context:
+            logging.error("❌ Browser context 未初始化，無法執行 fill_views_from_page。")
+            return posts_to_fill
+
+        # 使用 Semaphore 限制並發數，避免被伺服器封鎖
+        semaphore = asyncio.Semaphore(5)
+        
+        async def fetch_single_view(post: PostMetrics):
+            async with semaphore:
+                page = None
+                try:
+                    page = await self.context.new_page()
+                    # 禁用圖片和影片載入以加速
+                    await page.route("**/*.{png,jpg,jpeg,gif,mp4,webp}", lambda r: r.abort())
+                    
+                    for attempt in range(3): # 最多重試3次
+                        try:
+                            logging.debug(f"  ➡️ (Attempt {attempt+1}) 正在導航至: {post.url}")
+                            await page.goto(post.url, timeout=20000, wait_until='domcontentloaded')
+                            
+                            # 使用您建議的、最穩健的 Selector
+                            selector = "span:has-text('次瀏覽'), span:has-text('views')"
+                            
+                            # 等待元素出現，最多10秒
+                            element = await page.wait_for_selector(selector, timeout=10000)
+                            
+                            if element:
+                                view_text = await element.inner_text()
+                                views_count = parse_views_text(view_text)
+                                if views_count is not None:
+                                    post.views_count = views_count
+                                    post.views_fetched_at = datetime.utcnow()
+                                    logging.info(f"  ✅ 成功獲取 {post.post_id} 的瀏覽數: {views_count}")
+                                    return # 成功後退出重試循環
+                            break # 找到元素但解析失敗也跳出
+                        except Exception as e:
+                            logging.warning(f"  ⚠️ (Attempt {attempt+1}) 獲取 {post.post_id} 瀏覽數失敗: {type(e).__name__}")
+                            if attempt < 2:
+                                await asyncio.sleep(2) # 重試前等待
+                            else:
+                                post.views_count = -1 # 最終失敗，標記為-1
+                                post.views_fetched_at = datetime.utcnow()
+                except Exception as e:
+                    logging.error(f"  ❌ 處理 {post.post_id} 時發生嚴重錯誤: {e}")
+                    post.views_count = -1
+                    post.views_fetched_at = datetime.utcnow()
+                finally:
+                    if page:
+                        await page.close()
+
+        tasks = []
+        for post in posts_to_fill:
+            tasks.append(fetch_single_view(post))
+            
+        await asyncio.gather(*tasks)
+        
+        return posts_to_fill
+
+
+    async def _scroll_and_collect(self, page: Page, username: str, max_posts: int):
+        pass
+
+
+    async def _handle_response(self, response: APIResponse, username: str):
+        """處理 GraphQL API 回應"""
+        # ... (這裡的 _handle_response 維持原樣) ...
+# ... existing code ... 

@@ -371,6 +371,199 @@ class DatabaseClient:
             return []
     
     # ============================================================================
+    # 媒體管理 (media 表)
+    # ============================================================================
+    
+    async def insert_media_record(
+        self,
+        post_id: str,
+        media_type: str,
+        cdn_url: str,
+        storage_key: str,
+        status: str = 'uploaded',
+        size_bytes: Optional[int] = None
+    ) -> bool:
+        """
+        插入媒體記錄
+        
+        Args:
+            post_id: 貼文 ID
+            media_type: 媒體類型 ('image' 或 'video')
+            cdn_url: 原始 CDN URL
+            storage_key: RustFS 存儲 key
+            status: 狀態
+            size_bytes: 檔案大小
+            
+        Returns:
+            bool: 是否成功
+        """
+        try:
+            async with self.get_connection() as conn:
+                await conn.execute("""
+                    INSERT INTO media 
+                    (post_id, media_type, cdn_url, storage_key, status, size_bytes, created_at, last_updated)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $7)
+                    ON CONFLICT (post_id, cdn_url) 
+                    DO UPDATE SET 
+                        storage_key = EXCLUDED.storage_key,
+                        status = EXCLUDED.status,
+                        size_bytes = EXCLUDED.size_bytes,
+                        last_updated = EXCLUDED.last_updated
+                """, post_id, media_type, cdn_url, storage_key, status, size_bytes, datetime.utcnow())
+                
+                return True
+                
+        except Exception as e:
+            print(f"插入媒體記錄失敗 {post_id}: {e}")
+            return False
+    
+    async def get_post_media_urls(self, post_id: str) -> List[str]:
+        """
+        獲取貼文的媒體 URL 列表
+        
+        Args:
+            post_id: 貼文 ID
+            
+        Returns:
+            List[str]: 媒體 URL 列表
+        """
+        try:
+            async with self.get_connection() as conn:
+                # 首先嘗試從 media 表獲取
+                rows = await conn.fetch("""
+                    SELECT cdn_url FROM media WHERE post_id = $1
+                """, post_id)
+                
+                if rows:
+                    return [row['cdn_url'] for row in rows]
+                
+                # 如果 media 表沒有，從 posts 表的 media_urls 欄位獲取
+                row = await conn.fetchrow("""
+                    SELECT media_urls FROM posts WHERE url = $1
+                """, post_id)
+                
+                if row and row['media_urls']:
+                    try:
+                        media_urls = json.loads(row['media_urls'])
+                        return media_urls if isinstance(media_urls, list) else []
+                    except json.JSONDecodeError:
+                        return []
+                
+                return []
+                
+        except Exception as e:
+            print(f"獲取貼文媒體 URL 失敗 {post_id}: {e}")
+            return []
+    
+    async def get_media_by_storage_key(self, storage_key: str) -> Optional[Dict[str, Any]]:
+        """
+        根據存儲 key 獲取媒體記錄
+        
+        Args:
+            storage_key: RustFS 存儲 key
+            
+        Returns:
+            Dict[str, Any]: 媒體記錄，如果不存在返回 None
+        """
+        try:
+            async with self.get_connection() as conn:
+                row = await conn.fetchrow("""
+                    SELECT post_id, media_type, cdn_url, storage_key, status, size_bytes, created_at, last_updated
+                    FROM media
+                    WHERE storage_key = $1
+                """, storage_key)
+                
+                if row:
+                    return dict(row)
+                return None
+                
+        except Exception as e:
+            print(f"獲取媒體記錄失敗 {storage_key}: {e}")
+            return None
+    
+    async def update_media_status(self, storage_key: str, status: str) -> bool:
+        """
+        更新媒體狀態
+        
+        Args:
+            storage_key: RustFS 存儲 key
+            status: 新狀態
+            
+        Returns:
+            bool: 是否成功
+        """
+        try:
+            async with self.get_connection() as conn:
+                await conn.execute("""
+                    UPDATE media
+                    SET status = $2, last_updated = $3
+                    WHERE storage_key = $1
+                """, storage_key, status, datetime.utcnow())
+                
+                return True
+                
+        except Exception as e:
+            print(f"更新媒體狀態失敗 {storage_key}: {e}")
+            return False
+    
+    async def get_top_ranked_posts(self, limit: int = 5) -> List[Dict[str, Any]]:
+        """
+        獲取排名前 N 的貼文（用於媒體分析）
+        
+        Args:
+            limit: 數量限制
+            
+        Returns:
+            List[Dict[str, Any]]: 排名前 N 的貼文
+        """
+        try:
+            async with self.get_connection() as conn:
+                rows = await conn.fetch("""
+                    SELECT url as post_id, author, markdown, media_urls, score
+                    FROM post_metrics pm
+                    JOIN posts p ON pm.url = p.url
+                    WHERE pm.score IS NOT NULL
+                    ORDER BY pm.score DESC
+                    LIMIT $1
+                """, limit)
+                
+                return [dict(row) for row in rows]
+                
+        except Exception as e:
+            print(f"獲取排名貼文失敗: {e}")
+            return []
+    
+    async def update_post_metrics(self, post_id: str, metrics: Dict[str, int]) -> bool:
+        """
+        更新貼文指標（從媒體分析結果）
+        
+        Args:
+            post_id: 貼文 ID
+            metrics: 指標字典
+            
+        Returns:
+            bool: 是否成功
+        """
+        try:
+            async with self.get_connection() as conn:
+                await conn.execute("""
+                    SELECT upsert_metrics($1, $2, $3, $4, $5, $6)
+                """, 
+                post_id,
+                metrics.get("views"),
+                metrics.get("likes"),
+                metrics.get("comments"),
+                metrics.get("reposts"),
+                metrics.get("shares")
+                )
+                
+                return True
+                
+        except Exception as e:
+            print(f"更新貼文指標失敗 {post_id}: {e}")
+            return False
+    
+    # ============================================================================
     # 處理記錄 (processing_log 表)
     # ============================================================================
     

@@ -43,6 +43,25 @@ services:
     networks:
       - social-media-network
 
+  # RustFS 對象存儲
+  rustfs:
+    image: rustfs/rustfs:latest
+    container_name: social-media-rustfs
+    ports:
+      - "9000:9000"
+    volumes:
+      - rustfs_data:/data
+    environment:
+      - RUSTFS_ACCESS_KEY=rustfsadmin
+      - RUSTFS_SECRET_KEY=rustfsadmin
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - social-media-network
+
   # NATS JetStream 訊息佇列
   nats:
     image: nats:2.10-alpine
@@ -280,19 +299,7 @@ services:
       - .:/app
     command: uvicorn agents.vision.main:app --host 0.0.0.0 --port 8005 --reload
 
-  jina-agent:
-    build:
-      context: .
-      dockerfile: ./agents/jina/Dockerfile
-    container_name: social-media-jina
-    ports:
-      - "${AGENT_JINA_AGENT_PORT:-8004}:8004"
-    environment:
-      - PYTHONUNBUFFERED=1
-      - PYTHONPATH=/app
-    volumes:
-      - .:/app
-    command: python -m uvicorn agents.jina.main:app --host 0.0.0.0 --port 8004 --reload
+
 
   playwright-crawler-agent:
     build:
@@ -394,6 +401,8 @@ volumes:
   postgres_data:
     driver: local
   redis_data:
+    driver: local
+  rustfs_data:
     driver: local
   nats_data:
     driver: local

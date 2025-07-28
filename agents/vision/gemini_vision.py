@@ -1,19 +1,20 @@
 """
-Gemini Vision 分析模組
+Gemini Vision 分析模組 (修正版)
 
-使用 Gemini 2.5 Flash 分析截圖並提取社交媒體互動數據
+支援 image/jpeg‧png 直接 ImagePart，video/mp4 走 upload_file → File 物件
 """
 
 import os
 import json
-import base64
-from typing import Dict, Any, Optional
+import tempfile
+import time
+from typing import Dict, Any
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
 
 class GeminiVisionAnalyzer:
-    """Gemini 2.5 Flash 視覺分析器"""
+    """Gemini Vision 分析器 - 正確使用 File API 處理影片"""
     
     def __init__(self):
         """初始化 Gemini 客戶端"""
@@ -25,7 +26,7 @@ class GeminiVisionAnalyzer:
         # 配置 Gemini
         genai.configure(api_key=self.api_key)
         
-        # 使用 Gemini 2.0 Flash (最新版本)
+        # 使用 Gemini 2.0 Flash
         self.model = genai.GenerativeModel("gemini-2.0-flash")
         
         # 安全設定 - 允許所有內容類型
@@ -36,57 +37,97 @@ class GeminiVisionAnalyzer:
             HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
         }
         
-        # 系統提示詞
-        self.system_prompt = """
-提取螢幕截圖中 Threads 貼文主要統計數字：
+        # 圖片內容描述系統提示
+        self.image_prompt = """
+請詳細描述這張 Threads 社交媒體貼文圖片的內容：
 
-需要提取的數據：
-- views: 觀看數量 (通常在貼文標題附近，格式如 "3.9K views")
-- likes: 愛心數量 (愛心圖示旁的數字)
-- comments: 留言數量 (氣泡圖示旁的數字)  
-- reposts: 轉發數量 (旋轉箭頭圖示旁的數字)
-- shares: 分享數量 (紙飛機圖示旁的數字)
+描述重點：
+1. **視覺元素**：圖片中的主要物件、人物、場景
+2. **文字內容**：圖片中的所有可見文字（包括貼文內容、標籤、註解等）
+3. **色彩和風格**：整體色調、設計風格、視覺效果
+4. **情境和氛圍**：圖片傳達的情感、氛圍或主題
+5. **技術細節**：圖片品質、構圖、特殊效果等
 
-重要規則：
-1. 只提取主要貼文的數據，不要提取留言的數據
-2. 如果某個數字不存在或看不清楚，輸出 0
-3. 數字可能包含 K (千) 或 M (百萬) 後綴，請轉換為實際數字
-4. 僅回傳 JSON 物件，不要其他文字
-
-輸出格式：
+描述格式：
 {
-  "views": 數字,
-  "likes": 數字, 
-  "comments": 數字,
-  "reposts": 數字,
-  "shares": 數字
+  "main_content": "主要內容描述",
+  "text_content": "圖片中的文字內容",
+  "visual_elements": "視覺元素描述",
+  "style_and_mood": "風格和氛圍描述",
+  "technical_notes": "技術細節說明"
 }
+
+請用繁體中文回應，描述要詳細且準確。
+"""
+
+        # 影片內容描述系統提示
+        self.video_prompt = """
+請詳細描述這個 Threads 社交媒體影片的內容：
+
+描述重點：
+1. **影片概要**：影片的主要內容和主題
+2. **場景描述**：影片中的場景、環境、背景
+3. **動作和事件**：影片中發生的動作、事件序列
+4. **人物和對象**：出現的人物、物件及其互動
+5. **音視覺效果**：視覺效果、轉場、文字覆蓋等
+6. **文字內容**：影片中出現的所有文字（字幕、標題、註解等）
+7. **情感和氛圍**：影片傳達的情感、氛圍或訊息
+
+描述格式：
+{
+  "video_summary": "影片概要",
+  "scene_description": "場景描述",
+  "actions_and_events": "動作和事件",
+  "characters_and_objects": "人物和對象",
+  "visual_effects": "視覺效果",
+  "text_content": "文字內容",
+  "mood_and_message": "情感和訊息"
+}
+
+請用繁體中文回應，描述要詳細且準確，特別注意影片的時間序列和動態變化。
 """
     
-    async def analyze_screenshot(self, image_bytes: bytes) -> Dict[str, int]:
+    async def analyze_media(self, media_bytes: bytes, mime_type: str) -> Dict[str, Any]:
         """
-        分析截圖並提取互動數據
+        分析媒體（圖片或影片）並描述內容
         
         Args:
-            image_bytes: 截圖的二進制數據
+            media_bytes: 媒體的二進制數據
+            mime_type: MIME 類型 (如 'image/jpeg', 'video/mp4')
             
         Returns:
-            包含 views, likes, comments, reposts, shares 的字典
+            包含媒體內容描述的字典
         """
         try:
-            # 創建圖片部分
-            image_part = genai.ImagePart(image_bytes, "image/jpeg")
-            text_part = genai.TextPart(self.system_prompt)
+            # 根據 MIME 類型選擇處理方式
+            if mime_type.startswith('image/'):
+                # 圖片：使用正確的 API 語法
+                import base64
+                media_part = {
+                    "mime_type": mime_type,
+                    "data": base64.b64encode(media_bytes).decode('utf-8')
+                }
+                prompt = self.image_prompt
+                parts = [media_part, prompt]
+                
+            elif mime_type.startswith('video/'):
+                # 影片：使用 File API
+                file_obj = await self._upload_video_get_file(media_bytes, mime_type)
+                prompt = self.video_prompt
+                parts = [file_obj, prompt]
+                
+            else:
+                raise ValueError(f"不支援的媒體類型: {mime_type}")
             
             # 生成內容
             response = self.model.generate_content(
-                [image_part, text_part],
+                parts,
                 safety_settings=self.safety_settings,
                 generation_config=genai.types.GenerationConfig(
                     temperature=0.1,  # 低溫度確保一致性
                     top_p=0.8,
                     top_k=40,
-                    max_output_tokens=200,
+                    max_output_tokens=512,
                 )
             )
             
@@ -96,24 +137,80 @@ class GeminiVisionAnalyzer:
             # 嘗試解析 JSON
             try:
                 data = json.loads(response_text)
-                
-                # 驗證和清理數據
-                result = {
-                    "views": self._parse_number(data.get("views", 0)),
-                    "likes": self._parse_number(data.get("likes", 0)),
-                    "comments": self._parse_number(data.get("comments", 0)),
-                    "reposts": self._parse_number(data.get("reposts", 0)),
-                    "shares": self._parse_number(data.get("shares", 0))
-                }
-                
-                return result
+                return data  # 直接返回內容描述的 JSON
                 
             except json.JSONDecodeError:
-                # 如果 JSON 解析失敗，嘗試從文字中提取數字
-                return self._extract_numbers_from_text(response_text)
+                # 如果 JSON 解析失敗，返回原始文字
+                if mime_type.startswith('image/'):
+                    return {
+                        "main_content": response_text,
+                        "text_content": "",
+                        "visual_elements": "",
+                        "style_and_mood": "",
+                        "technical_notes": "JSON 解析失敗，返回原始回應"
+                    }
+                else:  # video
+                    return {
+                        "video_summary": response_text,
+                        "scene_description": "",
+                        "actions_and_events": "",
+                        "characters_and_objects": "",
+                        "visual_effects": "",
+                        "text_content": "",
+                        "mood_and_message": "JSON 解析失敗，返回原始回應"
+                    }
                 
         except Exception as e:
             raise Exception(f"Gemini 視覺分析失敗: {str(e)}")
+    
+    async def _upload_video_get_file(self, media_bytes: bytes, mime_type: str):
+        """
+        上傳影片到 Gemini File API 並等待處理完成
+        
+        Args:
+            media_bytes: 影片的二進制數據
+            mime_type: MIME 類型
+            
+        Returns:
+            genai.File: 已處理完成的檔案物件
+        """
+        # 1. 先寫到臨時檔案，因為 upload_file 目前只能吃檔案路徑
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
+            tmp.write(media_bytes)
+            tmp_path = tmp.name
+        
+        try:
+            # 2. 上傳檔案
+            file_obj = genai.upload_file(path=tmp_path, display_name="threads_video")
+            
+            # 3. 等待狀態變為 ACTIVE
+            while file_obj.state.name != "ACTIVE":
+                print(f"等待檔案處理中... 狀態: {file_obj.state.name}")
+                time.sleep(2)
+                file_obj = genai.get_file(file_obj.name)
+            
+            return file_obj
+            
+        finally:
+            # 4. 清理臨時檔案
+            import os
+            try:
+                os.unlink(tmp_path)
+            except:
+                pass
+    
+    # 保持向後兼容性的方法
+    async def analyze_screenshot(self, image_bytes: bytes) -> Dict[str, int]:
+        """
+        分析截圖並提取互動數據（向後兼容方法）
+        
+        Args:
+            image_bytes: 截圖的二進制數據
+            
+        Returns:
+            包含 views, likes, comments, reposts, shares 的字典
+        """
+        return await self.analyze_media(image_bytes, "image/jpeg")
     
     def _parse_number(self, value) -> int:
         """解析數字，處理 K/M 後綴"""
@@ -180,13 +277,17 @@ class GeminiVisionAnalyzer:
         """測試 Gemini API 連接"""
         try:
             # 創建一個簡單的測試圖片 (1x1 像素的白色圖片)
-            test_image = base64.b64decode(
-                "/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8A"
-            )
+            import base64
+            test_image_b64 = "/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8A"
+            
+            test_image_part = {
+                "mime_type": "image/jpeg",
+                "data": test_image_b64
+            }
             
             response = self.model.generate_content([
-                genai.ImagePart(test_image, "image/jpeg"),
-                genai.TextPart("這是一個測試。請回覆 'OK'。")
+                test_image_part,
+                "這是一個測試。請回覆 'OK'。"
             ])
             
             return {

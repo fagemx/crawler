@@ -41,31 +41,24 @@ class ThreadsPost(BaseModel):
 
 
 class PostMetrics(BaseModel):
-    """貼文指標數據模型 - planD.md 核心數據結構"""
-    
-    # 基本資訊
-    url: str = Field(description="貼文完整 URL")
-    post_id: str = Field(description="貼文 ID")
-    username: str = Field(description="用戶名")
-    
-    # planD.md 要求的五大指標
-    views_count: Optional[int] = Field(None, description="瀏覽數 - 主要權重")
-    likes_count: Optional[int] = Field(None, description="愛心數 - 次要權重")
-    comments_count: Optional[int] = Field(None, description="留言數 - 次要權重")
-    reposts_count: Optional[int] = Field(None, description="轉發數")
-    shares_count: Optional[int] = Field(None, description="分享數")
-    
-    # 內容資料（可選，供即時使用）
-    content: Optional[str] = Field(None, description="貼文內容文字")
-    media_urls: Optional[List[str]] = Field(None, description="媒體 URL 列表")
-    created_at: Optional[datetime] = Field(None, description="貼文建立時間")
-    
-    # --- 新增媒體欄位 ---
-    images: List[str] = Field(default_factory=list)
-    videos: List[str] = Field(default_factory=list)
-    media_urls: Optional[List[str]] = Field(default_factory=list) # 可選：保留舊欄位以相容
+    """單一貼文的指標數據模型"""
+    post_id: str = Field(..., description="貼文的唯一ID")
+    username: str = Field(..., description="作者的使用者名稱")
+    url: str = Field(..., description="貼文的URL")
+    content: Optional[str] = None
+    likes_count: Optional[int] = None
+    comments_count: Optional[int] = None
+    reposts_count: Optional[int] = None
+    shares_count: Optional[int] = None
+    views_count: Optional[int] = Field(None, description="瀏覽數 (從前端畫面讀取)")
+    media_urls: Optional[List[str]] = Field(default_factory=list, description="舊版媒體URL欄位(已棄用)")
+    images: List[str] = Field(default_factory=list, description="圖片URL列表")
+    videos: List[str] = Field(default_factory=list, description="影片URL列表")
+    created_at: datetime = Field(..., description="貼文發布時間")
+    fetched_at: datetime = Field(default_factory=datetime.utcnow, description="資料抓取時間")
+    views_fetched_at: Optional[datetime] = Field(None, description="瀏覽數抓取時間")
 
-    @validator('created_at', pre=True, always=True)
+    @validator('created_at', pre=True, allow_reuse=True)
     def parse_created_at(cls, v):
         if isinstance(v, str):
             return datetime.fromisoformat(v)

@@ -1,0 +1,42 @@
+{
+  "task_id": "test_fixed_crawler",
+  "username": "natgeo",
+  "timestamp": "2025-07-25T13:39:14.999045",
+  "total_found": 21,
+  "returned_count": 3,
+  "posts": [
+    {
+      "url": "https://www.threads.com/@natgeo/post/DMVsAjYNVfk",
+      "post_id": "3681041822478850020",
+      "likes_count": 11336,
+      "comments_count": 77,
+      "reposts_count": 390,
+      "shares_count": 137,
+      "views_count": 490000,
+      "content": "Can we take a second to appreciate the Earth's 4.5 billion-year-old companion this National Moon Day? 🌘",
+      "created_at": "2025-07-20T18:00:05+00:00"
+    },
+    {
+      "url": "https://www.threads.com/@natgeo/post/DMSy3RVNma0",
+      "post_id": "3680227546021390004",
+      "likes_count": 172,
+      "comments_count": 2,
+      "reposts_count": 2,
+      "shares_count": 5,
+      "views_count": 35000,
+      "content": "Raise your hand if you've rewatched this video more than 5 times 🙌",
+      "created_at": "2025-07-19T15:02:12+00:00"
+    },
+    {
+      "url": "https://www.threads.com/@natgeo/post/DMNjTqAtHo-",
+      "post_id": "3678751753038494270",
+      "likes_count": 2602,
+      "comments_count": 10,
+      "reposts_count": 46,
+      "shares_count": 114,
+      "views_count": 220000,
+      "content": "With cutting-edge science on his side, @chrishemsworth is back and ready to journey to the edge of his comfort zone—and learn how we can all live better. \n\nSeason 2 of Limitless with Chris Hemsworth premieres August 15 on @DisneyPlus and @hulu. Season 1 is now streaming.",
+      "created_at": "2025-07-17T14:10:26+00:00"
+    }
+  ]
+}

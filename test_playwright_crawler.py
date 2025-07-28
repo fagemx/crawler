@@ -33,6 +33,7 @@ if project_root not in sys.path:
 try:
     from agents.playwright_crawler.playwright_logic import PlaywrightLogic
     from common.models import PostMetricsBatch
+    from datetime import datetime
 except ModuleNotFoundError as e:
     logging.error(f"❌ 模組導入失敗: {e}")
     logging.error("請確認您是在專案根目錄下執行此腳本！")
@@ -40,8 +41,77 @@ except ModuleNotFoundError as e:
 
 # --- 測試參數 ---
 TARGET_USERNAME = "natgeo"
-MAX_POSTS_TO_CRAWL = 10 # <--- 暫時改回較小的數量以降低 API 壓力
+MAX_POSTS_TO_CRAWL = 5 # <--- 暫時改回較小的數量以降低 API 壓力
 AUTH_FILE_PATH = Path(project_root) / "agents" / "playwright_crawler" / "auth.json"
+
+
+def save_results_to_json(batch: PostMetricsBatch, sorted_posts: list) -> str:
+    """
+    將測試結果保存為 JSON 文件（仿照 pipeline_service.py 的格式）
+    """
+    try:
+        # 創建輸出目錄
+        output_dir = Path(project_root) / "test_results"
+        output_dir.mkdir(exist_ok=True)
+        
+        # 生成檔案名（包含時間戳和用戶名）
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"test_crawler_results_{batch.username}_{timestamp}.json"
+        file_path = output_dir / filename
+        
+        # 準備 JSON 數據（與 pipeline_service.py 相同的格式）
+        result_data = {
+            "batch_info": {
+                "batch_id": batch.batch_id,
+                "username": batch.username,
+                "total_posts": len(batch.posts),
+                "processing_stage": batch.processing_stage,
+                "timestamp": timestamp,
+                "test_mode": True  # 標記這是測試結果
+            },
+            "posts": []
+        }
+        
+        # 添加每個貼文的詳細資料（使用排序後的順序）
+        for rank, (post, score) in enumerate(sorted_posts, 1):
+            post_data = {
+                "rank": rank,  # 添加排名
+                "url": post.url,
+                "post_id": post.post_id,
+                "username": post.username,
+                "metrics": {
+                    "views_count": post.views_count,
+                    "likes_count": post.likes_count,
+                    "comments_count": post.comments_count,
+                    "reposts_count": post.reposts_count,
+                    "shares_count": post.shares_count,
+                    "calculated_score": score
+                },
+                "content": {
+                    "text": post.content[:200] + "..." if post.content and len(post.content) > 200 else post.content,
+                    "images": post.images,  # 包含圖片 URL
+                    "videos": post.videos   # 包含影片 URL
+                },
+                "metadata": {
+                    "source": post.source,
+                    "processing_stage": post.processing_stage,
+                    "is_complete": post.is_complete,
+                    "last_updated": post.last_updated.isoformat() if post.last_updated else None,
+                    "created_at": post.created_at.isoformat() if post.created_at else None,
+                    "views_fetched_at": post.views_fetched_at.isoformat() if post.views_fetched_at else None
+                }
+            }
+            result_data["posts"].append(post_data)
+        
+        # 寫入 JSON 檔案
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(result_data, f, ensure_ascii=False, indent=2)
+        
+        return str(file_path.absolute())
+        
+    except Exception as e:
+        logging.error(f"❌ 保存 JSON 文件失敗: {e}")
+        return "JSON save failed"
 
 
 async def run_crawler_test():
@@ -91,6 +161,26 @@ async def run_crawler_test():
             return
             
         print(f"📊 共爬取到 {len(result_batch.posts)}/{result_batch.total_count} 篇貼文。")
+        
+        # 🆕 新增：計算分數並排序
+        print("\n🏆 === 分數計算與排序 ===")
+        
+        # 創建包含分數的元組列表，避免修改 Pydantic 物件
+        posts_with_scores = [(post, post.calculate_score()) for post in result_batch.posts]
+        
+        # 按分數降序排列（與 pipeline_service.py 相同的排序邏輯）
+        sorted_posts_with_scores = sorted(posts_with_scores, key=lambda x: x[1], reverse=True)
+        
+        print("📊 排序結果（按分數降序）：")
+        for i, (post, score) in enumerate(sorted_posts_with_scores[:5], 1):  # 顯示前5名
+            print(f"  {i}. 分數: {score:.1f} | 觀看數: {post.views_count} | URL: {post.url.split('/')[-1]}")
+        
+        if len(sorted_posts_with_scores) > 5:
+            print(f"  ... 還有 {len(sorted_posts_with_scores) - 5} 篇貼文")
+        
+        # 🆕 新增：保存 JSON 文件（仿照 pipeline_service.py）
+        json_file_path = save_results_to_json(result_batch, sorted_posts_with_scores)
+        print(f"📄 結果已保存至: {json_file_path}")
         
         print("\n📄 === 自動化數據一致性驗證 ===")
         validation_errors = 0
