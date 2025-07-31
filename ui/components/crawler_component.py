@@ -66,6 +66,54 @@ class ThreadsCrawlerComponent:
                 st.subheader("📝 最近活動")
                 for log in logs[-3:]:  # 最近3條
                     st.write(f"• {log}")
+            
+            # 🔥 即時貼文預覽（主內容區域）
+            posts = st.session_state.get('crawler_posts', [])
+            if posts:
+                st.markdown("---")
+                st.subheader("📝 即時貼文預覽")
+                
+                # 顯示最新的3個貼文
+                recent_posts = posts[-3:]
+                
+                for post in recent_posts:
+                    # 使用卡片樣式顯示貼文
+                    with st.container():
+                        st.markdown(f"**🆔 {post.get('summary', 'N/A')}** `{post.get('timestamp', 'N/A')}`")
+                        
+                        # 顯示貼文詳情
+                        col1, col2 = st.columns([2, 1])
+                        with col1:
+                            # 內容預覽
+                            content_preview = post.get('content_preview', post.get('content', ''))
+                            if content_preview:
+                                st.write(f"💬 {content_preview}")
+                            else:
+                                st.write("💬 無內容")
+                            
+                            # 媒體信息
+                            images_count = post.get('images_count', 0)
+                            videos_count = post.get('videos_count', 0)
+                            if images_count > 0 or videos_count > 0:
+                                st.write(f"📸 圖片: {images_count} | 🎥 影片: {videos_count}")
+                        
+                        with col2:
+                            # 🔥 完整的統計數據
+                            likes_count = post.get('likes_count', 0)
+                            comments_count = post.get('comments_count', 0)
+                            reposts_count = post.get('reposts_count', 0)
+                            shares_count = post.get('shares_count', 0)
+                            views_count = post.get('views_count', 0)
+                            calculated_score = post.get('calculated_score', 0)
+                            
+                            st.write(f"❤️ 讚: {likes_count:,}")
+                            st.write(f"💬 留言: {comments_count:,}")
+                            st.write(f"🔄 轉發: {reposts_count:,}")
+                            st.write(f"📤 分享: {shares_count:,}")
+                            st.write(f"👁️ 瀏覽: {views_count:,}")
+                            st.write(f"⭐ 分數: {calculated_score:.1f}")
+                        
+                        st.markdown("---")
         elif status == 'completed':
             self._render_crawler_results()
         elif status == 'error':
@@ -771,7 +819,9 @@ class ThreadsCrawlerComponent:
         
         # 進度條
         if progress > 0:
-            st.progress(progress)
+            # 🔥 確保進度值在有效範圍內 [0.0, 1.0]
+            safe_progress = max(0.0, min(1.0, progress))
+            st.progress(safe_progress)
             if max_posts > 0:
                 estimated = int(progress * max_posts)
                 st.write(f"📊 {estimated}/{max_posts} ({progress:.1%})")
@@ -804,8 +854,8 @@ class ThreadsCrawlerComponent:
             st.info("⏱️ 每2秒自動更新進度")
         
         # 調試信息（可選）
-        if st.session_state.get('show_debug_in_sidebar', False):
-            with st.expander("🔧 調試信息"):
+        if st.session_state.get('show_debug_in_sidebar', True):  # 🔥 修改默認為True
+            with st.expander("🔧 調試信息", expanded=True):  # 🔥 默認展開
                 st.write(f"🆔 任務: {st.session_state.get('crawler_task_id', 'N/A')[-8:]}")
                 st.write(f"🔄 更新: {progress_updated}")
                 
@@ -843,55 +893,7 @@ class ThreadsCrawlerComponent:
             else:
                 st.write("❌ 進度文件不存在")
         
-        # 🔥 強制顯示貼文預覽（不管什麼狀態都顯示）
-        posts = st.session_state.get('crawler_posts', [])
-        if posts:
-            st.markdown("---")
-            st.subheader("📝 即時貼文預覽")
-            
-            # 顯示最新的3個貼文
-            recent_posts = posts[-3:]
-            
-            for post in recent_posts:
-                # 使用卡片樣式顯示貼文
-                with st.container():
-                    st.markdown(f"**🆔 {post.get('summary', 'N/A')}** `{post.get('timestamp', 'N/A')}`")
-                    
-                    # 顯示貼文詳情
-                    col1, col2 = st.columns([2, 1])
-                    with col1:
-                        # 內容預覽
-                        content_preview = post.get('content_preview', post.get('content', ''))
-                        if content_preview:
-                            st.write(f"💬 {content_preview}")
-                        else:
-                            st.write("💬 無內容")
-                        
-                        # 媒體信息
-                        images_count = post.get('images_count', 0)
-                        videos_count = post.get('videos_count', 0)
-                        if images_count > 0 or videos_count > 0:
-                            st.write(f"📸 圖片: {images_count} | 🎥 影片: {videos_count}")
-                    
-                    with col2:
-                        # 🔥 完整的統計數據（總是顯示）
-                        likes_count = post.get('likes_count', 0)
-                        comments_count = post.get('comments_count', 0)
-                        reposts_count = post.get('reposts_count', 0)
-                        shares_count = post.get('shares_count', 0)
-                        views_count = post.get('views_count', 0)
-                        calculated_score = post.get('calculated_score', 0)
-                        
-                        st.write(f"❤️ 讚: {likes_count:,}")
-                        st.write(f"💬 留言: {comments_count:,}")
-                        st.write(f"🔄 轉發: {reposts_count:,}")
-                        st.write(f"📤 分享: {shares_count:,}")
-                        st.write(f"👁️ 瀏覽: {views_count:,}")
-                        st.write(f"⭐ 分數: {calculated_score:.1f}")
-                    
-                    st.markdown("---")
-        else:
-            st.info("📝 暫無貼文預覽，等待爬取數據...")
+        # 側邊欄不顯示即時貼文預覽（已移到主內容區域）
         
         # 🔥 狀態相關顯示
         if status == 'running':
