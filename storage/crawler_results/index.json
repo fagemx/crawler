@@ -1,0 +1,15 @@
+[
+  {
+    "batch_id": "f60a4fb4-15ff-46bc-9978-bcdceea75ee4",
+    "username": "natgeo",
+    "crawled_at": "2025-07-31T20:19:17.057712",
+    "posts_count": 10,
+    "metadata": {
+      "crawl_method": "playwright_agent",
+      "max_posts_requested": 10,
+      "task_id": "c9cb114f-7e34-4f29-9099-7e24a832d003",
+      "agent_version": "1.0.0"
+    },
+    "file_path": "f60a4fb4-15ff-46bc-9978-bcdceea75ee4.json"
+  }
+]

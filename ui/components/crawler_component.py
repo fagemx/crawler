@@ -387,12 +387,53 @@ class ThreadsCrawlerComponent:
             progress = data.get('progress', 0)
             post_id = data.get('post_id', '')
             content_preview = data.get('content_preview', '')
-            likes = data.get('likes', 0)
+            
+            # 🔥 提取完整的統計數據
+            likes_count = data.get('likes_count', 0)
+            comments_count = data.get('comments_count', 0)
+            reposts_count = data.get('reposts_count', 0)
+            shares_count = data.get('shares_count', 0)
+            views_count = data.get('views_count', 0)
+            calculated_score = data.get('calculated_score', 0)
+            content = data.get('content', '')
+            url = data.get('url', '')
+            created_at = data.get('created_at', '')
+            images_count = data.get('images_count', 0)
+            videos_count = data.get('videos_count', 0)
+            media_urls = data.get('media_urls', {})
             
             st.session_state.crawler_progress = progress
             # 🔥 更新當前工作狀態
             st.session_state.crawler_current_work = f"已解析 {current}/{total} 篇貼文 - 正在解析下一篇..."
-            st.session_state.crawler_logs.append(f"✅ 解析貼文 {post_id[-8:]}: {likes}讚 - {content_preview}")
+            st.session_state.crawler_logs.append(f"✅ 解析貼文 {post_id[-8:]}: {likes_count}讚 - {content_preview}")
+            
+            # 🔥 創建完整的貼文對象並添加到列表
+            post_data = {
+                'post_id': post_id,
+                'summary': f"貼文 {post_id[-8:]}",
+                'timestamp': created_at[:19] if created_at else "未知時間",
+                'content': content,
+                'content_preview': content_preview,
+                'url': url,
+                'likes_count': likes_count,
+                'comments_count': comments_count,
+                'reposts_count': reposts_count,
+                'shares_count': shares_count,
+                'views_count': views_count,
+                'calculated_score': calculated_score,
+                'images_count': images_count,
+                'videos_count': videos_count,
+                'media_urls': media_urls
+            }
+            
+            # 確保 crawler_posts 列表存在
+            if 'crawler_posts' not in st.session_state:
+                st.session_state.crawler_posts = []
+            
+            # 添加到貼文列表（避免重複）
+            existing_ids = [p.get('post_id') for p in st.session_state.crawler_posts]
+            if post_id not in existing_ids:
+                st.session_state.crawler_posts.append(post_data)
             
         elif stage == 'batch_parsed':
             batch_size = data.get('batch_size', 0)
@@ -555,24 +596,36 @@ class ThreadsCrawlerComponent:
                         st.markdown(f"**🆔 {post['summary']}** `{post['timestamp']}`")
                         
                         # 顯示貼文詳情
-                        col1, col2 = st.columns([3, 1])
+                        col1, col2 = st.columns([2, 1])
                         with col1:
                             # 內容預覽
-                            for detail in post['details']:
-                                if "**內容**:" in detail:
-                                    content = detail.replace("📝 **內容**: ", "")
-                                    st.write(f"💬 {content}")
-                                    break
+                            content_preview = post.get('content_preview', post.get('content', ''))
+                            if content_preview:
+                                st.write(f"💬 {content_preview}")
+                            else:
+                                st.write("💬 無內容")
+                            
+                            # 媒體信息
+                            images_count = post.get('images_count', 0)
+                            videos_count = post.get('videos_count', 0)
+                            if images_count > 0 or videos_count > 0:
+                                st.write(f"📸 圖片: {images_count} | 🎥 影片: {videos_count}")
                         
                         with col2:
-                            # 互動數據
-                            for detail in post['details']:
-                                if "**互動**:" in detail:
-                                    st.write(detail.replace("📊 **互動**: ", "📊 "))
-                                elif "**瀏覽**:" in detail:
-                                    st.write(detail.replace("👁️ **瀏覽**: ", "👁️ "))
-                                elif "**分數**:" in detail:
-                                    st.write(detail.replace("⭐ **分數**: ", "⭐ "))
+                            # 🔥 完整的統計數據
+                            likes_count = post.get('likes_count', 0)
+                            comments_count = post.get('comments_count', 0)
+                            reposts_count = post.get('reposts_count', 0)
+                            shares_count = post.get('shares_count', 0)
+                            views_count = post.get('views_count', 0)
+                            calculated_score = post.get('calculated_score', 0)
+                            
+                            st.write(f"❤️ 讚: {likes_count:,}")
+                            st.write(f"💬 留言: {comments_count:,}")
+                            st.write(f"🔄 轉發: {reposts_count:,}")
+                            st.write(f"📤 分享: {shares_count:,}")
+                            st.write(f"👁️ 瀏覽: {views_count:,}")
+                            st.write(f"⭐ 分數: {calculated_score:.1f}")
                         
                         st.markdown("---")
             

@@ -266,6 +266,31 @@ class SystemMonitoringComponent:
         st.success("✅ 系統測試完成！")
         st.rerun()
     
+    def _generate_detailed_report(self, results: Dict[str, Any], logs: List[str]) -> Dict[str, Any]:
+        """生成詳細的測試報告"""
+        import time
+        import datetime
+        
+        # 統計測試結果
+        total_tests = len(results)
+        successful_tests = sum(1 for result in results.values() if isinstance(result, dict) and result.get('success', False))
+        failed_tests = total_tests - successful_tests
+        
+        # 生成詳細報告
+        report = {
+            "test_summary": {
+                "測試時間": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "測試項目數": total_tests,
+                "成功項目": successful_tests,
+                "失敗項目": failed_tests,
+                "成功率": f"{(successful_tests/total_tests)*100:.1f}%" if total_tests > 0 else "0%"
+            },
+            "detailed_results": results,
+            "logs": logs
+        }
+        
+        return report
+    
     def _test_mcp_server_health(self) -> Dict[str, Any]:
         """測試 MCP Server 健康狀態"""
         try:
