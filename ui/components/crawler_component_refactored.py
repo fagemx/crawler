@@ -77,64 +77,68 @@ class ThreadsCrawlerComponent:
 
     # ---------- 3. 後台爬蟲 ----------
     def _crawler_worker(self, username: str, max_posts: int, auth: Dict[str, Any], task_id: str, progfile: str):
-        """後台爬蟲工作線程 - 線程安全版本，不依賴session_state"""
-        try:
-            print(f"🔥 爬蟲線程啟動: task_id={task_id[:8]}, progfile={progfile}")
-            
-            # 初始化進度
-            self._write_progress(progfile, {
-                "stage": "initialization",
-                "progress": 0.0,
-                "status": "running",
-                "current_work": "正在初始化爬蟲..."
-            })
-            print(f"🔥 初始進度已寫入")
+        """後台爬蟲工作線程 - 使用async/await調用API"""
+        import asyncio
+        
+        async def _async_crawler():
+            try:
+                # 初始化進度
+                self._write_progress(progfile, {
+                    "stage": "initialization",
+                    "progress": 0.0,
+                    "status": "running",
+                    "current_work": "正在初始化爬蟲..."
+                })
 
-            # 啟動 SSE 監聽線程
-            print(f"🔥 啟動SSE監聽線程")
-            threading.Thread(
-                target=self._sse_listener, 
-                args=(task_id, progfile), 
-                daemon=True
-            ).start()
+                # 啟動 SSE 監聽線程
+                threading.Thread(
+                    target=self._sse_listener, 
+                    args=(task_id, progfile), 
+                    daemon=True
+                ).start()
 
-            # 調用後端爬蟲
-            print(f"🔥 準備調用後端API: {self.agent_url}")
-            payload = {
-                'username': username,
-                'max_posts': max_posts,
-                'auth_json_content': auth,
-                'task_id': task_id
-            }
-            
-            self._write_progress(progfile, {
-                "stage": "api_calling",
-                "progress": 0.1,
-                "status": "running",
-                "current_work": "正在調用後端API..."
-            })
-            
-            response = httpx.post(self.agent_url, json=payload, timeout=600)
-            response.raise_for_status()
-            print(f"🔥 API調用成功")
-            
-            # 爬蟲完成
-            self._write_progress(progfile, {
-                "stage": "api_completed",
-                "progress": 1.0,
-                "status": "completed",
-                "final_data": response.json()
-            })
-            print(f"🔥 爬蟲完成，結果已寫入")
-            
-        except Exception as e:
-            print(f"❌ 爬蟲線程錯誤: {e}")
-            self._write_progress(progfile, {
-                "stage": "error",
-                "error": str(e),
-                "status": "error",
-                "current_work": f"錯誤: {str(e)}"
-            })
+                # 調用後端爬蟲 - 使用async/await
+                payload = {
+                    'username': username,
+                    'max_posts': max_posts,
+                    'auth_json_content': auth,
+                    'task_id': task_id
+                }
+                
+                self._write_progress(progfile, {
+                    "stage": "api_calling",
+                    "progress": 0.1,
+                    "status": "running",
+                    "current_work": "正在調用後端API..."
+                })
+                
+                timeout = httpx.Timeout(600.0)
+                async with httpx.AsyncClient(timeout=timeout) as client:
+                    response = await client.post(self.agent_url, json=payload)
+                
+                if response.status_code != 200:
+                    raise Exception(f"API調用失敗，狀態碼: {response.status_code}")
+                
+                # 爬蟲完成
+                self._write_progress(progfile, {
+                    "stage": "api_completed",
+                    "progress": 1.0,
+                    "status": "completed",
+                    "final_data": response.json()
+                })
+                
+            except Exception as e:
+                self._write_progress(progfile, {
+                    "stage": "error",
+                    "error": str(e),
+                    "status": "error",
+                    "current_work": f"錯誤: {str(e)}"
+                })
+        
+        # 運行async函數
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(_async_crawler())
 
     def _sse_listener(self, task_id: str, progfile: str):
         """SSE 事件監聽線程"""
@@ -274,50 +278,43 @@ class ThreadsCrawlerComponent:
 
     def _render_progress(self):
         """渲染進度界面"""
-        # 顯示調試信息
+        # 核心：檢查文件更新並觸發UI刷新
         progress_file = st.session_state.get('crawler_progress_file', '')
         
-        with st.expander("🔧 調試信息", expanded=False):
-            st.write(f"**任務ID:** {st.session_state.get('crawler_task_id', 'N/A')}")
-            st.write(f"**進度文件:** {progress_file}")
+        if progress_file and os.path.exists(progress_file):
+            # 檢查文件修改時間
+            current_mtime = os.path.getmtime(progress_file)
+            last_mtime = st.session_state.get('_progress_mtime', 0)
             
-            if progress_file and os.path.exists(progress_file):
-                st.write("✅ 進度文件存在")
-                try:
-                    with open(progress_file, 'r', encoding='utf-8') as f:
-                        file_content = f.read()
-                    st.write("**文件內容:**")
-                    st.code(file_content, language='json')
-                except Exception as e:
-                    st.write(f"❌ 讀取失敗: {e}")
-            else:
-                st.write("❌ 進度文件不存在")
-        
-        # 讀取最新進度
-        if progress_file:
-            progress_data = self._read_progress(progress_file)
-            
-            # 更新session state
-            if progress_data:
-                st.session_state.crawler_progress = progress_data.get('progress', 0)
-                st.session_state.crawler_current_work = progress_data.get('current_work', '')
+            if current_mtime > last_mtime:
+                # 文件已更新，讀取新數據
+                st.session_state._progress_mtime = current_mtime
+                progress_data = self._read_progress(progress_file)
                 
-                # 檢查狀態變化
-                stage = progress_data.get('stage', '')
-                if stage in ('api_completed', 'completed'):
-                    st.session_state.crawler_status = 'completed'
-                    if 'final_data' in progress_data:
-                        st.session_state.final_data = progress_data['final_data']
-                    st.rerun()
-                elif stage == 'error':
-                    st.session_state.crawler_status = 'error'
-                    st.rerun()
+                if progress_data:
+                    # 更新狀態
+                    st.session_state.crawler_progress = progress_data.get('progress', 0)
+                    st.session_state.crawler_current_work = progress_data.get('current_work', '')
+                    
+                    # 檢查完成狀態
+                    stage = progress_data.get('stage', '')
+                    if stage in ('api_completed', 'completed'):
+                        st.session_state.crawler_status = 'completed'
+                        if 'final_data' in progress_data:
+                            st.session_state.final_data = progress_data['final_data']
+                        st.rerun()
+                    elif stage == 'error':
+                        st.session_state.crawler_status = 'error'
+                        st.rerun()
+                    
+                    # 處理即時貼文
+                    if 'post_parsed' in progress_data:
+                        post_data = progress_data['post_parsed']
+                        if post_data not in st.session_state.crawler_posts:
+                            st.session_state.crawler_posts.append(post_data)
                 
-                # 處理即時貼文數據
-                if 'post_parsed' in progress_data:
-                    post_data = progress_data['post_parsed']
-                    if post_data not in st.session_state.crawler_posts:
-                        st.session_state.crawler_posts.append(post_data)
+                # 觸發重新渲染
+                st.rerun()
 
         # 顯示進度
         target = st.session_state.crawler_target
