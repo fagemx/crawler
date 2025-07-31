@@ -324,7 +324,8 @@ async def stream_progress(task_id: str):
             # 連接到 NATS 並訂閱進度頻道
             nc = await get_nats_client()
             if nc is None:
-                yield f"data: {json.dumps({'error': 'NATS not available', 'task_id': task_id})}\n\n"
+                error_data = {'error': 'NATS not available', 'task_id': task_id}
+                yield f"data: {json.dumps(error_data)}\n\n"
                 return
             
             # 訊息處理器
@@ -341,7 +342,8 @@ async def stream_progress(task_id: str):
             subscription = await nc.subscribe("crawler.progress", cb=message_handler)
             
             # 發送初始連接確認
-            yield f"data: {json.dumps({{'task_id': '{task_id}', 'stage': 'connected', 'message': 'SSE connection established'}})}\n\n"
+            connect_data = {'task_id': task_id, 'stage': 'connected', 'message': 'SSE connection established'}
+            yield f"data: {json.dumps(connect_data)}\n\n"
             
             # 持續監聽訊息
             timeout_counter = 0
@@ -360,11 +362,13 @@ async def stream_progress(task_id: str):
                     # 發送心跳保持連接
                     timeout_counter += 1
                     if timeout_counter % 30 == 0:  # 每30秒發送一次心跳
-                        yield f"data: {json.dumps({{'task_id': '{task_id}', 'stage': 'heartbeat'}})}\n\n"
+                        heartbeat_data = {'task_id': task_id, 'stage': 'heartbeat'}
+                        yield f"data: {json.dumps(heartbeat_data)}\n\n"
                     continue
                     
         except Exception as e:
-            yield f"data: {json.dumps({{'error': str(e), 'task_id': '{task_id}'}})}\n\n"
+            error_data = {'error': str(e), 'task_id': task_id}
+            yield f"data: {json.dumps(error_data)}\n\n"
         finally:
             # 清理訂閱
             if subscription:

@@ -22,16 +22,22 @@ _nats_client: Optional[NATS] = None
 async def get_nats_client() -> Optional[NATS]:
     """獲取全局 NATS 客戶端"""
     if not NATS_AVAILABLE:
+        logging.debug("📡 NATS library not available")
         return None
         
     global _nats_client
     if _nats_client is None or _nats_client.is_closed:
         try:
             settings = get_settings()
-            _nats_client = await nats.connect(settings.nats.url)
+            _nats_client = await nats.connect(
+                servers=[settings.nats.url],
+                max_reconnect_attempts=60,   # 重試 60 次
+                reconnect_time_wait=2,       # 每 2 秒
+                connect_timeout=2
+            )
             logging.info(f"✅ Connected to NATS: {settings.nats.url}")
         except Exception as e:
-            logging.error(f"❌ Failed to connect to NATS: {e}")
+            logging.warning(f"⚠️ NATS connection failed (non-critical): {e}")
             return None
     return _nats_client
 
@@ -40,7 +46,7 @@ async def publish_progress(task_id: str, stage: str, **kwargs):
     try:
         nc = await get_nats_client()
         if nc is None:
-            logging.debug("📡 NATS not available, skipping progress publish")
+            logging.warning("📡 NATS not available, skipping progress publish")
             return
             
         message = {
@@ -50,7 +56,7 @@ async def publish_progress(task_id: str, stage: str, **kwargs):
             **kwargs
         }
         await nc.publish("crawler.progress", json.dumps(message).encode())
-        logging.debug(f"📡 Published progress: {stage} for {task_id}")
+        logging.info(f"📡 Published progress: {stage} for {task_id}")
     except Exception as e:
         logging.error(f"❌ Failed to publish progress: {e}")
 

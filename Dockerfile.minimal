@@ -1,0 +1,33 @@
+# Zeabur 最小化部署 - 僅 UI + Orchestrator
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# 安裝系統依賴
+RUN apt-get update && apt-get install -y \
+    curl \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# 複製專案檔案
+COPY pyproject.toml README.md LICENSE ./
+COPY common/ ./common/
+COPY ui/ ./ui/
+COPY agents/orchestrator/ ./agents/orchestrator/
+
+# 安裝基本依賴
+RUN pip install --no-cache-dir -e ".[ui,messaging,database]"
+
+# 設置環境變數
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+
+# 健康檢查
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8501/health || exit 1
+
+# 暴露主要端口
+EXPOSE 8501
+
+# 啟動主 UI
+CMD ["streamlit", "run", "ui/streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]

@@ -73,6 +73,10 @@ services:
       - "--jetstream"
       - "--store_dir=/data"
       - "--http_port=8222"
+      - "-a"
+      - "0.0.0.0"
+      - "-p"
+      - "4222"
     volumes:
       - nats_data:/data
     healthcheck:
@@ -367,6 +371,7 @@ services:
       - AGENT_PORT=8006
       - DATABASE_URL=postgresql://postgres:password@postgres:5432/social_media_db
       - REDIS_URL=redis://redis:6379/0
+      - NATS_URL=nats://nats:4222
     env_file:
       - .env
     volumes:
@@ -377,6 +382,8 @@ services:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      nats:
         condition: service_healthy
       mcp-server:
         condition: service_healthy

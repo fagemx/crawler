@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 import json
 import datetime
 from pathlib import Path
@@ -67,6 +67,7 @@ class CrawlRequest(BaseModel):
     username: str = Field(..., description="要爬取的 Threads 使用者名稱 (不含 @)")
     max_posts: int = Field(default=100, gt=0, le=500, description="要爬取的最大貼文數量")
     auth_json_content: Dict[str, Any] = Field(..., description="包含認證 cookies 和狀態的 auth.json 內容")
+    task_id: Optional[str] = Field(default=None, description="任務 ID，用於進度追蹤")
 
 # --- Agent Instance ---
 playwright_logic = PlaywrightLogic()
@@ -78,7 +79,8 @@ async def crawl_and_get_batch(request: CrawlRequest):
     接收爬取請求，執行 Playwright 爬蟲，並一次性返回完整的 PostMetricsBatch。
     認證內容由請求方在 request body 中提供。
     """
-    task_id = str(uuid.uuid4())
+    # 使用傳入的 task_id，如果沒有則生成新的
+    task_id = request.task_id or str(uuid.uuid4())
     logic = PlaywrightLogic()
 
     try:

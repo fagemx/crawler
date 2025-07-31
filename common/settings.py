@@ -47,8 +47,10 @@ class NATSSettings(BaseSettings):
     stream_name: str = Field(default="social_media_tasks")
     consumer_name: str = Field(default="content_generator")
     
-    class Config:
-        env_prefix = "NATS_"
+    model_config = SettingsConfigDict(
+        env_prefix="NATS_",
+        extra='ignore'
+    )
 
 
 class GeminiSettings(BaseSettings):
@@ -231,6 +233,7 @@ class Settings(BaseSettings):
     apify: ApifySettings = Field(default_factory=ApifySettings)
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
     redis: RedisSettings = Field(default_factory=RedisSettings)
+    nats: NATSSettings = Field(default_factory=NATSSettings)
     mcp: MCPSettings = Field(default_factory=MCPSettings)
     playwright: PlaywrightSettings = Field(default_factory=PlaywrightSettings)
     jina: JinaSettings = Field(default_factory=JinaSettings)

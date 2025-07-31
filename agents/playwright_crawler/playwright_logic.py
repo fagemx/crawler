@@ -306,11 +306,38 @@ class PlaywrightLogic:
                         posts[parsed_post.post_id] = parsed_post
                         new_count += 1
                         
+                        # 🔥 新增：每解析一個貼文就發布即時進度
+                        from common.nats_client import publish_progress
+                        await publish_progress(
+                            task_id, 
+                            "post_parsed",
+                            username=username,
+                            post_id=parsed_post.post_id,
+                            current=len(posts),
+                            total=max_posts,
+                            progress=len(posts) / max_posts,
+                            content_preview=parsed_post.content[:50] + "..." if parsed_post.content else "無內容",
+                            likes=parsed_post.likes_count
+                        )
+                        
             if new_count > 0:
                 logging.info(f"✅ [{qname}] +{new_count} (總 {len(posts)}/{max_posts})")
                 # 使用回調函數發送串流訊息 (如果有的話)
                 if stream_callback:
                     stream_callback(f"✅ 從 {qname} 解析到 {new_count} 則新貼文，總數: {len(posts)}")
+                    
+                # 🔥 新增：每批解析完成後的進度更新
+                from common.nats_client import publish_progress
+                await publish_progress(
+                    task_id, 
+                    "batch_parsed",
+                    username=username,
+                    batch_size=new_count,
+                    current=len(posts),
+                    total=max_posts,
+                    progress=len(posts) / max_posts,
+                    query_name=qname
+                )
             
             # 檢查是否已達到目標數量
             if len(posts) >= max_posts:
@@ -436,7 +463,7 @@ class PlaywrightLogic:
                 await publish_progress(task_id, "fill_views_start", username=username, posts_count=len(final_posts))
                 
                 try:
-                    final_posts = await self.fill_views_from_page(final_posts)
+                    final_posts = await self.fill_views_from_page(final_posts, task_id=task_id, username=username)
                     logging.info(f"✅ [Task: {task_id}] 觀看數補齊完成")
                     await publish_progress(task_id, "fill_views_completed", username=username, posts_count=len(final_posts))
                 except Exception as e:
@@ -525,7 +552,7 @@ class PlaywrightLogic:
             self.context = None 
 
     # +++ 新增：從前端補齊瀏覽數的核心方法 +++
-    async def fill_views_from_page(self, posts_to_fill: List[PostMetrics]) -> List[PostMetrics]:
+    async def fill_views_from_page(self, posts_to_fill: List[PostMetrics], task_id: str = None, username: str = None) -> List[PostMetrics]:
         """
         遍歷貼文列表，導航到每個貼文的頁面以補齊 views_count。
         使用並發處理來加速此過程。
@@ -563,6 +590,20 @@ class PlaywrightLogic:
                                     post.views_count = views_count
                                     post.views_fetched_at = datetime.utcnow()
                                     logging.info(f"  ✅ 成功獲取 {post.post_id} 的瀏覽數: {views_count}")
+                                    
+                                    # 🔥 新增：每成功獲取一個瀏覽數就發布即時進度
+                                    if task_id:
+                                        from common.nats_client import publish_progress
+                                        await publish_progress(
+                                            task_id, 
+                                            "views_fetched",
+                                            username=username or "unknown",
+                                            post_id=post.post_id,
+                                            views_count=views_count,
+                                            views_formatted=f"{views_count:,}",
+                                            progress_detail=f"已獲取 {post.post_id} 的 {views_count:,} 次瀏覽"
+                                        )
+                                    
                                     return # 成功後退出重試循環
                             break # 找到元素但解析失敗也跳出
                         except Exception as e:

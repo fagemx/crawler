@@ -270,8 +270,30 @@ class ThreadsCrawlerComponent:
             progress = data.get('progress', 0)
             st.session_state.crawler_progress = progress
             st.session_state.crawler_logs.append(f"📊 進度: {current}/{total} 篇貼文 ({progress:.1%})")
+        elif stage == 'post_parsed':
+            # 🔥 新增：每解析一個貼文的詳細進度
+            current = data.get('current', 0)
+            total = data.get('total', 1)
+            progress = data.get('progress', 0)
+            post_id = data.get('post_id', '')
+            content_preview = data.get('content_preview', '')
+            likes = data.get('likes', 0)
+            st.session_state.crawler_progress = progress
+            st.session_state.crawler_logs.append(f"✅ 解析貼文 {post_id[-8:]}: {likes}讚 - {content_preview}")
+        elif stage == 'batch_parsed':
+            # 🔥 新增：每批解析完成的進度
+            batch_size = data.get('batch_size', 0)
+            current = data.get('current', 0)
+            total = data.get('total', 1)
+            query_name = data.get('query_name', '')
+            st.session_state.crawler_logs.append(f"📦 從 {query_name} 解析了 {batch_size} 則貼文，總計: {current}/{total}")
         elif stage == 'fill_views_start':
             st.session_state.crawler_logs.append("👁️ 開始補齊瀏覽數...")
+        elif stage == 'views_fetched':
+            # 🔥 新增：每獲取一個瀏覽數的詳細進度
+            post_id = data.get('post_id', '')
+            views_formatted = data.get('views_formatted', '0')
+            st.session_state.crawler_logs.append(f"👁️ 貼文 {post_id[-8:]}: {views_formatted} 次瀏覽")
         elif stage == 'fill_views_completed':
             st.session_state.crawler_logs.append("✅ 瀏覽數補齊完成")
         elif stage == 'completed':

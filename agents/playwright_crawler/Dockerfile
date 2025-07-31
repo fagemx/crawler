@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y \
 COPY pyproject.toml README.md LICENSE ./
 
 # 安裝 Python 依賴（包含可選依賴組）
-RUN pip install --no-cache-dir -e ".[messaging,playwright_crawler]"
+RUN pip install --no-cache-dir -e ".[messaging,playwright_crawler,monitoring]"
 
 # 複製應用程式碼
 COPY . .
