@@ -192,24 +192,20 @@ class SocialMediaGeneratorApp:
             st.checkbox("🔧 顯示調試信息", key="show_debug_sidebar", value=True, 
                        help="控制左側邊欄是否顯示詳細的調試信息")
     
-    @st.fragment(run_every=2)  # 🔥 每2秒自動刷新
+    @st.fragment(run_every=2)  # 🔥 每2秒自動刷新側邊欄
     def _render_progress_fragment(self):
         """自動刷新的進度片段"""
         if hasattr(self, 'crawler_component'):
             # 檢查並更新進度
             progress_updated = self.crawler_component._check_and_update_progress()
             
-            # 渲染進度顯示
-            self.crawler_component._render_crawler_progress()
+            # 🔥 修復：只渲染進度內容，不渲染標題（標題已在_render_sidebar_progress中顯示）
+            self.crawler_component._render_crawler_progress_content_only()
             
             # 顯示最後更新時間
             import datetime
             current_time = datetime.datetime.now().strftime("%H:%M:%S")
             st.caption(f"🕒 最後更新: {current_time}")
-            
-            # 如果有更新，顯示提示
-            if progress_updated:
-                st.success("✨ 進度已更新")
         else:
             st.write("⚠️ 爬蟲組件未初始化")
     

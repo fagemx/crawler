@@ -230,6 +230,7 @@ class ThreadsCrawlerComponent:
             st.session_state.crawler_status = 'error'
             st.rerun()
             return
+            return
         
         # 啟動真實的爬蟲任務
         st.success("🚀 爬蟲已啟動！即將開始爬取...")
@@ -487,17 +488,22 @@ class ThreadsCrawlerComponent:
             return False
             
         try:
+            # 🔥 修復：簡化檢查邏輯，每次都讀取文件
             # 檢查文件修改時間
             current_mtime = os.path.getmtime(progress_file_path)
             last_mtime = st.session_state.get('crawler_progress_mtime', 0)
             
-            if current_mtime <= last_mtime:
-                # print(f"🔍 檔案沒有更新: {current_mtime} <= {last_mtime}")
-                return False  # 沒有更新
-                
-            # 更新修改時間
-            st.session_state.crawler_progress_mtime = current_mtime
-            print(f"🔥 檢測到進度文件更新: {current_mtime}")
+            print(f"🔍 檔案時間檢查: current={current_mtime}, last={last_mtime}")
+            
+            # 🔥 修復：更寬鬆的更新檢查，避免錯過更新
+            if current_mtime > last_mtime:
+                st.session_state.crawler_progress_mtime = current_mtime
+                print(f"🔥 檢測到進度文件更新: {current_mtime}")
+                file_updated = True
+            else:
+                # 即使時間相同，也嘗試讀取一次（用於調試）
+                print(f"🔍 檔案時間未變，但仍嘗試讀取")
+                file_updated = False
             
             # 讀取進度數據
             with open(progress_file_path, 'r') as f:
@@ -507,6 +513,8 @@ class ThreadsCrawlerComponent:
             
             # 更新 UI 狀態
             self._update_ui_from_progress(data)
+            
+            # 🔥 修復：只要成功讀取就返回True，確保UI更新
             return True
             
         except Exception as e:
@@ -748,7 +756,11 @@ class ThreadsCrawlerComponent:
             pass
     
     def _render_crawler_progress(self):
-        """渲染爬蟲進度（適合側邊欄）"""
+        """渲染爬蟲進度（適合側邊欄，包含標題）"""
+        self._render_crawler_progress_content_only()
+    
+    def _render_crawler_progress_content_only(self):
+        """渲染爬蟲進度內容（不包含標題，避免重複）"""
         target = st.session_state.get('crawler_target', {})
         username = target.get("username", "N/A")
         max_posts = target.get("max_posts", 0)
@@ -869,8 +881,8 @@ class ThreadsCrawlerComponent:
             # 自動刷新
             if progress_updated:
                 st.success(f"🔄 有進度更新，立即刷新")
-                st.rerun()
-            else:
+            st.rerun()
+        else:
                 st.info(f"⏳ 無進度更新，st.fragment會自動刷新")
                 # 🔥 移除 time.sleep() - 不能在UI線程中阻塞！
                 # 依賴 st.fragment(run_every=2) 自動刷新
