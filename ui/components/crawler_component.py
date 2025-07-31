@@ -854,7 +854,7 @@ class ThreadsCrawlerComponent:
             st.info("⏱️ 每2秒自動更新進度")
         
         # 調試信息（可選）
-        if st.session_state.get('show_debug_in_sidebar', True):  # 🔥 修改默認為True
+        if st.session_state.get('show_debug_sidebar', True):  # 🔥 修正key名稱，默認為True
             with st.expander("🔧 調試信息", expanded=True):  # 🔥 默認展開
                 st.write(f"🆔 任務: {st.session_state.get('crawler_task_id', 'N/A')[-8:]}")
                 st.write(f"🔄 更新: {progress_updated}")

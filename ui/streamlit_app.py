@@ -189,7 +189,7 @@ class SocialMediaGeneratorApp:
                 st.success(f"📋 上次爬取: @{username} ({posts_count} 篇)")
                 
             # 調試選項
-            if st.checkbox("🔧 顯示調試信息", key="show_debug_sidebar"):
+            if st.checkbox("🔧 顯示調試信息", key="show_debug_sidebar", value=True):
                 st.write("**狀態檢查:**")
                 st.write(f"- crawler_status: {crawler_status}")
                 st.write(f"- has_progress: {has_progress}")
