@@ -38,6 +38,30 @@ class ThreadsCrawlerComponent:
             except Exception:
                 pass
 
+        # 1️⃣ stage 若已經是 completed 就不要被後面事件覆寫
+        stage_priority = {
+            "initialization": 0,
+            "fetch_start": 1,
+            "post_parsed": 2,
+            "batch_parsed": 3,
+            "fill_views_start": 4,
+            "fill_views_completed": 5,
+            "api_completed": 6,
+            "completed": 7,
+            "error": 8,
+        }
+        old_stage = old.get("stage", "")
+        new_stage = data.get("stage", old_stage)
+        if stage_priority.get(new_stage, 0) < stage_priority.get(old_stage, 0):
+            # 舊 stage 優先級比較高 → 保留舊值
+            data.pop("stage", None)
+
+        # 2️⃣ 若新資料沒有 progress，就沿用舊 progress
+        if "progress" not in data and "progress" in old:
+            data["progress"] = old["progress"]
+        if "current_work" not in data and "current_work" in old:
+            data["current_work"] = old["current_work"]
+
         merged = {**old, **data, "timestamp": time.time()}
 
         with open(path, "w", encoding="utf-8") as f:
@@ -161,6 +185,8 @@ class ThreadsCrawlerComponent:
             with requests.get(url, stream=True, timeout=600) as response:
                 print(f"🔥 SSE連接成功，狀態碼: {response.status_code}")
                 
+                current_cnt = 0
+                total_cnt   = None      # 第一次拿到再放進來
                 for line in response.iter_lines():
                     if line and line.startswith(b"data:"):
                         try:
@@ -170,19 +196,20 @@ class ThreadsCrawlerComponent:
                             
                             # --------- 計算進度 ---------
                             if stage == "post_parsed":
-                                # 優先使用後端直接提供的 progress
-                                if "progress" in data:
-                                    progress = float(data["progress"])
-                                    cur, tot = int(progress * data.get("total", 1)), data.get("total", 1)
+                                # 後端沒帶 current/total？自己數
+                                current_cnt += 1
+                                total_cnt = data.get("total") or total_cnt
+                                if total_cnt:
+                                    progress = current_cnt / total_cnt
                                 else:
-                                    cur, tot = data.get("current", 0), data.get("total", 1)
-                                    progress = cur / tot if tot else 0
+                                    # 退而求其次：給一個遞增但不超 1 的假進度
+                                    progress = min(0.99, current_cnt * 0.02)
                                 progress = max(0.0, min(1.0, progress))    # Clamp
                                 self._write_progress(
                                     progfile,
                                     dict(stage=stage,
                                          progress=progress,
-                                         current_work=f"已解析 {cur}/{tot} 篇貼文")
+                                         current_work=f"已解析 {current_cnt}/{total_cnt or '?'} 篇貼文")
                                 )
                             # 通用 fetch_progress 事件（若後端有送）
                             elif stage == "fetch_progress":
