@@ -25,9 +25,23 @@ class ThreadsCrawlerComponent:
     
     # ---------- 1. 公用工具 ----------
     def _write_progress(self, path: str, data: Dict[str, Any]):
-        """線程安全的進度寫入"""
+        """
+        線程安全寫入進度：
+        - 先讀舊檔 → 缺少的欄位沿用舊值
+        - 再寫回（單檔案，避免 race）
+        """
+        old: Dict[str, Any] = {}
+        if os.path.exists(path):
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    old = json.load(f)
+            except Exception:
+                pass
+
+        merged = {**old, **data, "timestamp": time.time()}
+
         with open(path, "w", encoding="utf-8") as f:
-            json.dump({**data, "timestamp": time.time()}, f, ensure_ascii=False)
+            json.dump(merged, f, ensure_ascii=False)
             f.flush()
             os.fsync(f.fileno())
 
@@ -192,8 +206,13 @@ class ThreadsCrawlerComponent:
                                          current_work="正在填充觀看數據...")
                                 )
                             else:
-                                # 其餘事件直接寫
-                                self._write_progress(progfile, dict(stage=stage))
+                                # 其餘事件：只更新 stage / current_work，不覆蓋 progress
+                                payload = dict(stage=stage)
+                                if "current_work" in data:
+                                    payload["current_work"] = data["current_work"]
+                                elif "message" in data:
+                                     payload["current_work"] = data["message"]
+                                self._write_progress(progfile, payload)
                             
                             # 檢查是否完成
                             if stage in ("completed", "error"):
