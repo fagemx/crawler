@@ -1,32 +1,71 @@
 {
-    "name": "Playwright Crawler Agent",
+    "name": "playwright-crawler",
+    "role": "playwright-crawler",
     "version": "1.0.0",
     "description": "使用 Playwright 和使用者提供的認證狀態來爬取 Threads 貼文，以繞過 API 限制。",
-    "author": "AI Assistant",
-    "tags": ["crawler", "playwright", "threads", "scraping"],
+    "url": "http://playwright-crawler-agent:8006",
+    "capabilities": {
+        "browser_automation": true,
+        "dynamic_content": true,
+        "threads_scraping": true,
+        "auth_handling": true,
+        "media_extraction": true
+    },
+    "skills": [
+        {
+            "name": "threads_crawling",
+            "description": "爬取 Threads 平台的貼文和互動數據",
+            "tags": ["crawling", "threads", "social-media"]
+        },
+        {
+            "name": "auth_handling",
+            "description": "處理用戶認證狀態以繞過 API 限制",
+            "tags": ["authentication", "cookies", "session"]
+        },
+        {
+            "name": "media_extraction",
+            "description": "提取貼文中的媒體 URL 並請求下載",
+            "tags": ["media", "images", "videos"]
+        }
+    ],
+    "requirements": {
+        "python": ">=3.11",
+        "memory": "2Gi",
+        "cpu": "1",
+        "browser": "chromium"
+    },
+    "metadata": {
+        "author": "AI Assistant",
+        "max_concurrent_crawls": 3,
+        "supported_platforms": ["threads"],
+        "requires_auth": true,
+        "mcp_integrated": true
+    },
     "endpoints": [
         {
             "route": "/v1/playwright/crawl",
             "method": "POST",
-            "description": "啟動一個新的爬取任務，使用提供的認證檔案。",
-            "request_schema": {
-                "username": "string",
-                "max_posts": "integer",
-                "auth_json_content": "object"
-            },
-            "response_schema": {
-                "status": "string",
-                "task_id": "string"
-            }
+            "description": "啟動一個新的爬取任務，使用提供的認證檔案"
+        },
+        {
+            "route": "/health",
+            "method": "GET",
+            "description": "健康檢查端點"
+        },
+        {
+            "route": "/mcp/capabilities",
+            "method": "GET",
+            "description": "獲取 Agent 能力"
+        },
+        {
+            "route": "/mcp/discover",
+            "method": "GET",
+            "description": "發現其他 Agent"
+        },
+        {
+            "route": "/mcp/request-media-download",
+            "method": "POST",
+            "description": "請求 MCP Server 下載媒體檔案"
         }
-    ],
-    "dependencies": [
-        "fastapi",
-        "uvicorn",
-        "playwright"
-    ],
-    "resources": {
-        "cpu": "1",
-        "memory": "2Gi"
-    }
+    ]
 } 

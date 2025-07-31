@@ -40,8 +40,8 @@ except ModuleNotFoundError as e:
     sys.exit(1)
 
 # --- 測試參數 ---
-TARGET_USERNAME = "natgeo"
-MAX_POSTS_TO_CRAWL = 5 # <--- 暫時改回較小的數量以降低 API 壓力
+TARGET_USERNAME = "star_shining0828"
+MAX_POSTS_TO_CRAWL = 100 # <--- 暫時改回較小的數量以降低 API 壓力
 AUTH_FILE_PATH = Path(project_root) / "agents" / "playwright_crawler" / "auth.json"
 
 

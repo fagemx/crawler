@@ -1,38 +1,77 @@
 {
-  "name": "vision_agent",
+  "name": "vision",
+  "role": "vision",
   "version": "1.0.0",
   "description": "Vision Agent - 使用 Screenshot + Gemini 2.5 Flash 提取缺失的社交媒體互動數據",
-  "author": "Social Media Content Generator Team",
-  "capabilities": [
-    "screenshot_capture",
-    "visual_analysis", 
-    "metrics_extraction",
-    "gemini_vision"
-  ],
-  "dependencies": [
-    "screenshotone",
-    "google-generativeai",
-    "httpx",
-    "pillow"
-  ],
-  "endpoints": {
-    "health": "/health",
-    "analyze_posts": "/analyze_posts",
-    "screenshot": "/screenshot",
-    "status": "/status/{task_id}"
+  "url": "http://vision-agent:8005",
+  "capabilities": {
+    "image_analysis": true,
+    "video_analysis": true,
+    "screenshot_capture": true,
+    "visual_metrics_extraction": true,
+    "gemini_vision": true,
+    "rustfs_integration": true
   },
-  "input_format": "PostMetricsBatch",
-  "output_format": "PostMetricsBatch",
-  "processing_stage": "vision_analysis",
-  "next_stage": "ranking",
-  "mcp_tools": [
+  "skills": [
     {
-      "name": "analyze_incomplete_posts",
-      "description": "使用視覺分析補完缺失的社交媒體互動數據"
+      "name": "visual_metrics_extraction",
+      "description": "從圖片和影片中提取社交媒體互動指標",
+      "tags": ["vision", "metrics", "analysis"]
     },
     {
-      "name": "capture_screenshot", 
-      "description": "捕獲網頁截圖用於視覺分析"
+      "name": "screenshot_analysis",
+      "description": "分析網頁截圖以獲取缺失的數據",
+      "tags": ["screenshot", "ocr", "visual-analysis"]
+    },
+    {
+      "name": "media_content_analysis",
+      "description": "分析 RustFS 中存儲的媒體內容",
+      "tags": ["media", "content-analysis", "rustfs"]
+    }
+  ],
+  "requirements": {
+    "python": ">=3.11",
+    "memory": "4Gi",
+    "cpu": "2",
+    "gpu": "optional"
+  },
+  "metadata": {
+    "author": "Social Media Content Generator Team",
+    "supported_models": ["gemini-2.5-flash", "gemini-2.5-pro"],
+    "max_concurrent_analysis": 5,
+    "supported_formats": ["jpg", "png", "webp", "mp4"],
+    "mcp_integrated": true
+  },
+  "endpoints": [
+    {
+      "route": "/health",
+      "method": "GET",
+      "description": "健康檢查端點"
+    },
+    {
+      "route": "/fill-missing",
+      "method": "POST",
+      "description": "補完缺失的指標數據"
+    },
+    {
+      "route": "/process-queue",
+      "method": "POST",
+      "description": "處理視覺分析佇列"
+    },
+    {
+      "route": "/mcp/capabilities",
+      "method": "GET",
+      "description": "獲取 Agent 能力"
+    },
+    {
+      "route": "/mcp/discover",
+      "method": "GET",
+      "description": "發現其他 Agent"
+    },
+    {
+      "route": "/mcp/request-media-analysis",
+      "method": "POST",
+      "description": "請求媒體分析並獲取 RustFS 中的檔案"
     }
   ]
 }

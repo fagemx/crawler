@@ -20,7 +20,8 @@ from common.a2a import (
     MessageFormatError, TaskExecutionError
 )
 from common.settings import get_settings
-from .vision_fill_logic import VisionFillAgent
+from common.mcp_client import agent_startup, agent_shutdown, get_mcp_client
+from .vision_logic import VisionAgent
 
 
 class VisionFillAgentService(BaseAgent):
@@ -31,7 +32,7 @@ class VisionFillAgentService(BaseAgent):
             agent_name="Vision Fill Agent",
             agent_description="專業的視覺補值代理，補完缺失的社交媒體指標"
         )
-        self.vision_logic = VisionFillAgent()
+        self.vision_logic = VisionAgent()
         self.settings = get_settings()
     
     async def handle_message(self, message: A2AMessage) -> AsyncIterable[Dict[str, Any]]:
@@ -139,25 +140,30 @@ vision_fill_agent = VisionFillAgentService()
 
 
 async def register_to_mcp():
-    """註冊到 MCP Server"""
+    """註冊到 MCP Server - 使用新的 MCP Client"""
     try:
-        import httpx
+        capabilities = {
+            "image_analysis": True,
+            "video_analysis": True,
+            "screenshot_capture": True,
+            "visual_metrics_extraction": True,
+            "gemini_vision": True
+        }
         
-        agent_card = vision_fill_agent.get_agent_card()
-        mcp_url = vision_fill_agent.settings.mcp.server_url
+        metadata = {
+            "version": "1.0.0",
+            "author": "Social Media Content Generator Team",
+            "supported_models": ["gemini-2.5-flash", "gemini-2.5-pro"],
+            "max_concurrent_analysis": 5,
+            "supported_formats": ["jpg", "png", "webp", "mp4"]
+        }
         
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{mcp_url}/agents/register",
-                json=agent_card,
-                timeout=10.0
-            )
+        success = await agent_startup(capabilities, metadata)
+        if success:
+            print("✅ Vision Fill Agent registered to MCP Server")
+        else:
+            print("❌ Failed to register Vision Fill Agent to MCP Server")
             
-            if response.status_code == 200:
-                print(f"Vision Fill Agent 成功註冊到 MCP Server: {mcp_url}")
-            else:
-                print(f"Vision Fill Agent 註冊到 MCP Server 失敗: {response.status_code}")
-                
     except Exception as e:
         print(f"Vision Fill Agent 註冊到 MCP Server 時發生錯誤: {e}")
 
@@ -175,6 +181,8 @@ async def lifespan(app: FastAPI):
     
     # 關閉時清理
     cleanup_task.cancel()
+    await agent_shutdown()
+    print("🛑 Vision Fill Agent shutdown completed")
 
 
 async def periodic_cleanup():
@@ -333,6 +341,97 @@ async def get_queue_status(queue_name: str):
         raise HTTPException(status_code=500, detail=f"獲取佇列狀態失敗: {str(e)}")
 
 
+# MCP 整合端點
+@app.get("/mcp/capabilities", tags=["MCP"])
+async def get_capabilities():
+    """獲取 Agent 能力"""
+    return {
+        "image_analysis": True,
+        "video_analysis": True,
+        "screenshot_capture": True,
+        "visual_metrics_extraction": True,
+        "gemini_vision": True,
+        "supported_models": ["gemini-2.5-flash", "gemini-2.5-pro"],
+        "max_concurrent": 5,
+        "supported_formats": ["jpg", "png", "webp", "mp4"]
+    }
+
+@app.get("/mcp/discover", tags=["MCP"])
+async def discover_other_agents():
+    """發現其他 Agent"""
+    try:
+        mcp_client = get_mcp_client()
+        
+        # 發現相關的 Agent
+        crawler_agents = await mcp_client.discover_agents(role="playwright-crawler", status="ONLINE")
+        analysis_agents = await mcp_client.discover_agents(role="analysis", status="ONLINE")
+        orchestrator_agents = await mcp_client.discover_agents(role="orchestrator", status="ONLINE")
+        
+        return {
+            "crawler_agents": crawler_agents,
+            "analysis_agents": analysis_agents,
+            "orchestrator_agents": orchestrator_agents,
+            "total_discovered": len(crawler_agents) + len(analysis_agents) + len(orchestrator_agents)
+        }
+    except Exception as e:
+        print(f"Failed to discover agents: {e}")
+        return {"error": str(e), "crawler_agents": [], "analysis_agents": [], "orchestrator_agents": []}
+
+@app.post("/mcp/request-media-analysis", tags=["MCP"])
+async def request_media_analysis(
+    post_url: str,
+    analysis_type: str = "metrics_extraction"
+):
+    """請求媒體分析並獲取 RustFS 中的檔案"""
+    try:
+        mcp_client = get_mcp_client()
+        
+        # 獲取貼文的媒體檔案
+        media_files = await mcp_client.get_media_files(post_url)
+        
+        if not media_files.get("media_files"):
+            return {
+                "status": "no_media",
+                "message": "No media files found for this post",
+                "post_url": post_url
+            }
+        
+        # 過濾出可分析的媒體類型
+        analyzable_files = [
+            mf for mf in media_files["media_files"]
+            if mf.get("media_type") in ["image", "video"] and mf.get("download_status") == "completed"
+        ]
+        
+        if not analyzable_files:
+            return {
+                "status": "no_analyzable_media",
+                "message": "No analyzable media files found",
+                "post_url": post_url,
+                "total_files": len(media_files["media_files"])
+            }
+        
+        # 這裡可以觸發實際的分析邏輯
+        # 暫時返回分析準備狀態
+        return {
+            "status": "analysis_ready",
+            "post_url": post_url,
+            "analyzable_files": len(analyzable_files),
+            "analysis_type": analysis_type,
+            "files": [
+                {
+                    "id": mf["id"],
+                    "media_type": mf["media_type"],
+                    "rustfs_url": mf["rustfs_url"],
+                    "file_size": mf["file_size"]
+                }
+                for mf in analyzable_files
+            ]
+        }
+        
+    except Exception as e:
+        print(f"Failed to request media analysis: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/")
 async def root():
     """根端點"""
@@ -340,13 +439,17 @@ async def root():
         "agent": "Vision Fill Agent",
         "version": "1.0.0",
         "description": "視覺補值代理 - 補完缺失的社交媒體指標",
+        "mcp_integrated": True,
         "endpoints": {
             "health": "/health",
             "agent_card": "/agent-card",
             "a2a_message": "/a2a/message",
             "fill_missing": "/fill-missing",
             "process_queue": "/process-queue",
-            "queue_status": "/queue/{queue_name}/status"
+            "queue_status": "/queue/{queue_name}/status",
+            "mcp_capabilities": "/mcp/capabilities",
+            "mcp_discover": "/mcp/discover",
+            "mcp_request_analysis": "/mcp/request-media-analysis"
         }
     }
 

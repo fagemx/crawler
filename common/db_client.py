@@ -339,6 +339,56 @@ class DatabaseClient:
             print(f"獲取 Top 貼文失敗 {username}: {e}")
             return []
     
+    async def upsert_media_file(
+        self,
+        post_url: str,
+        original_url: str,
+        media_type: str,
+        file_extension: str = None,
+        rustfs_key: str = None,
+        rustfs_url: str = None,
+        file_size: int = None,
+        width: int = None,
+        height: int = None,
+        duration: int = None,
+        download_status: str = "pending",
+        metadata: Dict[str, Any] = None
+    ) -> int:
+        """插入或更新媒體檔案記錄"""
+        try:
+            async with self.get_connection() as conn:
+                media_id = await conn.fetchval("""
+                    SELECT upsert_media_file($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+                """, 
+                post_url, original_url, media_type, file_extension, rustfs_key, rustfs_url,
+                file_size, width, height, duration, download_status, metadata or {})
+                
+                return media_id
+                
+        except Exception as e:
+            print(f"❌ Failed to upsert media file: {e}")
+            return None
+
+    async def get_media_files_by_post(self, post_url: str) -> List[Dict[str, Any]]:
+        """獲取貼文的媒體檔案"""
+        try:
+            async with self.get_connection() as conn:
+                rows = await conn.fetch("""
+                    SELECT 
+                        id, post_url, original_url, media_type, file_extension,
+                        rustfs_key, rustfs_url, file_size, width, height, duration,
+                        download_status, download_error, created_at, downloaded_at, metadata
+                    FROM media_files 
+                    WHERE post_url = $1
+                    ORDER BY created_at
+                """, post_url)
+                
+                return [dict(row) for row in rows]
+                
+        except Exception as e:
+            print(f"❌ Failed to get media files: {e}")
+            return []
+
     async def get_posts_with_metrics(self, urls: List[str]) -> List[Dict[str, Any]]:
         """
         批次獲取貼文及其指標（用於分析階段）

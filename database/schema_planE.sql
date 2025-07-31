@@ -55,6 +55,87 @@ CREATE INDEX idx_processing_log_url ON processing_log(url);
 CREATE INDEX idx_processing_log_status ON processing_log(status);
 
 -- ============================================================================
+-- MCP Server 管理表格
+-- ============================================================================
+
+-- Agent 註冊表
+CREATE TABLE mcp_agents (
+    id              SERIAL PRIMARY KEY,
+    name            TEXT UNIQUE NOT NULL,
+    description     TEXT,
+    version         TEXT DEFAULT '1.0.0',
+    url             TEXT NOT NULL,
+    health_check_url TEXT,
+    capabilities    JSONB DEFAULT '{}',
+    skills          JSONB DEFAULT '[]',
+    requirements    JSONB DEFAULT '{}',
+    metadata        JSONB DEFAULT '{}',
+    status          TEXT DEFAULT 'unknown' CHECK (status IN ('active', 'inactive', 'error', 'unknown')),
+    registered_at   TIMESTAMPTZ DEFAULT now(),
+    last_seen       TIMESTAMPTZ DEFAULT now(),
+    last_health_check TIMESTAMPTZ,
+    health_check_count INTEGER DEFAULT 0,
+    error_count     INTEGER DEFAULT 0
+);
+
+-- Agent 健康檢查歷史
+CREATE TABLE agent_health_history (
+    id              SERIAL PRIMARY KEY,
+    agent_name      TEXT NOT NULL REFERENCES mcp_agents(name) ON DELETE CASCADE,
+    status          TEXT NOT NULL CHECK (status IN ('healthy', 'unhealthy', 'timeout', 'error')),
+    response_time_ms INTEGER,
+    error_message   TEXT,
+    checked_at      TIMESTAMPTZ DEFAULT now(),
+    metadata        JSONB DEFAULT '{}'
+);
+
+-- 系統操作日誌
+CREATE TABLE system_operation_log (
+    id              SERIAL PRIMARY KEY,
+    operation_type  TEXT NOT NULL,  -- 'agent_register', 'agent_unregister', 'health_check', 'task_execute'
+    operation_name  TEXT NOT NULL,
+    agent_name      TEXT,
+    user_id         TEXT,
+    status          TEXT NOT NULL CHECK (status IN ('success', 'failed', 'pending')),
+    request_data    JSONB,
+    response_data   JSONB,
+    error_message   TEXT,
+    execution_time_ms INTEGER,
+    started_at      TIMESTAMPTZ DEFAULT now(),
+    completed_at    TIMESTAMPTZ,
+    ip_address      INET,
+    user_agent      TEXT
+);
+
+-- 系統錯誤記錄
+CREATE TABLE system_error_log (
+    id              SERIAL PRIMARY KEY,
+    error_type      TEXT NOT NULL,  -- 'agent_error', 'database_error', 'network_error', 'validation_error'
+    error_code      TEXT,
+    error_message   TEXT NOT NULL,
+    stack_trace     TEXT,
+    agent_name      TEXT,
+    operation_context TEXT,
+    request_data    JSONB,
+    severity        TEXT DEFAULT 'error' CHECK (severity IN ('debug', 'info', 'warning', 'error', 'critical')),
+    occurred_at     TIMESTAMPTZ DEFAULT now(),
+    resolved_at     TIMESTAMPTZ,
+    resolution_notes TEXT,
+    metadata        JSONB DEFAULT '{}'
+);
+
+-- 索引優化
+CREATE INDEX idx_mcp_agents_status ON mcp_agents(status);
+CREATE INDEX idx_mcp_agents_last_seen ON mcp_agents(last_seen DESC);
+CREATE INDEX idx_agent_health_history_agent ON agent_health_history(agent_name);
+CREATE INDEX idx_agent_health_history_checked_at ON agent_health_history(checked_at DESC);
+CREATE INDEX idx_system_operation_log_type ON system_operation_log(operation_type);
+CREATE INDEX idx_system_operation_log_started_at ON system_operation_log(started_at DESC);
+CREATE INDEX idx_system_error_log_type ON system_error_log(error_type);
+CREATE INDEX idx_system_error_log_severity ON system_error_log(severity);
+CREATE INDEX idx_system_error_log_occurred_at ON system_error_log(occurred_at DESC);
+
+-- ============================================================================
 -- Redis Key 設計文檔（註解形式）
 -- ============================================================================
 

@@ -1,0 +1,860 @@
+[2025-07-28 03:57:37.349592 +00:00] WARN [rustfs::server::http] [rustfs/src/server/http.rs:125] [main:ThreadId(1)] Detected default credentials 'rustfsadmin:rustfsadmin', we recommend that you change these values with 'RUSTFS_ACCESS_KEY' and 'RUSTFS_SECRET_KEY' environment variables
+
+[2025-07-28 03:57:37.715875 +00:00] WARN [rustfs_ecstore::tier::tier] [crates/ecstore/src/tier/tier.rs:441] [main:ThreadId(1)] config not found, start to init
+
+[2025-07-28 03:57:37.903268 +00:00] WARN [rustfs_ecstore::config::com] [crates/ecstore/src/config/com.rs:138] [main:ThreadId(1)] Configuration not found (Read the main configuration): Start initializing new configuration
+
+[2025-07-28 03:57:38.007098 +00:00] WARN [rustfs_ecstore::config::com] [crates/ecstore/src/config/com.rs:140] [main:ThreadId(1)] Configuration initialization complete (Read the main configuration)
+
+[2025-07-28 03:57:38.156090 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:974] [main:ThreadId(1)] init bucket replication pool
+
+[2025-07-28 03:57:38.156188 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:630] [main:ThreadId(1)] init_bucket_replication_pool 0 0 auto 50
+
+[2025-07-28 03:57:38.156239 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:697] [main:ThreadId(1)] work size is: 10
+
+[2025-07-28 04:02:21.488208 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(22)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 04:03:47.605844 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(34)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:03:47.605918 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(34)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:04:49.227099 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(27)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:04:49.227194 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(27)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:05:50.755113 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(31)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:05:50.755215 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(31)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:06:52.462918 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(22)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:06:52.463289 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(22)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:07:53.900660 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(31)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:07:53.900734 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(31)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:08:55.544272 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(31)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:08:55.544344 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(31)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:08:58.864468 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(38)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 04:08:58.864544 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(38)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 04:08:59.144266 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(45)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 04:08:59.422782 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(38)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 04:09:55.901876 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(48)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 04:09:55.901989 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(48)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 04:09:57.143909 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(44)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:09:57.143975 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(44)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:10:58.699443 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(44)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:10:58.699565 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(44)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:12:00.297209 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(52)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:12:00.297299 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(52)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:13:01.771707 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(38)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:13:01.771804 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(38)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:14:03.416708 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(34)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:14:03.416878 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(34)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:15:05.020030 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(43)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:15:05.020152 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(43)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:15:29.853002 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(34)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 04:15:29.853088 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(34)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 04:16:06.629957 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(43)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:16:06.630037 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(43)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:17:08.188383 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(52)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:17:08.188461 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(52)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:18:10.100884 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(38)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:18:10.100976 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(38)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:19:11.431661 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(38)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:19:11.431795 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(38)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:19:21.181654 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(64)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 04:19:21.181747 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(64)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 04:20:12.948869 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(64)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:20:12.948933 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(64)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:21:14.651847 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(43)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:21:14.651910 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(43)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:22:16.185899 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(64)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:22:16.185967 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(64)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:23:18.113509 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(64)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:23:18.113593 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(64)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:23:44.899377 +00:00] WARN [rustfs::server::http] [rustfs/src/server/http.rs:125] [main:ThreadId(1)] Detected default credentials 'rustfsadmin:rustfsadmin', we recommend that you change these values with 'RUSTFS_ACCESS_KEY' and 'RUSTFS_SECRET_KEY' environment variables
+
+[2025-07-28 04:23:45.112757 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:974] [main:ThreadId(1)] init bucket replication pool
+
+[2025-07-28 04:23:45.112802 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:630] [main:ThreadId(1)] init_bucket_replication_pool 0 0 auto 50
+
+[2025-07-28 04:23:45.112820 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:697] [main:ThreadId(1)] work size is: 10
+
+[2025-07-28 04:23:45.243331 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(14)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:23:45.243399 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(14)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:24:46.888417 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(19)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:24:46.888702 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(19)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:25:48.573832 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(14)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:25:48.573937 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(14)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:25:52.967977 +00:00] ERROR [rustfs::server::http] [rustfs/src/server/http.rs:274] [tokio-runtime-worker:ThreadId(24)] Cannot perform graceful shutdown, other references exist err: GracefulShutdown
+
+[2025-07-28 04:26:02.049524 +00:00] WARN [rustfs::server::http] [rustfs/src/server/http.rs:125] [main:ThreadId(1)] Detected default credentials 'rustfsadmin:rustfsadmin', we recommend that you change these values with 'RUSTFS_ACCESS_KEY' and 'RUSTFS_SECRET_KEY' environment variables
+
+[2025-07-28 04:26:02.252819 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:974] [main:ThreadId(1)] init bucket replication pool
+
+[2025-07-28 04:26:02.252862 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:630] [main:ThreadId(1)] init_bucket_replication_pool 0 0 auto 50
+
+[2025-07-28 04:26:02.252875 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:697] [main:ThreadId(1)] work size is: 10
+
+[2025-07-28 04:26:02.456522 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(16)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:26:02.456666 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(16)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:26:16.633767 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(22)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 04:26:16.633860 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(22)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 04:27:04.097300 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(16)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:27:04.097548 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(16)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:28:02.734494 +00:00] ERROR [rustfs::server::http] [rustfs/src/server/http.rs:274] [tokio-runtime-worker:ThreadId(16)] Cannot perform graceful shutdown, other references exist err: GracefulShutdown
+
+[2025-07-28 04:28:08.470449 +00:00] WARN [rustfs::server::http] [rustfs/src/server/http.rs:125] [main:ThreadId(1)] Detected default credentials 'rustfsadmin:rustfsadmin', we recommend that you change these values with 'RUSTFS_ACCESS_KEY' and 'RUSTFS_SECRET_KEY' environment variables
+
+[2025-07-28 04:28:08.687572 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:974] [main:ThreadId(1)] init bucket replication pool
+
+[2025-07-28 04:28:08.687612 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:630] [main:ThreadId(1)] init_bucket_replication_pool 0 0 auto 50
+
+[2025-07-28 04:28:08.687635 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:697] [main:ThreadId(1)] work size is: 10
+
+[2025-07-28 04:28:08.852019 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(14)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:28:08.852280 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(14)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:28:19.290267 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(21)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 04:28:19.290365 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(21)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 04:29:10.569854 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(15)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:29:10.569981 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(15)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:30:12.123056 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(22)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:30:12.123418 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(22)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:30:45.798584 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(24)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 04:30:45.798750 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(24)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 04:31:13.867493 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(14)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:31:13.867555 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(14)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:32:15.412936 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(22)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:32:15.413043 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(22)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:33:17.038588 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(21)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:33:17.038668 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(21)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:34:18.686033 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(30)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:34:18.686101 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(30)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:35:20.268880 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(30)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:35:20.268988 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(30)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:36:22.021181 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(30)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:36:22.021258 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(30)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:37:23.644226 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(21)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:37:23.644295 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(21)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:38:24.819119 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(2)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:38:24.819184 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(2)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:39:27.044747 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(30)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:39:27.044861 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(30)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:40:29.014873 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(2)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:40:29.014960 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(2)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:41:29.706523 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(43)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:41:29.706635 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(43)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:42:30.485756 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(49)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:42:30.485874 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(49)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:50:02.201237 +00:00] WARN [rustfs::server::http] [rustfs/src/server/http.rs:125] [main:ThreadId(1)] Detected default credentials 'rustfsadmin:rustfsadmin', we recommend that you change these values with 'RUSTFS_ACCESS_KEY' and 'RUSTFS_SECRET_KEY' environment variables
+
+[2025-07-28 04:50:02.467877 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:974] [main:ThreadId(1)] init bucket replication pool
+
+[2025-07-28 04:50:02.467937 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:630] [main:ThreadId(1)] init_bucket_replication_pool 0 0 auto 50
+
+[2025-07-28 04:50:02.467955 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:697] [main:ThreadId(1)] work size is: 10
+
+[2025-07-28 04:50:02.607958 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(7)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:50:02.608028 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(7)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:50:13.380762 +00:00] ERROR [s3s::ops] [/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/s3s-0.12.0-minio-preview.2/src/ops/mod.rs:241] [tokio-runtime-worker:ThreadId(7)] error=S3Error { code: InvalidRequest, message: "invalid header: authorization", source: ParseAuthorizationError { _priv: () }, .. }
+
+[2025-07-28 04:50:32.709598 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(4)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 04:50:32.709805 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(4)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 04:51:05.782722 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(13)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:51:05.783050 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(13)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:52:10.045499 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(13)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:52:10.045606 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(13)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:53:14.390201 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(13)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:53:14.390322 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(13)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:54:18.945026 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(7)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:54:18.945215 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(7)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:55:23.393867 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(4)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:55:23.393976 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(4)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:58:30.557730 +00:00] WARN [rustfs::server::http] [rustfs/src/server/http.rs:125] [main:ThreadId(1)] Detected default credentials 'rustfsadmin:rustfsadmin', we recommend that you change these values with 'RUSTFS_ACCESS_KEY' and 'RUSTFS_SECRET_KEY' environment variables
+
+[2025-07-28 04:58:30.741259 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:974] [main:ThreadId(1)] init bucket replication pool
+
+[2025-07-28 04:58:30.741316 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:630] [main:ThreadId(1)] init_bucket_replication_pool 0 0 auto 50
+
+[2025-07-28 04:58:30.741344 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:697] [main:ThreadId(1)] work size is: 10
+
+[2025-07-28 04:58:30.846721 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(16)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:58:30.846817 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(16)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 04:59:35.449284 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(14)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 04:59:35.449477 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(14)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:00:39.815374 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(13)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:00:39.815498 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(13)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:01:44.709532 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(19)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:01:44.709746 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(19)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:02:49.291393 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(12)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:02:49.291482 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(12)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:03:54.723148 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(17)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:03:54.723387 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(17)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:05:00.291331 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(12)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:05:00.291506 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(12)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:06:05.577513 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(32)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:06:05.577586 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(32)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:07:10.689230 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(13)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:07:10.689301 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(13)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:07:21.771764 +00:00] ERROR [s3s::ops] [/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/s3s-0.12.0-minio-preview.2/src/ops/mod.rs:241] [tokio-runtime-worker:ThreadId(13)] error=S3Error { code: InvalidRequest, message: "invalid header: authorization", source: ParseAuthorizationError { _priv: () }, .. }
+
+[2025-07-28 05:08:15.877845 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(23)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:08:15.878050 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(23)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:08:16.820943 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(23)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 05:08:16.821008 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(23)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 05:09:21.186156 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(12)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:09:21.186295 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(12)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:10:26.433462 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(41)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:10:26.433556 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(41)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:11:31.572197 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(13)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:11:31.572276 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(13)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:12:36.972192 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(46)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:12:36.972264 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(46)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:13:42.792497 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(27)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:13:42.792571 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(27)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:14:48.091387 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(52)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:14:48.091499 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(52)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:15:53.772986 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(52)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:15:53.773092 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(52)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:16:59.316647 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(27)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:16:59.316717 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(27)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:18:04.908620 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(52)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:18:04.908808 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(52)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:19:10.473260 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(13)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:19:10.473469 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(13)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:20:16.322048 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(70)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:20:16.322170 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(70)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:21:03.872348 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(70)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 05:21:03.872427 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(70)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 05:21:21.950550 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(27)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:21:21.950639 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(27)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:22:27.821736 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(76)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:22:27.821907 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(76)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:23:33.341283 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(64)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:23:33.341356 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(64)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:24:39.273429 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(76)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:24:39.273643 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(76)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:25:44.870827 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(70)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:25:44.870987 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(70)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:26:50.763110 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(82)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:26:50.763187 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(82)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:27:56.429680 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(70)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:27:56.429757 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(70)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:29:02.207487 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(82)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:29:02.207569 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(82)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:30:07.932132 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(12)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:30:07.932311 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(12)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:31:13.842637 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(52)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:31:13.842827 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(52)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:32:19.566592 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(82)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:32:19.566654 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(82)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:33:25.470581 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(12)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:33:25.470745 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(12)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:33:30.469133 +00:00] ERROR [s3s::ops] [/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/s3s-0.12.0-minio-preview.2/src/ops/mod.rs:241] [tokio-runtime-worker:ThreadId(100)] error=S3Error { code: InvalidRequest, message: "invalid header: authorization", source: ParseAuthorizationError { _priv: () }, .. }
+
+[2025-07-28 05:33:32.797686 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(100)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 05:33:32.797775 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(100)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 05:34:31.204554 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(52)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:34:31.204764 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(52)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:35:37.068054 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(105)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:35:37.068133 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(105)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:36:42.798746 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(111)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:36:42.799149 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(111)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:37:48.790129 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(12)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:37:48.790229 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(12)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:38:54.545638 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(100)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:38:54.545856 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(100)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:40:00.374345 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(111)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:40:00.374409 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(111)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:41:06.194226 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(82)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:41:06.194295 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(82)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:42:12.000163 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(127)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:42:12.000253 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(127)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:43:17.771351 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(105)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:43:17.771416 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(105)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:44:23.764096 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(82)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:44:23.764370 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(82)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:45:29.558188 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(105)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:45:29.558327 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(105)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:46:35.440149 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(137)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:46:35.440261 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(137)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:47:41.341415 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(82)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:47:41.341692 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(82)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:47:50.113970 +00:00] ERROR [s3s::ops] [/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/s3s-0.12.0-minio-preview.2/src/ops/mod.rs:241] [tokio-runtime-worker:ThreadId(82)] error=S3Error { code: InvalidRequest, message: "invalid header: authorization", source: ParseAuthorizationError { _priv: () }, .. }
+
+[2025-07-28 05:48:28.083552 +00:00] ERROR [s3s::ops] [/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/s3s-0.12.0-minio-preview.2/src/ops/mod.rs:241] [tokio-runtime-worker:ThreadId(82)] error=S3Error { code: InvalidRequest, message: "invalid header: authorization", source: ParseAuthorizationError { _priv: () }, .. }
+
+[2025-07-28 05:48:47.210665 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(143)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:48:47.210736 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(143)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:49:53.073702 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(127)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:49:53.073772 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(127)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:50:59.108967 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(137)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:50:59.109173 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(137)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:51:55.353995 +00:00] ERROR [s3s::ops] [/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/s3s-0.12.0-minio-preview.2/src/ops/mod.rs:241] [tokio-runtime-worker:ThreadId(82)] error=S3Error { code: InvalidRequest, message: "invalid header: authorization", source: ParseAuthorizationError { _priv: () }, .. }
+
+[2025-07-28 05:52:03.434716 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(12)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 05:52:03.434796 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(12)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 05:52:05.033978 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(137)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:52:05.034052 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(137)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:53:10.919545 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(12)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:53:10.919646 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(12)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:54:16.888399 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(82)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:54:16.888503 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(82)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:54:25.734771 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(161)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 05:54:25.735102 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(161)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 05:55:22.778875 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(161)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:55:22.778981 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(161)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:56:28.749741 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(161)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:56:28.749829 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(161)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:57:34.615957 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(82)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:57:34.616022 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(82)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:58:40.511906 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(175)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:58:40.511986 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(175)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 05:59:46.546599 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(155)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 05:59:46.546698 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(155)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:00:52.532870 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(164)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:00:52.532941 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(164)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:01:58.402465 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(164)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:01:58.402673 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(164)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:03:04.478784 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(175)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:03:04.478936 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(175)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:04:10.446493 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(175)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:04:10.446640 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(175)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:04:48.282362 +00:00] ERROR [s3s::ops] [/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/s3s-0.12.0-minio-preview.2/src/ops/mod.rs:241] [tokio-runtime-worker:ThreadId(82)] error=S3Error { code: InvalidRequest, message: "invalid header: authorization", source: ParseAuthorizationError { _priv: () }, .. }
+
+[2025-07-28 06:05:06.843235 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(82)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 06:05:06.843320 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(82)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 06:05:16.478314 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(188)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:05:16.478459 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(188)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:06:22.531765 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(164)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:06:22.532042 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(164)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:07:28.530230 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(175)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:07:28.530377 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(175)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:08:34.442326 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(82)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:08:34.442403 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(82)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:09:40.426452 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(164)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:09:40.426583 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(164)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:10:46.514507 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(175)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:10:46.514682 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(175)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:11:52.532350 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(211)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:11:52.533019 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(211)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:12:58.530704 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(219)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:12:58.530780 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(219)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:14:04.502399 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(194)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:14:04.502454 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(194)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:15:10.511582 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(219)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:15:10.511651 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(219)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:16:16.510471 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(219)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:16:16.510578 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(219)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:17:22.558108 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(219)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:17:22.558174 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(219)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:18:15.535169 +00:00] ERROR [s3s::ops] [/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/s3s-0.12.0-minio-preview.2/src/ops/mod.rs:241] [tokio-runtime-worker:ThreadId(219)] error=S3Error { code: InvalidRequest, message: "invalid header: authorization", source: ParseAuthorizationError { _priv: () }, .. }
+
+[2025-07-28 06:18:28.623178 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(232)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:18:28.623320 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(232)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:19:34.584088 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(82)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:19:34.584167 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(82)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:19:46.061553 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(219)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 06:19:46.061646 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(219)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 06:20:40.556182 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(225)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:20:40.556329 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(225)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:20:58.487485 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(219)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 06:20:58.487575 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(219)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 06:21:46.586770 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(232)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:21:46.586946 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(232)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:22:52.436867 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(232)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:22:52.436934 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(232)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:23:58.552985 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(238)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:23:58.553162 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(238)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:25:04.588890 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(225)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:25:04.588979 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(225)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:26:10.530741 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(255)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:26:10.530829 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(255)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:27:16.512087 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(255)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:27:16.512182 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(255)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:28:22.621776 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(249)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:28:22.621842 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(249)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:29:28.621020 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(225)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:29:28.621101 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(225)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:30:34.653124 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(249)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:30:34.653241 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(249)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:31:27.104627 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(255)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 06:31:27.104732 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(255)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 06:31:27.428187 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(255)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 06:31:40.590794 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(225)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:31:40.590927 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(225)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:32:46.757069 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(255)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:32:46.757352 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(255)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:33:52.740839 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(249)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:33:52.740916 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(249)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:34:58.836663 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(249)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:34:58.836746 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(249)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:36:04.769661 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(249)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:36:04.769791 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(249)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:37:10.740826 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(82)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:37:10.740897 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(82)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:38:16.809057 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(225)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:38:16.809188 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(225)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:39:22.866549 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(225)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:39:22.866660 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(225)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:40:28.996402 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(225)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:40:28.996576 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(225)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:41:34.981313 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(225)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:41:34.981388 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(225)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:42:40.919891 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(225)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:42:40.919952 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(225)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:43:47.021782 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(82)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:43:47.021943 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(82)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:44:53.162429 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(82)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:44:53.162504 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(82)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:45:59.181082 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(225)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:45:59.181157 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(225)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:47:05.429039 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(280)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:47:05.429127 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(280)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:48:11.400309 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(280)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:48:11.400386 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(280)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:49:17.526786 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(225)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:49:17.526955 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(225)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:50:23.634360 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(286)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:50:23.634581 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(286)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:51:30.176449 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(280)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:51:30.176528 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(280)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:52:35.927845 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(82)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:52:35.927952 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(82)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:53:42.595523 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(82)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:53:42.595664 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(82)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:54:47.970947 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(286)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:54:47.971125 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(286)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:55:54.061970 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(322)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:55:54.062082 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(322)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:57:00.268662 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(286)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:57:00.268746 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(286)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 06:58:06.580262 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(341)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 06:58:06.580354 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(341)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 07:21:27.270471 +00:00] WARN [rustfs::server::http] [rustfs/src/server/http.rs:125] [main:ThreadId(1)] Detected default credentials 'rustfsadmin:rustfsadmin', we recommend that you change these values with 'RUSTFS_ACCESS_KEY' and 'RUSTFS_SECRET_KEY' environment variables
+
+[2025-07-28 07:21:27.713622 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:974] [main:ThreadId(1)] init bucket replication pool
+
+[2025-07-28 07:21:27.713712 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:630] [main:ThreadId(1)] init_bucket_replication_pool 0 0 auto 50
+
+[2025-07-28 07:21:27.713736 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:697] [main:ThreadId(1)] work size is: 10
+
+[2025-07-28 07:21:27.997228 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(10)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 07:21:27.997435 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(10)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 07:21:41.262334 +00:00] ERROR [s3s::ops] [/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/s3s-0.12.0-minio-preview.2/src/ops/mod.rs:241] [tokio-runtime-worker:ThreadId(7)] error=S3Error { code: InvalidRequest, message: "invalid header: authorization", source: ParseAuthorizationError { _priv: () }, .. }
+
+[2025-07-28 07:22:26.493905 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(10)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 07:22:26.494053 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(10)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 07:22:27.656764 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(7)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 07:22:33.993783 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(10)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 07:22:33.993867 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(10)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 07:22:58.442955 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(13)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 07:22:58.443088 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(13)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 07:22:59.479572 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(13)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 07:23:40.381903 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(22)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 07:23:40.382028 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(22)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 07:24:46.022672 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(23)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 07:24:46.022759 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(23)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 07:25:52.111448 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(22)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 07:25:52.111537 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(22)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 07:26:58.134966 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(28)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 07:26:58.135068 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(28)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 07:28:04.180868 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(14)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 07:28:04.180969 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(14)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 07:29:11.436848 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(14)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 07:29:11.436964 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(14)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 07:29:14.515077 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(14)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 07:29:14.515410 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(14)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 07:30:17.646180 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(23)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 07:30:17.646595 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(23)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 07:31:23.913981 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(23)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 07:31:23.914195 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(23)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 07:32:28.347283 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:577] [tokio-runtime-worker:ThreadId(37)] Found missing or corrupt part 0 for object social-media-content/test.txt on disk /data (pool 0): result=4
+
+[2025-07-28 07:32:28.347378 +00:00] WARN [rustfs_ahm::scanner::data_scanner] [crates/ahm/src/scanner/data_scanner.rs:452] [tokio-runtime-worker:ThreadId(37)] Data parts integrity check failed for social-media-content/test.txt: Other error: Object has missing or corrupt data parts: social-media-content/test.txt. Triggering heal.
+
+[2025-07-28 07:32:28.633679 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(31)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 07:35:51.038897 +00:00] ERROR [rustfs::server::http] [rustfs/src/server/http.rs:274] [tokio-runtime-worker:ThreadId(37)] Cannot perform graceful shutdown, other references exist err: GracefulShutdown
+
+[2025-07-28 07:35:53.485163 +00:00] WARN [rustfs::server::http] [rustfs/src/server/http.rs:125] [main:ThreadId(1)] Detected default credentials 'rustfsadmin:rustfsadmin', we recommend that you change these values with 'RUSTFS_ACCESS_KEY' and 'RUSTFS_SECRET_KEY' environment variables
+
+[2025-07-28 07:35:53.757594 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:974] [main:ThreadId(1)] init bucket replication pool
+
+[2025-07-28 07:35:53.757659 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:630] [main:ThreadId(1)] init_bucket_replication_pool 0 0 auto 50
+
+[2025-07-28 07:35:53.757681 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:697] [main:ThreadId(1)] work size is: 10
+
+[2025-07-28 07:36:17.843867 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(15)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
+[2025-07-28 07:36:17.843980 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(15)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
+
