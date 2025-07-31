@@ -1,5 +1,57 @@
 [
   {
+    "batch_id": "8f1361b8-8a7a-4580-a85c-e55d83cf74e6",
+    "username": "natgeo",
+    "crawled_at": "2025-07-31T22:39:16.043940",
+    "posts_count": 10,
+    "metadata": {
+      "crawl_method": "playwright_agent",
+      "max_posts_requested": 10,
+      "task_id": "bc88ffb0-2b13-437a-b7ef-1bc4e1835bdb",
+      "agent_version": "1.0.0"
+    },
+    "file_path": "8f1361b8-8a7a-4580-a85c-e55d83cf74e6.json"
+  },
+  {
+    "batch_id": "181e8bb4-c0e8-4cb8-a974-d1963cd889d8",
+    "username": "natgeo",
+    "crawled_at": "2025-07-31T22:22:41.159543",
+    "posts_count": 10,
+    "metadata": {
+      "crawl_method": "playwright_agent",
+      "max_posts_requested": 10,
+      "task_id": "d3b84497-bc7f-474b-a369-23aa4006f01c",
+      "agent_version": "1.0.0"
+    },
+    "file_path": "181e8bb4-c0e8-4cb8-a974-d1963cd889d8.json"
+  },
+  {
+    "batch_id": "46ce07e7-c983-42de-b415-c91bb8303002",
+    "username": "natgeo",
+    "crawled_at": "2025-07-31T22:07:36.732489",
+    "posts_count": 10,
+    "metadata": {
+      "crawl_method": "playwright_agent",
+      "max_posts_requested": 10,
+      "task_id": "b987e1e5-ac74-4b79-944c-994783d23387",
+      "agent_version": "1.0.0"
+    },
+    "file_path": "46ce07e7-c983-42de-b415-c91bb8303002.json"
+  },
+  {
+    "batch_id": "8ebd5abe-3d22-4129-8622-352a474f4484",
+    "username": "natgeo",
+    "crawled_at": "2025-07-31T21:58:47.157058",
+    "posts_count": 10,
+    "metadata": {
+      "crawl_method": "playwright_agent",
+      "max_posts_requested": 10,
+      "task_id": "aea3e742-8525-4729-bfab-47cca2e2de2a",
+      "agent_version": "1.0.0"
+    },
+    "file_path": "8ebd5abe-3d22-4129-8622-352a474f4484.json"
+  },
+  {
     "batch_id": "b89eb7f8-9742-4751-a8f3-2b85fdd61545",
     "username": "natgeo",
     "crawled_at": "2025-07-31T21:43:34.865009",

@@ -6,6 +6,7 @@ Threads 爬蟲組件
 import streamlit as st
 import httpx
 import json
+import os
 import asyncio
 import time
 from pathlib import Path
@@ -66,9 +67,9 @@ class ThreadsCrawlerComponent:
             max_posts = st.number_input(
                 "爬取貼文數量：",
                 min_value=1,
-                max_value=50,
+                max_value=200,
                 value=10,
-                help="建議不超過 20 篇以避免過長等待時間",
+                help="建議：10篇穩定，50篇可能較慢，最多200篇",
                 key="crawler_max_posts"
             )
         
@@ -151,7 +152,7 @@ class ThreadsCrawlerComponent:
         st.session_state.crawler_task_id = task_id
         
         try:
-            timeout = httpx.Timeout(300.0)  # 5分鐘超時
+            timeout = httpx.Timeout(600.0)  # 10分鐘超時（支持更多貼文爬取）
             async with httpx.AsyncClient(timeout=timeout) as client:
                 st.session_state.crawler_logs.append("🚀 啟動爬蟲並開始 SSE 進度監聽...")
                 
@@ -185,8 +186,15 @@ class ThreadsCrawlerComponent:
                             "agent_version": "1.0.0"
                         }
                         
-                        # 轉換貼文格式
-                        for post in final_data.get("posts", []):
+                        # 轉換貼文格式（添加與Playwright Agent相同的排序邏輯）
+                        posts_data = final_data.get("posts", [])
+                        # 🔥 修復排序問題：按created_at時間降序排列（最新在前）
+                        if posts_data:
+                            posts_data = sorted(posts_data, 
+                                               key=lambda p: p.get('created_at', '') or '', 
+                                               reverse=True)
+                        
+                        for post in posts_data:
                             ui_post = {
                                 "post_id": post.get("post_id", ""),
                                 "username": post.get("username", username),
@@ -211,7 +219,14 @@ class ThreadsCrawlerComponent:
                             
                             # 準備要存儲的數據
                             posts_to_store = []
-                            for post in final_data.get("posts", []):
+                            # 🔥 對第二處posts處理也添加相同的排序邏輯
+                            posts_data_2 = final_data.get("posts", [])
+                            if posts_data_2:
+                                posts_data_2 = sorted(posts_data_2, 
+                                                      key=lambda p: p.get('created_at', '') or '', 
+                                                      reverse=True)
+                            
+                            for post in posts_data_2:
                                 post_data = {
                                     "post_id": post.get("post_id", ""),
                                     "username": post.get("username", username),
@@ -293,28 +308,50 @@ class ThreadsCrawlerComponent:
                 orchestrator_url = f"http://localhost:8000/stream/{task_id}"
                 print(f"📡 連接 SSE: {orchestrator_url}")
                 
-                with requests.get(orchestrator_url, stream=True, timeout=300) as response:
+                with requests.get(orchestrator_url, stream=True, timeout=600) as response:
                     if response.status_code == 200:
+                        print(f"📡 SSE 連接成功: {response.status_code}")
+                        
+                        # 🔥 修復 #3: 一連上就先寫 "connected"，避免競速
+                        try:
+                            with open(progress_file_path, 'w') as f:
+                                json.dump({"stage": "connected", "message": "SSE 連接已建立"}, f)
+                                f.flush()  # 🔥 修復 #2: 強制刷新緩衝區
+                                os.fsync(f.fileno())  # 🔥 修復 #2: 強制寫入磁碟
+                            print(f"✅ 初始連接文件已寫入: {progress_file_path}")
+                        except Exception as e:
+                            print(f"⚠️ 寫入初始連接文件錯誤: {e}")
+                        
                         for line in response.iter_lines():
                             if line:
-                                line_str = line.decode('utf-8')
-                                if line_str.startswith('data: '):
-                                    try:
-                                        data = json.loads(line_str[6:])  # 移除 'data: ' 前綴
-                                        
-                                        # 將進度寫入共享文件
+                                line_str = line.decode('utf-8').strip()
+                                print(f"🔍 收到 SSE 行: {line_str}")  # 調試輸出
+                                
+                                # 🔥 修復 #1: 改進 SSE 資料行格式解析
+                                if line_str.startswith('data:'):
+                                    payload_txt = line_str.split(':', 1)[1].strip()
+                                    if payload_txt:
                                         try:
-                                            with open(progress_file_path, 'w') as f:
-                                                json.dump(data, f)
-                                        except Exception as e:
-                                            print(f"⚠️ 寫入進度文件錯誤: {e}")
-                                        
-                                        # 如果收到完成或錯誤事件，結束監聽
-                                        if data.get('stage') in ['completed', 'error']:
-                                            break
+                                            data = json.loads(payload_txt)
+                                            print(f"📊 解析成功: {data}")  # 調試輸出
                                             
-                                    except json.JSONDecodeError:
-                                        continue
+                                            # 🔥 修復 #2: 改進檔案寫入同步
+                                            try:
+                                                with open(progress_file_path, 'w') as f:
+                                                    json.dump(data, f)
+                                                    f.flush()  # 強制刷新緩衝區
+                                                    os.fsync(f.fileno())  # 強制寫入磁碟
+                                                print(f"💾 進度已寫入文件")  # 調試輸出
+                                            except Exception as e:
+                                                print(f"⚠️ 寫入進度文件錯誤: {e}")
+                                            
+                                            # 如果收到完成或錯誤事件，結束監聽
+                                            if data.get('stage') in ['completed', 'error']:
+                                                break
+                                                
+                                        except json.JSONDecodeError as e:
+                                            print(f"❌ JSON 解析失敗: {e}, 原始文本: {payload_txt}")
+                                            continue
                     else:
                         print(f"❌ SSE 連接失敗: {response.status_code}")
                         
@@ -375,6 +412,9 @@ class ThreadsCrawlerComponent:
         
         if stage == 'connected':
             st.session_state.crawler_logs.append("📡 SSE 連接已建立")
+            if not hasattr(st.session_state, 'debug_messages'):
+                st.session_state.debug_messages = []
+            st.session_state.debug_messages.append(f"📡 SSE 連接已建立 (connected)")
             
         elif stage == 'fetch_start':
             username = data.get('username', '')
@@ -402,7 +442,12 @@ class ThreadsCrawlerComponent:
             videos_count = data.get('videos_count', 0)
             media_urls = data.get('media_urls', {})
             
+            # 🔥 強制設置進度並添加調試信息
             st.session_state.crawler_progress = progress
+            if not hasattr(st.session_state, 'debug_messages'):
+                st.session_state.debug_messages = []
+            st.session_state.debug_messages.append(f"🔥 設置進度: {progress:.1%} (post_parsed)")
+            
             # 🔥 更新當前工作狀態
             st.session_state.crawler_current_work = f"已解析 {current}/{total} 篇貼文 - 正在解析下一篇..."
             st.session_state.crawler_logs.append(f"✅ 解析貼文 {post_id[-8:]}: {likes_count}讚 - {content_preview}")
@@ -557,19 +602,103 @@ class ThreadsCrawlerComponent:
         progress = st.session_state.get('crawler_progress', 0)
         status = st.session_state.get('crawler_status', 'running')
         
-        # 🔥 新增：檢查並更新進度
+        # 🔥 強制顯示進度條和調試信息（不管什麼狀態都顯示）
         progress_updated = self._check_and_update_progress()
+        progress = st.session_state.get('crawler_progress', 0)
+        st.progress(progress)
         
-        # 🔥 即時進度顯示
+        # 🔥 調試信息面板（總是顯示）
+        with st.expander("🔍 調試信息", expanded=True):
+            st.write(f"📊 進度值: {progress:.1%}")
+            st.write(f"🔄 已更新: {progress_updated}")
+            st.write(f"🆔 Task ID: {st.session_state.get('crawler_task_id', 'N/A')}")
+            st.write(f"📁 進度文件: {st.session_state.get('crawler_progress_file', 'N/A')}")
+            st.write(f"⏰ 最後修改: {st.session_state.get('crawler_progress_mtime', 'N/A')}")
+            st.write(f"📋 狀態: {st.session_state.get('crawler_status', 'N/A')}")
+            st.write(f"📝 當前工作: {st.session_state.get('crawler_current_work', 'N/A')}")
+            
+            # 顯示調試消息
+            debug_messages = st.session_state.get('debug_messages', [])
+            if debug_messages:
+                st.write("🔍 最新調試消息:")
+                for msg in debug_messages[-10:]:  # 顯示最近10條
+                    st.write(f"  {msg}")
+            
+            # 顯示進度文件內容
+            progress_file = st.session_state.get('crawler_progress_file')
+            if progress_file and os.path.exists(progress_file):
+                try:
+                    with open(progress_file, 'r') as f:
+                        file_content = json.load(f)
+                    st.write("📄 進度文件內容:")
+                    st.json(file_content)
+                except Exception as e:
+                    st.write(f"❌ 無法讀取進度文件: {e}")
+            else:
+                st.write("❌ 進度文件不存在")
+        
+        # 🔥 強制顯示貼文預覽（不管什麼狀態都顯示）
+        posts = st.session_state.get('crawler_posts', [])
+        if posts:
+            st.markdown("---")
+            st.subheader("📝 即時貼文預覽")
+            
+            # 顯示最新的3個貼文
+            recent_posts = posts[-3:]
+            
+            for post in recent_posts:
+                # 使用卡片樣式顯示貼文
+                with st.container():
+                    st.markdown(f"**🆔 {post.get('summary', 'N/A')}** `{post.get('timestamp', 'N/A')}`")
+                    
+                    # 顯示貼文詳情
+                    col1, col2 = st.columns([2, 1])
+                    with col1:
+                        # 內容預覽
+                        content_preview = post.get('content_preview', post.get('content', ''))
+                        if content_preview:
+                            st.write(f"💬 {content_preview}")
+                        else:
+                            st.write("💬 無內容")
+                        
+                        # 媒體信息
+                        images_count = post.get('images_count', 0)
+                        videos_count = post.get('videos_count', 0)
+                        if images_count > 0 or videos_count > 0:
+                            st.write(f"📸 圖片: {images_count} | 🎥 影片: {videos_count}")
+                    
+                    with col2:
+                        # 🔥 完整的統計數據（總是顯示）
+                        likes_count = post.get('likes_count', 0)
+                        comments_count = post.get('comments_count', 0)
+                        reposts_count = post.get('reposts_count', 0)
+                        shares_count = post.get('shares_count', 0)
+                        views_count = post.get('views_count', 0)
+                        calculated_score = post.get('calculated_score', 0)
+                        
+                        st.write(f"❤️ 讚: {likes_count:,}")
+                        st.write(f"💬 留言: {comments_count:,}")
+                        st.write(f"🔄 轉發: {reposts_count:,}")
+                        st.write(f"📤 分享: {shares_count:,}")
+                        st.write(f"👁️ 瀏覽: {views_count:,}")
+                        st.write(f"⭐ 分數: {calculated_score:.1f}")
+                    
+                    st.markdown("---")
+        else:
+            st.info("📝 暫無貼文預覽，等待爬取數據...")
+        
+        # 🔥 狀態相關顯示
         if status == 'running':
-            # 進度條
+            st.markdown("---")
+            st.subheader("📊 爬取狀態")
+            
+            # 顯示當前進度詳情
+            
             if progress > 0:
-                st.progress(progress)
                 estimated_posts = int(progress * max_posts)
                 st.success(f"📊 進度: {estimated_posts}/{max_posts} 篇貼文 ({progress:.1%})")
             else:
-                st.progress(0.0)
-                st.info("🔄 初始化中...")
+                st.info(f"🔄 初始化中... 當前進度: {progress:.1%}")
             
             # 📊 即時工作狀態報告
             task_id = st.session_state.get('crawler_task_id', 'N/A')
@@ -582,57 +711,14 @@ class ThreadsCrawlerComponent:
             with col2:
                 st.write(f"🆔 Task: `{task_id[:8]}...`")
             
-            # 🔥 即時貼文預覽 - 直接顯示在主頁面
-            if st.session_state.get('crawler_posts'):
-                st.markdown("---")
-                st.subheader("📝 即時貼文預覽")
-                
-                # 顯示最新的3個貼文
-                recent_posts = st.session_state.crawler_posts[-3:]
-                
-                for post in recent_posts:
-                    # 使用卡片樣式顯示貼文
-                    with st.container():
-                        st.markdown(f"**🆔 {post['summary']}** `{post['timestamp']}`")
-                        
-                        # 顯示貼文詳情
-                        col1, col2 = st.columns([2, 1])
-                        with col1:
-                            # 內容預覽
-                            content_preview = post.get('content_preview', post.get('content', ''))
-                            if content_preview:
-                                st.write(f"💬 {content_preview}")
-                            else:
-                                st.write("💬 無內容")
-                            
-                            # 媒體信息
-                            images_count = post.get('images_count', 0)
-                            videos_count = post.get('videos_count', 0)
-                            if images_count > 0 or videos_count > 0:
-                                st.write(f"📸 圖片: {images_count} | 🎥 影片: {videos_count}")
-                        
-                        with col2:
-                            # 🔥 完整的統計數據
-                            likes_count = post.get('likes_count', 0)
-                            comments_count = post.get('comments_count', 0)
-                            reposts_count = post.get('reposts_count', 0)
-                            shares_count = post.get('shares_count', 0)
-                            views_count = post.get('views_count', 0)
-                            calculated_score = post.get('calculated_score', 0)
-                            
-                            st.write(f"❤️ 讚: {likes_count:,}")
-                            st.write(f"💬 留言: {comments_count:,}")
-                            st.write(f"🔄 轉發: {reposts_count:,}")
-                            st.write(f"📤 分享: {shares_count:,}")
-                            st.write(f"👁️ 瀏覽: {views_count:,}")
-                            st.write(f"⭐ 分數: {calculated_score:.1f}")
-                        
-                        st.markdown("---")
+            # 已移到上面總是顯示的區域
             
             # 自動刷新
             if progress_updated:
+                st.success(f"🔄 有進度更新，立即刷新")
                 st.rerun()
             else:
+                st.info(f"⏳ 無進度更新，等待2秒後刷新")
                 time.sleep(2)  # 減少到2秒更頻繁刷新
                 st.rerun()
             
@@ -683,7 +769,12 @@ class ThreadsCrawlerComponent:
         if posts:
             st.subheader("📝 貼文預覽")
             
-            for i, post in enumerate(posts[:10]):  # 顯示前10篇
+            # 🔥 修復排序問題：確保預覽也按時間降序排列
+            sorted_posts = sorted(posts, 
+                                 key=lambda p: p.get('created_at', '') or '', 
+                                 reverse=True)
+            
+            for i, post in enumerate(sorted_posts[:10]):  # 顯示前10篇
                 with st.expander(f"貼文 {i+1} - {post.get('post_id', 'N/A')}", expanded=i < 2):
                     col1, col2 = st.columns([3, 1])
                     
@@ -752,8 +843,12 @@ class ThreadsCrawlerComponent:
             'crawler_status', 'crawler_target', 'crawler_logs', 'crawler_posts',
             'crawler_events', 'final_data', 'crawler_step', 'crawler_progress',
             'crawler_task_id', 'crawler_progress_file', 'crawler_progress_mtime',
-            'crawler_current_work'
+            'crawler_current_work', 'debug_messages'
         ]
         for key in keys_to_reset:
             if key in st.session_state:
                 del st.session_state[key]
+        
+        # 🔥 強制重置輸入框（解決卡住問題）
+        st.session_state.crawler_username = ""
+        st.session_state.crawler_max_posts = 10
