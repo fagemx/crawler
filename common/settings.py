@@ -111,6 +111,19 @@ class MCPSettings(BaseModel):
         env_prefix = "MCP_"
 
 
+class ServiceURLSettings(BaseSettings):
+    """服務間通信 URL 配置"""
+    orchestrator_url: str = Field(default="http://localhost:8000")
+    clarification_url: str = Field(default="http://localhost:8004") 
+    content_writer_url: str = Field(default="http://localhost:8003")
+    form_api_url: str = Field(default="http://localhost:8010")
+    
+    model_config = SettingsConfigDict(
+        env_prefix="",
+        case_sensitive=False
+    )
+
+
 class AgentSettings(BaseModel):
     """Agent 服務配置"""
     orchestrator_port: int = Field(default=8000)
@@ -222,6 +235,7 @@ class Settings(BaseSettings):
     playwright: PlaywrightSettings = Field(default_factory=PlaywrightSettings)
     jina: JinaSettings = Field(default_factory=JinaSettings)
     llm_providers: LLMProviderSettings = Field(default_factory=LLMProviderSettings)
+    service_urls: ServiceURLSettings = Field(default_factory=ServiceURLSettings)
 
     model_config = SettingsConfigDict(
         env_file=".env", 

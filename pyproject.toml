@@ -90,7 +90,7 @@ database = [
 
 # 快取和訊息佇列（擴展功能需要）
 messaging = [
-    "redis>=5.0.0",
+    "redis[asyncio]>=6.2.0",
     "nats-py>=2.6.0",
     "celery>=5.3.0",
     "rq>=1.15.0",

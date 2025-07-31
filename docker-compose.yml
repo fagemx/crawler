@@ -185,19 +185,24 @@ services:
     ports:
       - "8000:8000"
     environment:
+      - PYTHONPATH=/app
       - AGENT_PORT=8000
       - MCP_SERVER_URL=http://mcp-server:10100
       - DATABASE_URL=postgresql://postgres:password@postgres:5432/social_media_db
       - REDIS_URL=redis://redis:6379/0
       - NATS_URL=nats://nats:4222
+      - ORCHESTRATOR_URL=http://orchestrator-agent:8000
+      - CLARIFICATION_URL=http://clarification-agent:8004
+      - CONTENT_WRITER_URL=http://content-writer-agent:8003
+      - FORM_API_URL=http://form-api:8010
     env_file:
       - .env
+    volumes:
+      - .:/app
     depends_on:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_healthy
-      nats:
         condition: service_healthy
       mcp-server:
         condition: service_healthy
@@ -209,60 +214,31 @@ services:
     networks:
       - social-media-network
 
-  # Crawler Agent - 爬蟲代理
-  crawler-agent:
+  # Clarification Agent - 澄清問卷生成
+  clarification-agent:
     build:
       context: .
-      dockerfile: agents/crawler/Dockerfile
-    container_name: social-media-crawler
+      dockerfile: agents/clarification/Dockerfile
+    container_name: social-media-clarifier
     ports:
-      - "8001:8001"
+      - "8004:8004"
     environment:
-      - AGENT_PORT=8001
+      - PYTHONPATH=/app
+      - AGENT_PORT=8004
       - MCP_SERVER_URL=http://mcp-server:10100
       - REDIS_URL=redis://redis:6379/0
       - NATS_URL=nats://nats:4222
     env_file:
       - .env
+    volumes:
+      - .:/app
     depends_on:
       redis:
-        condition: service_healthy
-      nats:
         condition: service_healthy
       mcp-server:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - social-media-network
-
-  # Analysis Agent - 分析代理（合併 Media + Ranker）
-  analysis-agent:
-    build:
-      context: .
-      dockerfile: agents/analysis/Dockerfile
-    container_name: social-media-analysis
-    ports:
-      - "8002:8002"
-    environment:
-      - AGENT_PORT=8002
-      - MCP_SERVER_URL=http://mcp-server:10100
-      - REDIS_URL=redis://redis:6379/0
-      - NATS_URL=nats://nats:4222
-    env_file:
-      - .env
-    depends_on:
-      redis:
-        condition: service_healthy
-      nats:
-        condition: service_healthy
-      mcp-server:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -278,21 +254,54 @@ services:
     ports:
       - "8003:8003"
     environment:
+      - PYTHONPATH=/app
       - AGENT_PORT=8003
       - MCP_SERVER_URL=http://mcp-server:10100
       - REDIS_URL=redis://redis:6379/0
       - NATS_URL=nats://nats:4222
     env_file:
       - .env
+    volumes:
+      - .:/app
     depends_on:
       redis:
-        condition: service_healthy
-      nats:
         condition: service_healthy
       mcp-server:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - social-media-network
+
+  # Form API - 表單處理服務
+  form-api:
+    build:
+      context: .
+      dockerfile: services/form_api/Dockerfile
+    container_name: social-media-form-api
+    ports:
+      - "8010:8010"
+    environment:
+      - PYTHONPATH=/app
+      - ORCHESTRATOR_URL=http://orchestrator-agent:8000
+      - REDIS_URL=redis://redis:6379/0
+      - CLARIFICATION_URL=http://clarification-agent:8004
+      - CONTENT_WRITER_URL=http://content-writer-agent:8003
+      - FORM_API_URL=http://form-api:8010
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    depends_on:
+      orchestrator-agent:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8010/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -389,25 +398,30 @@ services:
   # 用戶介面
   # =============================================================================
 
-  # Streamlit UI (暫時禁用，直到 ui/ 資料夾和 Dockerfile 被建立)
-  # streamlit-ui:
-  #   build:
-  #     context: .
-  #     dockerfile: ui/Dockerfile
-  #   container_name: social-media-ui
-  #   ports:
-  #     - "8501:8501"
-  #   environment:
-  #     - STREAMLIT_SERVER_PORT=8501
-  #     - ORCHESTRATOR_URL=http://orchestrator-agent:8000
-  #     - MCP_SERVER_URL=http://mcp-server:10100
-  #   env_file:
-  #     - .env
-  #   depends_on:
-  #     orchestrator-agent:
-  #       condition: service_healthy
-  #   networks:
-  #     - social-media-network
+  # Streamlit UI
+  streamlit-ui:
+    build:
+      context: .
+      dockerfile: ui/Dockerfile
+    container_name: social-media-ui
+    ports:
+      - "8501:8501"
+    environment:
+      - PYTHONPATH=/app
+      - STREAMLIT_SERVER_PORT=8501
+      - ORCHESTRATOR_URL=http://orchestrator-agent:8000
+      - FORM_API_URL=http://form-api:8010
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    depends_on:
+      orchestrator-agent:
+        condition: service_healthy
+      form-api:
+        condition: service_healthy
+    networks:
+      - social-media-network
 
   # =============================================================================
   # 工具和維護服務

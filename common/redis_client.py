@@ -489,6 +489,25 @@ def get_redis_client() -> RedisClient:
     return _redis_client
 
 
+# Async Redis 客戶端（為了支援 async/await）
+import redis.asyncio as redis_ai
+import os
+
+_async_redis_client = None
+
+async def get_async_redis_client():
+    """獲取異步 Redis 客戶端"""
+    global _async_redis_client
+    if _async_redis_client is None:
+        settings = get_settings()
+        _async_redis_client = redis_ai.from_url(
+            settings.redis.url,
+            decode_responses=True,
+            health_check_interval=30
+        )
+    return _async_redis_client
+
+
 # 便利函數
 def set_post_metrics(url: str, metrics: Dict[str, Union[int, float]]) -> bool:
     """設置貼文指標的便利函數"""

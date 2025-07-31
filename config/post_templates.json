@@ -1,0 +1,52 @@
+[
+  {
+    "style": "narrative",
+    "description": "自然敘事、語句連貫、段落以複合句為主，較少分行。",
+    "main_topic": "日常保養＋新品分享",
+    "summary": "以自然語句連貫介紹新品及個人經驗，資訊整合於長句，語感流暢。",
+    "paragraph_count_range": [1, 2],
+    "sentence_length": {
+      "short_sentence_ratio": 0.2,
+      "short_sentence_word_range": [8, 15],
+      "long_sentence_ratio": 0.8,
+      "long_sentence_word_range": [16, 35]
+    },
+    "sentence_connection": "多用逗號、連詞或破折號將細節串成一到兩句長句，語感流暢、自然銜接。",
+    "minimal_cues": [
+      "開頭交代分享動機或背景，主句結構明顯。",
+      "產品資訊（名稱、價格、評價等）融合在長句裡，用逗號或破折號隔開。",
+      "評論或推薦語在最後，通常作為收尾。",
+      "全段多為一兩句即可，不宜分行。"
+    ],
+    "few_shot": [
+      "最近新入手一瓶保濕精華液，容量30ml，現場體驗價只要980元，覺得性價比超高。",
+      "今天特地來和大家推薦這款清爽型化妝水，瓶身設計很有質感，價格也很親民。"
+    ],
+    "custom_user_requirements": []
+  },
+  {
+    "style": "line_break_list",
+    "description": "單句分行，每個重點獨立成一行，語氣更口語或帶強調感。",
+    "main_topic": "日常保養＋新品分享",
+    "summary": "分行條列，每行一重點，語氣口語，強調重點細節。",
+    "paragraph_count_range": [1, 2],
+    "sentence_length": {
+      "short_sentence_ratio": 0.9,
+      "short_sentence_word_range": [6, 15],
+      "long_sentence_ratio": 0.1,
+      "long_sentence_word_range": [16, 22]
+    },
+    "sentence_connection": "每個重點獨立成句，不用連接詞、不用逗號，各行之間只用換行分隔。",
+    "minimal_cues": [
+      "每句話只帶一個重點，不合併資訊。",
+      "產品名、價格、評價等全部單獨一行。",
+      "感受或評價獨立成行，最後一句常見感嘆或強調。",
+      "允許開頭短句，也可全段分行。"
+    ],
+    "few_shot": [
+      "新產品入手\\n清透保濕精華液\\n30ml\\n體驗價980元\\n很推！",
+      "剛收到這款卸妝水\\n大容量500ml\\n溫和無負擔\\n用過就回不去"
+    ],
+    "custom_user_requirements": []
+  }
+]

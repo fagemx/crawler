@@ -1,0 +1,10 @@
+[2025-07-31 05:57:41.512251 +00:00] WARN [rustfs::server::http] [rustfs/src/server/http.rs:125] [main:ThreadId(1)] Detected default credentials 'rustfsadmin:rustfsadmin', we recommend that you change these values with 'RUSTFS_ACCESS_KEY' and 'RUSTFS_SECRET_KEY' environment variables
+
+[2025-07-31 05:57:41.780547 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:974] [main:ThreadId(1)] init bucket replication pool
+
+[2025-07-31 05:57:41.780597 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:630] [main:ThreadId(1)] init_bucket_replication_pool 0 0 auto 50
+
+[2025-07-31 05:57:41.780611 +00:00] WARN [rustfs_ecstore::cmd::bucket_replication] [crates/ecstore/src/cmd/bucket_replication.rs:697] [main:ThreadId(1)] work size is: 10
+
+[2025-07-31 05:57:56.600204 +00:00] ERROR [s3s::ops] [/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/s3s-0.12.0-minio-preview.2/src/ops/mod.rs:241] [tokio-runtime-worker:ThreadId(13)] error=S3Error { code: InvalidRequest, message: "invalid header: authorization", source: ParseAuthorizationError { _priv: () }, .. }
+
