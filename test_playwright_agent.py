@@ -8,14 +8,14 @@ from pathlib import Path
 TARGET_USERNAME = "natgeo"  # <--- 在這裡修改您想爬取的帳號
 
 # 2. 要爬取的最大貼文數量
-MAX_POSTS_TO_FETCH = 50  # <--- 在這裡修改您想爬取的數量
+MAX_POSTS_TO_FETCH = 10  # <--- 在這裡修改您想爬取的數量
 
 # 3. Playwright Crawler Agent 的 API 端點
 #    請確保您的 docker-compose 正在運行，且端口號正確
 AGENT_URL = "http://localhost:8006/v1/playwright/crawl"
 
 # 4. 認證檔案的路徑 (由 save_auth.py 產生)
-from agents.playwright_crawler.config import get_auth_file_path
+from common.config import get_auth_file_path
 AUTH_FILE_PATH = get_auth_file_path(from_project_root=True)
 
 
@@ -48,71 +48,40 @@ async def main():
         "auth_json_content": auth_content,
     }
 
-    print("\n🚀 發送 API 請求至 Agent...")
-    
     try:
         timeout = httpx.Timeout(300.0)  # 設定一個較長的超時時間 (300秒)
         async with httpx.AsyncClient(timeout=timeout) as client:
-            async with client.stream("POST", AGENT_URL, json=payload) as response:
+            print("\n🚀 發送同步 API 請求至 Agent...")
+            print(f"🔗 請求 URL: {AGENT_URL}")
+            print(f"📦 請求數據大小: {len(json.dumps(payload))} bytes")
+            
+            try:
+                response = await client.post(AGENT_URL, json=payload)
+                print(f"📡 收到響應，狀態碼: {response.status_code}")
+                
                 if response.status_code != 200:
-                    print(f"❌ API 請求失敗，狀態碼: {response.status_code}")
-                    async for chunk in response.aiter_text():
-                        print(chunk)
+                    print(f"❌ API 請求失敗")
+                    print(f"錯誤內容: {response.text}")
                     return
 
-                print("✅ 連線成功，開始接收串流事件...\n")
+                print("✅ 連線成功，爬取已完成！")
+                print(f"📊 響應大小: {len(response.content)} bytes")
                 
-                final_data = None
-                async for line in response.aiter_lines():
-                    if line.startswith("data:"):
-                        try:
-                            event_data = json.loads(line[5:])
-                            
-                            # 檢查事件資料是否為字典
-                            if not isinstance(event_data, dict):
-                                print(f"   [警告] 收到非字典格式的事件資料: {type(event_data)} - {event_data}")
-                                continue
-                            
-                            # 美化輸出
-                            event_type = event_data.get("response_type", "unknown")
-                            content = event_data.get("content", {})
-                            
-                            if event_type == "status":
-                                # status 類型的 content 應該是字典
-                                if isinstance(content, dict):
-                                    state = content.get('status', 'N/A')
-                                    message = content.get('message', '')
-                                    progress = content.get('progress', 0)
-                                    print(f"   [狀態更新] {state}: {message} ({progress:.0%})")
-                                else:
-                                    print(f"   [狀態更新] 格式異常: {content}")
-                            elif event_type == "text":
-                                # text 類型的 content 應該是字串
-                                if isinstance(content, str):
-                                    print(f"   [日誌訊息] {content}")
-                                else:
-                                    print(f"   [日誌訊息] 格式異常: {content}")
-                            elif event_type == "data" and event_data.get("is_task_complete"):
-                                print("\n✅ 任務完成，接收到最終資料。")
-                                final_data = content
-                                break
-                            elif event_type == "error":
-                                # error 類型的 content 應該是字典
-                                if isinstance(content, dict):
-                                    error_message = content.get('error', '未知錯誤')
-                                    print(f"   [錯誤] {error_message}")
-                                elif isinstance(content, str):
-                                    print(f"   [錯誤] {content}")
-                                else:
-                                    print(f"   [錯誤] 格式異常: {content}")
-                                break
-
-                        except json.JSONDecodeError:
-                            print(f"   [警告] 無法解析收到的事件: {line}")
-                        except Exception as e:
-                            print(f"   [錯誤] 處理事件時發生錯誤: {e}")
-                            print(f"   [除錯] 原始事件行: {line}")
-                            break
+                # 直接解析 JSON 響應
+                try:
+                    final_data = response.json()
+                    print("✅ 成功收到爬取結果！")
+                except json.JSONDecodeError as e:
+                    print(f"❌ 無法解析響應 JSON: {e}")
+                    print(f"原始響應: {response.text[:500]}...")
+                    return
+                    
+            except httpx.TimeoutException:
+                print("❌ 請求超時（5分鐘）")
+                return
+            except Exception as req_e:
+                print(f"❌ 請求過程中發生錯誤: {req_e}")
+                return
 
         if final_data:
             # final_data 就是 PostMetricsBatch 的內容

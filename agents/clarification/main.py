@@ -69,15 +69,30 @@ class ClarificationAgent:
         
         text_lower = text.lower()
         
-        # 檢測主題
-        if any(word in text_lower for word in ["化妝", "保養", "護膚", "美妝", "乳霜", "精華", "面膜"]):
-            analysis["detected_topic"] = "美妝保養"
-        elif any(word in text_lower for word in ["服裝", "穿搭", "時尚", "衣服"]):
-            analysis["detected_topic"] = "時尚穿搭"
-        elif any(word in text_lower for word in ["美食", "餐廳", "料理", "食物"]):
-            analysis["detected_topic"] = "美食分享"
+        # 智能檢測主題類別
+        topic_keywords = {
+            "美妝保養": ["化妝", "保養", "護膚", "美妝", "乳霜", "精華", "面膜", "粉底", "口紅", "眼影"],
+            "時尚穿搭": ["服裝", "穿搭", "時尚", "衣服", "搭配", "風格", "流行", "配件"],
+            "美食分享": ["美食", "餐廳", "料理", "食物", "菜單", "味道", "烹飪", "食譜", "咖啡", "甜點"],
+            "旅遊生活": ["旅遊", "旅行", "景點", "度假", "出遊", "風景", "體驗", "探索"],
+            "科技數碼": ["科技", "數碼", "手機", "電腦", "軟體", "應用", "AI", "程式"],
+            "健康運動": ["健康", "運動", "健身", "瑜伽", "跑步", "鍛鍊", "營養", "減肥"],
+            "生活日常": ["生活", "日常", "心情", "分享", "感想", "體驗", "故事"],
+            "商品推廣": ["推薦", "新品", "優惠", "折扣", "限時", "特價", "促銷", "活動"],
+            "教育學習": ["學習", "教育", "課程", "知識", "技能", "教學", "分享"],
+            "娛樂休閒": ["電影", "音樂", "遊戲", "娛樂", "休閒", "興趣", "愛好"]
+        }
+        
+        detected_topics = []
+        for topic, keywords in topic_keywords.items():
+            if any(keyword in text_lower for keyword in keywords):
+                detected_topics.append(topic)
+        
+        # 選擇最匹配的主題，如果沒有匹配則為通用
+        if detected_topics:
+            analysis["detected_topic"] = detected_topics[0]  # 取第一個匹配的主題
         else:
-            analysis["detected_topic"] = "一般分享"
+            analysis["detected_topic"] = "通用內容"
         
         # 檢測明確需求
         if "打折" in text or "優惠" in text or "%" in text:
@@ -197,53 +212,81 @@ class ClarificationAgent:
     
     def get_default_questions_for_topic(self, topic: str) -> Dict[str, Any]:
         """根據主題獲取預設問卷"""
-        if topic == "美妝保養":
-            return {
-                "need_clarification": True,
-                "questions": [
-                    {
-                        "id": "style",
-                        "question": "你希望貼文的呈現風格是？",
-                        "options": ["連貫敘事風格", "分行條列重點", "自訂"]
-                    },
-                    {
-                        "id": "tone",
-                        "question": "語氣偏好？",
-                        "options": ["親身體驗分享", "專業產品介紹", "自訂"]
-                    },
-                    {
-                        "id": "product_focus",
-                        "question": "產品資訊重點？",
-                        "options": ["強調效果體驗", "突出價格優惠", "自訂"]
-                    },
-                    {
-                        "id": "length",
-                        "question": "內容長度偏好？",
-                        "options": ["簡潔有力(80-120字)", "詳細介紹(200-300字)", "自訂"]
-                    }
-                ]
+        
+        # 通用基礎問題
+        base_questions = [
+            {
+                "id": "style",
+                "question": "你希望貼文的呈現風格是？",
+                "options": ["連貫敘事風格", "分行條列重點", "自訂"]
+            },
+            {
+                "id": "tone",
+                "question": "語氣偏好？",
+                "options": ["親身體驗分享", "客觀資訊介紹", "自訂"]
+            },
+            {
+                "id": "length",
+                "question": "內容長度偏好？",
+                "options": ["簡潔有力(80-120字)", "詳細描述(200-300字)", "自訂"]
             }
-        else:
-            return {
-                "need_clarification": True,
-                "questions": [
-                    {
-                        "id": "style",
-                        "question": "你希望貼文的呈現風格是？",
-                        "options": ["連貫敘事風格", "分行條列重點", "自訂"]
-                    },
-                    {
-                        "id": "tone",
-                        "question": "語氣偏好？",
-                        "options": ["親身經歷分享", "客觀資訊介紹", "自訂"]
-                    },
-                    {
-                        "id": "length",
-                        "question": "內容長度偏好？",
-                        "options": ["簡潔有力(80-120字)", "詳細描述(200-300字)", "自訂"]
-                    }
-                ]
-            }
+        ]
+        
+        # 根據主題添加特定問題
+        topic_specific_questions = {
+            "美妝保養": [
+                {
+                    "id": "product_focus",
+                    "question": "產品資訊重點？",
+                    "options": ["強調效果體驗", "突出價格優惠", "自訂"]
+                }
+            ],
+            "商品推廣": [
+                {
+                    "id": "promotion_focus",
+                    "question": "推廣重點？",
+                    "options": ["突出產品特色", "強調優惠價格", "自訂"]
+                }
+            ],
+            "美食分享": [
+                {
+                    "id": "food_aspect",
+                    "question": "美食分享重點？",
+                    "options": ["味道體驗", "環境氛圍", "自訂"]
+                }
+            ],
+            "旅遊生活": [
+                {
+                    "id": "travel_focus",
+                    "question": "旅遊分享重點？",
+                    "options": ["景點介紹", "個人體驗", "自訂"]
+                }
+            ],
+            "時尚穿搭": [
+                {
+                    "id": "fashion_focus",
+                    "question": "穿搭分享重點？",
+                    "options": ["搭配技巧", "單品推薦", "自訂"]
+                }
+            ]
+        }
+        
+        # 組合問題
+        questions = base_questions.copy()
+        if topic in topic_specific_questions:
+            questions.extend(topic_specific_questions[topic])
+        
+        # 添加通用的特殊要求問題
+        questions.append({
+            "id": "special_requirements",
+            "question": "有什麼特殊要求嗎？",
+            "options": ["需要加入 hashtag", "避免提及價格", "自訂"]
+        })
+        
+        return {
+            "need_clarification": True,
+            "questions": questions[:5]  # 限制最多5個問題
+        }
 
 # 全域 agent 實例
 clarification_agent = ClarificationAgent()

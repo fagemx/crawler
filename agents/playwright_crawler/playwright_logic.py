@@ -14,6 +14,7 @@ from playwright.async_api import async_playwright, TimeoutError as PlaywrightTim
 from common.settings import get_settings
 from common.a2a import stream_text, stream_data, stream_status, stream_error, TaskState
 from common.models import PostMetrics, PostMetricsBatch
+from common.nats_client import publish_progress
 from common.utils import (
     get_best_video_url,
     get_best_image_url,
@@ -340,8 +341,14 @@ class PlaywrightLogic:
         使用指定的認證內容爬取貼文。
         此版本會聚合所有結果，並一次性返回 PostMetricsBatch。
         """
+        if task_id is None:
+            task_id = str(uuid.uuid4())
+            
         target_url = f"https://www.threads.com/@{username}"
         posts: Dict[str, PostMetrics] = {}
+        
+        # 發布開始爬取的進度
+        await publish_progress(task_id, "fetch_start", username=username, max_posts=max_posts)
         
         # 1. 安全地將 auth.json 內容寫入臨時檔案
         auth_file = Path(tempfile.gettempdir()) / f"{task_id or uuid.uuid4()}_auth.json"
@@ -398,6 +405,14 @@ class PlaywrightLogic:
                             break
                     else:
                         scroll_attempts_without_new_posts = 0
+                        # 發布進度更新
+                        await publish_progress(
+                            task_id, "fetch_progress", 
+                            username=username,
+                            current=len(posts), 
+                            total=max_posts,
+                            progress=min(len(posts) / max_posts, 1.0)
+                        )
                 
                 # 關閉 page 但保留 context 供 fill_views_from_page 使用
                 await page.close()
@@ -418,11 +433,15 @@ class PlaywrightLogic:
                 
                 # --- 補齊觀看數 (在 browser context 還存在時執行) ---
                 logging.info(f"🔍 [Task: {task_id}] 開始補齊觀看數...")
+                await publish_progress(task_id, "fill_views_start", username=username, posts_count=len(final_posts))
+                
                 try:
                     final_posts = await self.fill_views_from_page(final_posts)
                     logging.info(f"✅ [Task: {task_id}] 觀看數補齊完成")
+                    await publish_progress(task_id, "fill_views_completed", username=username, posts_count=len(final_posts))
                 except Exception as e:
                     logging.warning(f"⚠️ [Task: {task_id}] 補齊觀看數時發生錯誤: {e}")
+                    await publish_progress(task_id, "fill_views_error", username=username, error=str(e))
                     # 即使補齊失敗，也繼續返回基本數據
 
                 # 手動關閉 browser 和 context
@@ -468,6 +487,14 @@ class PlaywrightLogic:
             except Exception as e:
                 logging.warning(f"⚠️ [Task: {task_id}] 保存調試資料失敗: {e}")
             
+            # 發布完成進度
+            await publish_progress(
+                task_id, "completed", 
+                username=username,
+                total_posts=len(final_posts),
+                success=True
+            )
+
             batch = PostMetricsBatch(
                 posts=final_posts,
                 username=username,
@@ -479,6 +506,13 @@ class PlaywrightLogic:
         except Exception as e:
             error_message = f"Playwright 核心邏輯出錯: {e}"
             logging.error(error_message, exc_info=True)
+            # 發布錯誤進度
+            await publish_progress(
+                task_id, "error", 
+                username=username,
+                error=error_message,
+                success=False
+            )
             raise
         
         finally:

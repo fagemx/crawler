@@ -9,6 +9,7 @@ import uuid
 import httpx
 from typing import Dict, Any, List
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import sys
 import os
@@ -18,6 +19,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from common.redis_client import get_async_redis_client
 from common.settings import get_settings
+from common.nats_client import get_nats_client
 
 app = FastAPI(title="Orchestrator Agent", version="1.0.0")
 
@@ -306,6 +308,85 @@ async def handle_user_answers(request: UserAnswers):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"處理用戶答案失敗: {str(e)}")
+
+# === 新增：SSE 進度流端點 ===
+@app.get("/stream/{task_id}")
+async def stream_progress(task_id: str):
+    """SSE 端點：流式傳輸指定 task_id 的進度更新"""
+    import asyncio
+    
+    async def event_generator():
+        """事件生成器"""
+        message_queue = asyncio.Queue()
+        subscription = None
+        
+        try:
+            # 連接到 NATS 並訂閱進度頻道
+            nc = await get_nats_client()
+            if nc is None:
+                yield f"data: {json.dumps({'error': 'NATS not available', 'task_id': task_id})}\n\n"
+                return
+            
+            # 訊息處理器
+            async def message_handler(msg):
+                try:
+                    data = json.loads(msg.data.decode())
+                    # 只處理指定 task_id 的訊息
+                    if data.get("task_id") == task_id:
+                        await message_queue.put(data)
+                except Exception as e:
+                    print(f"處理訊息錯誤: {e}")
+            
+            # 訂閱進度主題
+            subscription = await nc.subscribe("crawler.progress", cb=message_handler)
+            
+            # 發送初始連接確認
+            yield f"data: {json.dumps({{'task_id': '{task_id}', 'stage': 'connected', 'message': 'SSE connection established'}})}\n\n"
+            
+            # 持續監聽訊息
+            timeout_counter = 0
+            while timeout_counter < 600:  # 10分鐘超時
+                try:
+                    # 等待訊息，設置短超時以保持連接活躍
+                    data = await asyncio.wait_for(message_queue.get(), timeout=1.0)
+                    yield f"data: {json.dumps(data)}\n\n"
+                    timeout_counter = 0  # 重置超時計數器
+                    
+                    # 如果收到完成或錯誤訊息，結束流
+                    if data.get("stage") in ["completed", "error"]:
+                        break
+                        
+                except asyncio.TimeoutError:
+                    # 發送心跳保持連接
+                    timeout_counter += 1
+                    if timeout_counter % 30 == 0:  # 每30秒發送一次心跳
+                        yield f"data: {json.dumps({{'task_id': '{task_id}', 'stage': 'heartbeat'}})}\n\n"
+                    continue
+                    
+        except Exception as e:
+            yield f"data: {json.dumps({{'error': str(e), 'task_id': '{task_id}'}})}\n\n"
+        finally:
+            # 清理訂閱
+            if subscription:
+                try:
+                    await subscription.unsubscribe()
+                except:
+                    pass
+    
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",  # Nginx 相容性
+        }
+    )
+
+@app.get("/health")
+async def health_check():
+    """健康檢查端點"""
+    return {"status": "healthy", "service": "Orchestrator Agent"}
 
 if __name__ == "__main__":
     import uvicorn

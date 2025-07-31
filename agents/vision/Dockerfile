@@ -10,11 +10,11 @@ RUN apt-get update && apt-get install -y \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# 複製 requirements 檔案
-COPY requirements.txt ./
+# 複製必要的專案檔案
+COPY pyproject.toml README.md LICENSE ./
 
-# 安裝 Python 依賴
-RUN pip install --no-cache-dir -r requirements.txt
+# 安裝 Python 依賴（包含可選依賴組）
+RUN pip install --no-cache-dir -e ".[messaging]"
 
 # 複製應用程式碼
 COPY . .
