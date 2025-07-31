@@ -78,24 +78,28 @@ class ThreadsCrawlerComponent:
     # ---------- 3. 後台爬蟲 ----------
     def _crawler_worker(self, username: str, max_posts: int, auth: Dict[str, Any], task_id: str, progfile: str):
         """後台爬蟲工作線程 - 線程安全版本，不依賴session_state"""
-
-        # 初始化進度
-        self._write_progress(progfile, {
-            "stage": "initialization",
-            "progress": 0.0,
-            "status": "running",
-            "current_work": "正在初始化爬蟲..."
-        })
-
-        # 啟動 SSE 監聽線程
-        threading.Thread(
-            target=self._sse_listener, 
-            args=(task_id, progfile), 
-            daemon=True
-        ).start()
-
-        # 調用後端爬蟲
         try:
+            print(f"🔥 爬蟲線程啟動: task_id={task_id[:8]}, progfile={progfile}")
+            
+            # 初始化進度
+            self._write_progress(progfile, {
+                "stage": "initialization",
+                "progress": 0.0,
+                "status": "running",
+                "current_work": "正在初始化爬蟲..."
+            })
+            print(f"🔥 初始進度已寫入")
+
+            # 啟動 SSE 監聽線程
+            print(f"🔥 啟動SSE監聽線程")
+            threading.Thread(
+                target=self._sse_listener, 
+                args=(task_id, progfile), 
+                daemon=True
+            ).start()
+
+            # 調用後端爬蟲
+            print(f"🔥 準備調用後端API: {self.agent_url}")
             payload = {
                 'username': username,
                 'max_posts': max_posts,
@@ -103,8 +107,16 @@ class ThreadsCrawlerComponent:
                 'task_id': task_id
             }
             
+            self._write_progress(progfile, {
+                "stage": "api_calling",
+                "progress": 0.1,
+                "status": "running",
+                "current_work": "正在調用後端API..."
+            })
+            
             response = httpx.post(self.agent_url, json=payload, timeout=600)
             response.raise_for_status()
+            print(f"🔥 API調用成功")
             
             # 爬蟲完成
             self._write_progress(progfile, {
@@ -113,32 +125,43 @@ class ThreadsCrawlerComponent:
                 "status": "completed",
                 "final_data": response.json()
             })
+            print(f"🔥 爬蟲完成，結果已寫入")
             
         except Exception as e:
+            print(f"❌ 爬蟲線程錯誤: {e}")
             self._write_progress(progfile, {
                 "stage": "error",
                 "error": str(e),
-                "status": "error"
+                "status": "error",
+                "current_work": f"錯誤: {str(e)}"
             })
 
     def _sse_listener(self, task_id: str, progfile: str):
         """SSE 事件監聽線程"""
         url = f"{self.sse_url}/{task_id}"
+        print(f"🔥 SSE監聽啟動: {url}")
+        
         try:
             with requests.get(url, stream=True, timeout=600) as response:
+                print(f"🔥 SSE連接成功，狀態碼: {response.status_code}")
+                
                 for line in response.iter_lines():
                     if line and line.startswith(b"data:"):
                         try:
                             data = json.loads(line[5:].decode().strip())
+                            print(f"🔥 收到SSE事件: {data.get('stage', 'unknown')}")
                             self._write_progress(progfile, data)
                             
                             # 檢查是否完成
                             if data.get("stage") in ("completed", "error"):
+                                print(f"🔥 SSE監聽結束: {data.get('stage')}")
                                 break
-                        except json.JSONDecodeError:
+                        except json.JSONDecodeError as e:
+                            print(f"⚠️ JSON解析失敗: {e}")
                             continue
                             
         except Exception as e:
+            print(f"❌ SSE連接失敗: {e}")
             self._write_progress(progfile, {
                 "stage": "error",
                 "error": f"SSE連接失敗: {str(e)}",
@@ -251,9 +274,28 @@ class ThreadsCrawlerComponent:
 
     def _render_progress(self):
         """渲染進度界面"""
+        # 顯示調試信息
+        progress_file = st.session_state.get('crawler_progress_file', '')
+        
+        with st.expander("🔧 調試信息", expanded=False):
+            st.write(f"**任務ID:** {st.session_state.get('crawler_task_id', 'N/A')}")
+            st.write(f"**進度文件:** {progress_file}")
+            
+            if progress_file and os.path.exists(progress_file):
+                st.write("✅ 進度文件存在")
+                try:
+                    with open(progress_file, 'r', encoding='utf-8') as f:
+                        file_content = f.read()
+                    st.write("**文件內容:**")
+                    st.code(file_content, language='json')
+                except Exception as e:
+                    st.write(f"❌ 讀取失敗: {e}")
+            else:
+                st.write("❌ 進度文件不存在")
+        
         # 讀取最新進度
-        if st.session_state.crawler_progress_file:
-            progress_data = self._read_progress(st.session_state.crawler_progress_file)
+        if progress_file:
+            progress_data = self._read_progress(progress_file)
             
             # 更新session state
             if progress_data:
