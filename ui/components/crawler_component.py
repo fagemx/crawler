@@ -241,6 +241,19 @@ class ThreadsCrawlerComponent:
                     final_data = response.json()
                     st.session_state.crawler_logs.append("✅ 成功收到最終爬取結果！")
                     
+                    # 🔥 調試：檢查收到的數據格式
+                    data_type = type(final_data).__name__
+                    data_keys = list(final_data.keys()) if isinstance(final_data, dict) else "非字典"
+                    posts_exists = "posts" in final_data if isinstance(final_data, dict) else False
+                    posts_count = len(final_data.get("posts", [])) if isinstance(final_data, dict) else 0
+                    
+                    st.session_state.crawler_logs.append(f"🔍 數據類型: {data_type}")
+                    st.session_state.crawler_logs.append(f"🔍 數據鍵值: {data_keys}")
+                    st.session_state.crawler_logs.append(f"🔍 包含posts: {posts_exists}")
+                    st.session_state.crawler_logs.append(f"🔍 貼文數量: {posts_count}")
+                    
+                    print(f"🔥 調試final_data: type={data_type}, keys={data_keys}, posts={posts_exists}, count={posts_count}")
+                    
                     # 轉換為UI期望的格式
                     if isinstance(final_data, dict) and "posts" in final_data:
                         ui_data = {
@@ -338,7 +351,37 @@ class ThreadsCrawlerComponent:
                             st.session_state.crawler_logs.append(f"⚠️ 保存爬蟲結果失敗: {e}")
                         
                     else:
-                        st.session_state.final_data = final_data
+                        # 🔥 修復：數據格式不符合預期時的處理
+                        st.session_state.crawler_logs.append("⚠️ 數據格式不符合預期，嘗試修復...")
+                        
+                        # 嘗試創建標準格式
+                        if isinstance(final_data, dict):
+                            # 如果是字典但沒有posts字段，嘗試修復
+                            fixed_data = {
+                                "batch_id": final_data.get("batch_id", task_id),
+                                "username": final_data.get("username", username),
+                                "processing_stage": "completed",
+                                "total_count": final_data.get("total_count", 0),
+                                "posts": final_data.get("posts", []),  # 可能是空的
+                                "crawl_timestamp": time.time(),
+                                "agent_version": "1.0.0"
+                            }
+                            st.session_state.final_data = fixed_data
+                            st.session_state.crawler_logs.append(f"🔧 已修復數據格式")
+                        else:
+                            # 完全不是預期格式，創建空結果
+                            empty_data = {
+                                "batch_id": task_id,
+                                "username": username,
+                                "processing_stage": "completed",
+                                "total_count": 0,
+                                "posts": [],
+                                "crawl_timestamp": time.time(),
+                                "agent_version": "1.0.0",
+                                "error": f"收到非預期的數據格式: {type(final_data).__name__}"
+                            }
+                            st.session_state.final_data = empty_data
+                            st.session_state.crawler_logs.append(f"🔧 創建空結果結構")
                     
                     st.session_state.crawler_status = 'completed'
                     posts_count = len(st.session_state.final_data.get("posts", []))
@@ -581,6 +624,52 @@ class ThreadsCrawlerComponent:
             st.session_state.crawler_current_work = "🎉 爬取任務已完成！"
             st.session_state.crawler_logs.append("🎉 爬取任務完成！")
             st.session_state.crawler_progress = 1.0
+            
+            # 🔥 修復：從crawler_posts創建final_data
+            crawler_posts = st.session_state.get('crawler_posts', [])
+            if crawler_posts and not st.session_state.get('final_data'):
+                # 獲取目標信息
+                target = st.session_state.get('crawler_target', {})
+                username = target.get('username', 'unknown')
+                task_id = st.session_state.get('crawler_task_id', 'unknown')
+                
+                # 轉換crawler_posts為final_data格式
+                ui_posts = []
+                for post in crawler_posts:
+                    ui_post = {
+                        "post_id": post.get("post_id", ""),
+                        "username": post.get("username", username),
+                        "content": post.get("content", ""),
+                        "created_at": post.get("timestamp", ""),
+                        "likes_count": post.get("likes_count", 0),
+                        "comments_count": post.get("comments_count", 0),
+                        "reposts_count": post.get("reposts_count", 0),
+                        "shares_count": post.get("shares_count", 0),
+                        "views_count": post.get("views_count", 0),
+                        "calculated_score": post.get("calculated_score", 0),
+                        "url": post.get("url", ""),
+                        "source": "threads",
+                        "processing_stage": "completed",
+                        "media_urls": post.get("media_urls", [])
+                    }
+                    ui_posts.append(ui_post)
+                
+                # 創建final_data
+                import time
+                final_data = {
+                    "batch_id": task_id,
+                    "username": username,
+                    "processing_stage": "completed",
+                    "total_count": len(ui_posts),
+                    "posts": ui_posts,
+                    "crawl_timestamp": time.time(),
+                    "agent_version": "1.0.0"
+                }
+                
+                st.session_state.final_data = final_data
+                st.session_state.crawler_logs.append(f"🔧 從SSE數據創建final_data ({len(ui_posts)} 篇貼文)")
+                print(f"🔥 SSE完成：創建final_data，包含 {len(ui_posts)} 篇貼文")
+            
             st.session_state.crawler_status = 'completed'
             
         elif stage == 'error':
@@ -664,7 +753,7 @@ class ThreadsCrawlerComponent:
         elif stage == 'heartbeat':
             # 心跳事件，不顯示
             pass
-
+    
     def _render_crawler_progress(self):
         """渲染爬蟲進度（適合側邊欄）"""
         target = st.session_state.get('crawler_target', {})
@@ -833,23 +922,11 @@ class ThreadsCrawlerComponent:
             # 自動刷新
             if progress_updated:
                 st.success(f"🔄 有進度更新，立即刷新")
-                st.rerun()
-            else:
-                st.info(f"⏳ 無進度更新，等待2秒後刷新")
-                time.sleep(2)  # 減少到2秒更頻繁刷新
-                st.rerun()
-            
-        elif status == 'completed':
-            st.progress(1.0)
-            st.success("✅ 爬取完成！")
-            final_data = st.session_state.get('final_data')
-            if final_data:
-                posts_count = len(final_data.get("posts", []))
-                st.text(f"成功獲取 {posts_count} 篇貼文")
-                
-        elif status == 'error':
-            st.progress(0.0)
-            st.error("❌ 爬取過程中發生錯誤")
+            st.rerun()
+        else:
+            st.info(f"⏳ 無進度更新，等待2秒後刷新")
+            time.sleep(2)  # 減少到2秒更頻繁刷新
+            st.rerun()
         
         # 完整日誌（可選展開查看）
         if st.session_state.get('crawler_logs'):
