@@ -795,7 +795,7 @@ class ThreadsCrawlerComponent:
         # 最近日誌（緊湊顯示）
         logs = st.session_state.get('crawler_logs', [])
         if logs:
-            with st.expander("📝 進度日誌", expanded=False):
+            with st.expander("📝 進度日誌", expanded=True):
                 for log in logs[-5:]:  # 最近5條
                     st.write(f"• {log}")
         
