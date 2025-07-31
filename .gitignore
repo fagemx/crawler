@@ -98,4 +98,42 @@ celerybeat.pid
 
 # local settings
 local_settings.py
-db.sqlite3 
+db.sqlite3
+
+# ===== 項目特定的運行時文件 =====
+
+# 查詢和日誌文件
+seen_queries.txt
+unknown_fields.log
+*.log
+
+# Storage 目錄 - 運行時產生的數據
+storage/rustfs-logs/
+storage/rustfs/.rustfs.sys/
+storage/crawler_results/
+
+# 臨時和快取文件
+temp/
+cache/
+*.tmp
+*.temp
+
+
+# 測試和調試文件
+debug_*.py
+test_output/
+*.debug
+
+# 媒體和上傳文件
+uploads/
+media/
+static/media/
+
+# 資料庫文件
+*.db
+*.sqlite
+*.sqlite3
+
+# Docker 相關臨時文件
+docker-compose.override.yml
+.dockerignore.local 

@@ -16,6 +16,17 @@ class SystemMonitoringComponent:
         self.test_results = {}
         self.detailed_logs = []
     
+    def log(self, level: str, message: str, details: Any = None):
+        """統一的日誌記錄方法（模仿 test_mcp_complete.py）"""
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        log_entry = {
+            "timestamp": timestamp,
+            "level": level,
+            "message": message,
+            "details": details
+        }
+        self.detailed_logs.append(log_entry)
+    
     def render(self):
         """渲染監控界面"""
         st.header("📊 MCP 系統監控中心")
@@ -206,75 +217,110 @@ class SystemMonitoringComponent:
         """渲染詳細日誌"""
         if hasattr(st.session_state, 'monitoring_logs') and st.session_state.monitoring_logs:
             with st.expander("📋 詳細測試日誌", expanded=False):
-                for log in st.session_state.monitoring_logs[-20:]:  # 最多顯示20條
+                for log in st.session_state.monitoring_logs[-50:]:  # 顯示更多日誌（50條）
                     timestamp = log.get('timestamp', '')
                     level = log.get('level', 'INFO')
                     message = log.get('message', '')
+                    details = log.get('details', None)
                     
+                    # 根據級別顯示不同樣式
                     if level == 'SUCCESS':
-                        st.success(f"[{timestamp}] {message}")
+                        st.success(f"✅ [{timestamp}] {message}")
                     elif level == 'ERROR':
-                        st.error(f"[{timestamp}] {message}")
+                        st.error(f"❌ [{timestamp}] {message}")
                     elif level == 'WARNING':
-                        st.warning(f"[{timestamp}] {message}")
+                        st.warning(f"⚠️ [{timestamp}] {message}")
+                    elif level == 'DETAIL':
+                        st.info(f"📊 [{timestamp}] {message}")
                     else:
-                        st.info(f"[{timestamp}] {message}")
+                        st.info(f"🔍 [{timestamp}] {message}")
+                    
+                    # 顯示詳細信息
+                    if details and isinstance(details, dict):
+                        with st.container():
+                            cols = st.columns(len(details))
+                            for i, (key, value) in enumerate(details.items()):
+                                with cols[i % len(cols)]:
+                                    st.write(f"**{key}**: {value}")
+                    elif details:
+                        st.write(f"      {details}")
+                    
+                    # 添加分隔線
+                    if level in ['SUCCESS', 'ERROR', 'WARNING']:
+                        st.markdown("---")
     
     def _run_complete_test(self):
         """執行完整的系統測試"""
         st.info("🚀 正在執行完整的 MCP 系統測試...")
         
+        # 清空之前的日誌
+        self.detailed_logs = []
+        
         # 初始化結果
         results = {}
-        logs = []
+        
+        self.log("INFO", "🚀 開始 MCP 系統完整測試 - 增強版")
+        self.log("INFO", "📋 測試範圍：核心基礎設施、Agent 生態、資料庫操作、存儲整合")
         
         # 1. MCP Server 健康檢查
+        self.log("INFO", "測試 1: MCP Server 核心健康檢查")
         mcp_result = self._test_mcp_server_health()
-        results['mcp_server'] = mcp_result['healthy']
-        logs.extend(mcp_result['logs'])
+        results['mcp_server'] = mcp_result
         
         # 2. Agent 註冊機制
+        self.log("INFO", "測試 2: Agent 註冊與發現機制")
         agent_registry_result = self._test_agent_registry()
         results['agent_registry'] = agent_registry_result
         
         # 3. 個別 Agent 檢查
         agents_result = {}
+        self.log("INFO", "測試 3.1: Vision Agent 詳細檢查")
         agents_result['vision'] = self._test_individual_agent("Vision", 8005)
+        self.log("INFO", "測試 3.2: Playwright Crawler Agent 詳細檢查")
         agents_result['playwright_crawler'] = self._test_individual_agent("Playwright Crawler", 8006)
         results['agents'] = agents_result
         
         # 4. 資料庫操作
+        self.log("INFO", "測試 4: 資料庫連接與操作")
         db_result = self._test_database_operations()
         results['database'] = db_result
         
         # 5. 存儲整合
+        self.log("INFO", "測試 5: RustFS S3 存儲整合")
         storage_result = self._test_storage_integration()
         results['storage'] = storage_result
         
         # 6. 基礎設施
+        self.log("INFO", "測試 6: 基礎設施服務檢查")
         infra_result = self._test_infrastructure_services()
         results['infrastructure'] = infra_result
         
         # 生成詳細報告（匹配 test_mcp_complete.py 格式）
-        detailed_report = self._generate_detailed_report(results, logs)
+        detailed_report = self._generate_detailed_report(results, self.detailed_logs)
         
         # 保存結果
         st.session_state.monitoring_results = results
-        st.session_state.monitoring_logs = logs
+        st.session_state.monitoring_logs = self.detailed_logs
         st.session_state.monitoring_report = detailed_report
         
         st.success("✅ 系統測試完成！")
         st.rerun()
     
-    def _generate_detailed_report(self, results: Dict[str, Any], logs: List[str]) -> Dict[str, Any]:
+    def _generate_detailed_report(self, results: Dict[str, Any], logs: List[Dict[str, Any]]) -> Dict[str, Any]:
         """生成詳細的測試報告"""
         import time
         import datetime
         
-        # 統計測試結果
+        # 統計測試結果  
         total_tests = len(results)
         successful_tests = sum(1 for result in results.values() if isinstance(result, dict) and result.get('success', False))
         failed_tests = total_tests - successful_tests
+        
+        # 統計日誌級別
+        log_stats = {}
+        for log in logs:
+            level = log.get('level', 'INFO')
+            log_stats[level] = log_stats.get(level, 0) + 1
         
         # 生成詳細報告
         report = {
@@ -283,10 +329,12 @@ class SystemMonitoringComponent:
                 "測試項目數": total_tests,
                 "成功項目": successful_tests,
                 "失敗項目": failed_tests,
-                "成功率": f"{(successful_tests/total_tests)*100:.1f}%" if total_tests > 0 else "0%"
+                "成功率": f"{(successful_tests/total_tests)*100:.1f}%" if total_tests > 0 else "0%",
+                "日誌統計": log_stats,
+                "總日誌條數": len(logs)
             },
             "detailed_results": results,
-            "logs": logs
+            "detailed_logs": logs
         }
         
         return report
@@ -296,25 +344,20 @@ class SystemMonitoringComponent:
         try:
             response = httpx.get("http://localhost:10100/health", timeout=10)
             if response.status_code == 200:
-                return {
-                    'healthy': True,
-                    'logs': [{
-                        'timestamp': datetime.datetime.now().strftime("%H:%M:%S"),
-                        'level': 'SUCCESS',
-                        'message': 'MCP Server 健康檢查通過'
-                    }]
-                }
-        except:
-            pass
-        
-        return {
-            'healthy': False,
-            'logs': [{
-                'timestamp': datetime.datetime.now().strftime("%H:%M:%S"),
-                'level': 'ERROR',
-                'message': 'MCP Server 連接失敗'
-            }]
-        }
+                health_data = response.json()
+                self.log("SUCCESS", "MCP Server 健康檢查通過", {
+                    "狀態碼": response.status_code,
+                    "響應時間": f"{response.elapsed.total_seconds():.3f}秒",
+                    "端點": "http://localhost:10100/health"
+                })
+                self.log("DETAIL", "MCP Server 詳細狀態", health_data)
+                return {"success": True, "data": health_data}
+            else:
+                self.log("ERROR", f"MCP Server 健康檢查失敗: HTTP {response.status_code}")
+                return {"success": False, "error": f"HTTP {response.status_code}"}
+        except Exception as e:
+            self.log("ERROR", f"MCP Server 連接失敗: {str(e)}")
+            return {"success": False, "error": str(e)}
     
     def _test_agent_registry(self) -> Dict[str, Any]:
         """測試 Agent 註冊機制"""
@@ -324,19 +367,35 @@ class SystemMonitoringComponent:
                 agents = response.json()
                 online_count = sum(1 for agent in agents if agent.get('status') == 'ONLINE')
                 
+                self.log("SUCCESS", f"Agent 註冊機制正常運作", {
+                    "總 Agent 數": len(agents),
+                    "線上 Agent 數": online_count,
+                    "註冊率": f"{(online_count/len(agents)*100):.1f}%" if agents else "0%"
+                })
+                
+                # 記錄每個 Agent 的詳細信息
+                for agent in agents:
+                    agent_info = {
+                        "狀態": agent.get('status', 'UNKNOWN'),
+                        "版本": agent.get('version', 'unknown'),
+                        "端點": agent.get('endpoint', 'unknown')
+                    }
+                    self.log("DETAIL", f"Agent: {agent.get('name')}", agent_info)
+                
+                self.log("SUCCESS", f"活躍 Agents: {online_count}/{len(agents)}")
+                
                 return {
+                    'success': True,
                     'total': len(agents),
                     'online': online_count,
-                    'details': [{
-                        '名稱': agent.get('name', 'unknown'),
-                        '狀態': agent.get('status', 'UNKNOWN'),
-                        '版本': agent.get('version', 'unknown')
-                    } for agent in agents]
+                    'details': agents
                 }
-        except:
-            pass
-        
-        return {'total': 0, 'online': 0, 'details': []}
+            else:
+                self.log("WARNING", f"獲取 Agents 列表失敗: HTTP {response.status_code}")
+                return {'success': False, 'error': f"HTTP {response.status_code}"}
+        except Exception as e:
+            self.log("WARNING", f"Agent 註冊檢查異常: {str(e)}")
+            return {'success': False, 'error': str(e)}
     
     def _test_individual_agent(self, name: str, port: int) -> Dict[str, Any]:
         """測試個別 Agent"""

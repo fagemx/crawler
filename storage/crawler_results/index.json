@@ -1,5 +1,18 @@
 [
   {
+    "batch_id": "b89eb7f8-9742-4751-a8f3-2b85fdd61545",
+    "username": "natgeo",
+    "crawled_at": "2025-07-31T21:43:34.865009",
+    "posts_count": 10,
+    "metadata": {
+      "crawl_method": "playwright_agent",
+      "max_posts_requested": 10,
+      "task_id": "5b4b1281-a50d-44a8-a162-97213be6883a",
+      "agent_version": "1.0.0"
+    },
+    "file_path": "b89eb7f8-9742-4751-a8f3-2b85fdd61545.json"
+  },
+  {
     "batch_id": "f60a4fb4-15ff-46bc-9978-bcdceea75ee4",
     "username": "natgeo",
     "crawled_at": "2025-07-31T20:19:17.057712",
