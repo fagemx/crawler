@@ -153,12 +153,38 @@ class ThreadsCrawlerComponent:
                     if line and line.startswith(b"data:"):
                         try:
                             data = json.loads(line[5:].decode().strip())
-                            print(f"🔥 收到SSE事件: {data.get('stage', 'unknown')}")
-                            self._write_progress(progfile, data)
+                            stage = data.get('stage', 'unknown')
+                            print(f"🔥 收到SSE事件: {stage}")
+                            
+                            # 處理不同類型的SSE事件
+                            if stage == 'post_parsed':
+                                current = data.get('current', 0)
+                                total = data.get('total', 1)
+                                progress = current / total if total > 0 else 0
+                                
+                                # 寫入進度和當前工作狀態
+                                self._write_progress(progfile, {
+                                    **data,
+                                    "progress": progress,
+                                    "current_work": f"已解析 {current}/{total} 篇貼文"
+                                })
+                            elif stage == 'batch_parsed':
+                                self._write_progress(progfile, {
+                                    **data,
+                                    "current_work": "批次解析完成，正在填充觀看數..."
+                                })
+                            elif stage == 'fill_views_start':
+                                self._write_progress(progfile, {
+                                    **data,
+                                    "current_work": "正在填充觀看數據..."
+                                })
+                            else:
+                                # 其他事件直接寫入
+                                self._write_progress(progfile, data)
                             
                             # 檢查是否完成
-                            if data.get("stage") in ("completed", "error"):
-                                print(f"🔥 SSE監聽結束: {data.get('stage')}")
+                            if stage in ("completed", "error"):
+                                print(f"🔥 SSE監聽結束: {stage}")
                                 break
                         except json.JSONDecodeError as e:
                             print(f"⚠️ JSON解析失敗: {e}")
