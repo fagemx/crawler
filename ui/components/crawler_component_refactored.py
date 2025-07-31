@@ -154,15 +154,30 @@ class ThreadsCrawlerComponent:
                             stage = data.get('stage', 'unknown')
                             print(f"🔥 收到SSE事件: {stage}")
                             
-                            # 👉 統一寫入欄位：stage / progress / current_work
+                            # --------- 計算進度 ---------
                             if stage == "post_parsed":
-                                cur, tot = data.get("current", 0), data.get("total", 1)
-                                progress = cur / tot if tot else 0
+                                # 優先使用後端直接提供的 progress
+                                if "progress" in data:
+                                    progress = float(data["progress"])
+                                    cur, tot = int(progress * data.get("total", 1)), data.get("total", 1)
+                                else:
+                                    cur, tot = data.get("current", 0), data.get("total", 1)
+                                    progress = cur / tot if tot else 0
+                                progress = max(0.0, min(1.0, progress))    # Clamp
                                 self._write_progress(
                                     progfile,
                                     dict(stage=stage,
                                          progress=progress,
                                          current_work=f"已解析 {cur}/{tot} 篇貼文")
+                                )
+                            # 通用 fetch_progress 事件（若後端有送）
+                            elif stage == "fetch_progress":
+                                progress = max(0.0, min(1.0, float(data.get("progress", 0))))
+                                self._write_progress(
+                                    progfile,
+                                    dict(stage=stage,
+                                         progress=progress,
+                                         current_work=f"已完成 {progress*100:.1f}%")
                                 )
                             elif stage == "batch_parsed":
                                 self._write_progress(
