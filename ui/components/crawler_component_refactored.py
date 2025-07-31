@@ -328,6 +328,8 @@ class ThreadsCrawlerComponent:
         # 設置session state
         task_id = str(uuid.uuid4())
         progress_file = tempfile.NamedTemporaryFile(delete=False, suffix=".json").name
+        print(f"💡 進度文件路徑 (Progress file path): {progress_file}")
+        
         
         st.session_state.update({
             'crawler_status': 'running',
