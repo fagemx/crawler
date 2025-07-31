@@ -233,19 +233,23 @@ class ThreadsCrawlerComponent:
         # 啟動真實的爬蟲任務
         st.success("🚀 爬蟲已啟動！即將開始爬取...")
         
-        # 使用 asyncio 來執行異步任務
-        import asyncio
-        try:
-            # 在 Streamlit 中運行異步任務
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.run_until_complete(self._execute_crawler(username, max_posts, auth_content))
-        except Exception as e:
-            st.error(f"❌ 爬蟲執行失敗: {e}")
-            st.session_state.crawler_status = 'error'
-            st.session_state.crawler_logs.append(f"錯誤: {e}")
-        finally:
-            st.rerun()
+        # 🔥 修復UI阻塞：將長時間運行的任務移到後台線程
+        def crawler_worker():
+            """後台爬蟲工作線程"""
+            try:
+                import asyncio
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                loop.run_until_complete(self._execute_crawler(username, max_posts, auth_content))
+            except Exception as e:
+                st.session_state.crawler_logs.append(f"❌ 爬蟲執行失敗: {e}")
+                st.session_state.crawler_status = 'error'
+                print(f"❌ 爬蟲執行失敗: {e}")
+        
+        # 在後台線程啟動爬蟲，避免阻塞UI
+        import threading
+        threading.Thread(target=crawler_worker, daemon=True).start()
+        st.info("⚡ 爬蟲已在後台啟動，請查看左側邊欄的進度更新！")
     
     async def _execute_crawler(self, username: str, max_posts: int, auth_content: dict):
         """執行真實的爬蟲任務，使用混合模式：觸發爬蟲 + SSE 進度"""
@@ -924,11 +928,11 @@ class ThreadsCrawlerComponent:
             # 自動刷新
             if progress_updated:
                 st.success(f"🔄 有進度更新，立即刷新")
-            st.rerun()
-        else:
-            st.info(f"⏳ 無進度更新，等待2秒後刷新")
-            time.sleep(2)  # 減少到2秒更頻繁刷新
-            st.rerun()
+                st.rerun()
+            else:
+                st.info(f"⏳ 無進度更新，st.fragment會自動刷新")
+                # 🔥 移除 time.sleep() - 不能在UI線程中阻塞！
+                # 依賴 st.fragment(run_every=2) 自動刷新
         
         # 完整日誌（可選展開查看）
         if st.session_state.get('crawler_logs'):
