@@ -17,8 +17,10 @@ from typing import Dict, Any, Optional
 
 class ThreadsCrawlerComponent:
     def __init__(self):
-        self.agent_url = "http://localhost:8006/v1/playwright/crawl"
-        self.sse_url = "http://localhost:8000/stream"
+        # 簡單修復：Docker環境用容器名稱，否則用localhost
+        agent_host = os.getenv("AGENT_HOST", "social-media-playwright-crawler")
+        self.agent_url = f"http://{agent_host}:8006/v1/playwright/crawl"
+        self.sse_url = f"http://social-media-orchestrator:8000/stream"
         # 使用統一的配置管理
         from common.config import get_auth_file_path
         self.auth_file_path = get_auth_file_path(from_project_root=True)
