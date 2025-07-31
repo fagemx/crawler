@@ -230,7 +230,6 @@ class ThreadsCrawlerComponent:
             st.session_state.crawler_status = 'error'
             st.rerun()
             return
-            return
         
         # 啟動真實的爬蟲任務
         st.success("🚀 爬蟲已啟動！即將開始爬取...")
