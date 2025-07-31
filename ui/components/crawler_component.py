@@ -459,26 +459,61 @@ class ThreadsCrawlerComponent:
         # 🔥 新增：檢查並更新進度
         progress_updated = self._check_and_update_progress()
         
-        # 顯示進度條
+        # 🔥 即時進度顯示
         if status == 'running':
+            # 進度條
             if progress > 0:
                 st.progress(progress)
                 estimated_posts = int(progress * max_posts)
-                st.text(f"進度: ~{estimated_posts}/{max_posts} 篇貼文 ({progress:.1%})")
+                st.success(f"📊 進度: {estimated_posts}/{max_posts} 篇貼文 ({progress:.1%})")
             else:
                 st.progress(0.0)
-                st.text("初始化中...")
+                st.info("🔄 初始化中...")
             
-            # 顯示當前狀態
+            # 當前狀態
             task_id = st.session_state.get('crawler_task_id', 'N/A')
-            st.info(f"🔍 正在爬取 @{username} 的貼文... (Task ID: {task_id[:8]})")
-            st.info("📡 使用 SSE 即時更新進度，請查看下方日誌了解詳細狀態。")
+            st.write(f"🔍 **正在爬取 @{username}** (Task: `{task_id[:8]}...`)")
             
-            # 自動刷新每3秒或有進度更新時立即刷新
+            # 🔥 即時貼文預覽 - 直接顯示在主頁面
+            if st.session_state.get('crawler_posts'):
+                st.markdown("---")
+                st.subheader("📝 即時貼文預覽")
+                
+                # 顯示最新的3個貼文
+                recent_posts = st.session_state.crawler_posts[-3:]
+                
+                for post in recent_posts:
+                    # 使用卡片樣式顯示貼文
+                    with st.container():
+                        st.markdown(f"**🆔 {post['summary']}** `{post['timestamp']}`")
+                        
+                        # 顯示貼文詳情
+                        col1, col2 = st.columns([3, 1])
+                        with col1:
+                            # 內容預覽
+                            for detail in post['details']:
+                                if "**內容**:" in detail:
+                                    content = detail.replace("📝 **內容**: ", "")
+                                    st.write(f"💬 {content}")
+                                    break
+                        
+                        with col2:
+                            # 互動數據
+                            for detail in post['details']:
+                                if "**互動**:" in detail:
+                                    st.write(detail.replace("📊 **互動**: ", "📊 "))
+                                elif "**瀏覽**:" in detail:
+                                    st.write(detail.replace("👁️ **瀏覽**: ", "👁️ "))
+                                elif "**分數**:" in detail:
+                                    st.write(detail.replace("⭐ **分數**: ", "⭐ "))
+                        
+                        st.markdown("---")
+            
+            # 自動刷新
             if progress_updated:
                 st.rerun()
             else:
-                time.sleep(3)
+                time.sleep(2)  # 減少到2秒更頻繁刷新
                 st.rerun()
             
         elif status == 'completed':
