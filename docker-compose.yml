@@ -401,6 +401,37 @@ services:
           memory: '4G'
     command: python -m uvicorn agents.playwright_crawler.main:app --host 0.0.0.0 --port 8006 --reload
 
+  # Post Analyzer Agent - 貼文分析代理
+  post-analyzer-agent:
+    build:
+      context: .
+      dockerfile: agents/post_analyzer/Dockerfile
+    container_name: social-media-post-analyzer
+    ports:
+      - "8007:8007"
+    environment:
+      - PYTHONPATH=/app
+      - AGENT_PORT=8007
+      - MCP_SERVER_URL=http://mcp-server:10100
+      - REDIS_URL=redis://redis:6379/0
+      - NATS_URL=nats://nats:4222
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    depends_on:
+      redis:
+        condition: service_healthy
+      mcp-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8007/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - social-media-network
+
   # =============================================================================
   # 用戶介面
   # =============================================================================

@@ -98,9 +98,11 @@ class ThreadsCrawlerComponent:
         st.session_state.crawler_status = 'running'
         st.session_state.crawler_target = {"username": username, "max_posts": max_posts}
         st.session_state.crawler_logs = []
+        st.session_state.crawler_posts = []  # 貼文列表
         st.session_state.crawler_events = []
         st.session_state.final_data = None
         st.session_state.crawler_progress = 0
+        st.session_state.crawler_current_work = "正在初始化爬蟲..."
         
         # 讀取認證文件
         try:
@@ -113,7 +115,7 @@ class ThreadsCrawlerComponent:
             return
         
         # 啟動真實的爬蟲任務
-        st.info("🚀 爬蟲已啟動，正在連接 Playwright Agent...")
+        st.success("🚀 爬蟲已啟動！即將開始爬取...")
         
         # 使用 asyncio 來執行異步任務
         import asyncio
@@ -201,6 +203,55 @@ class ThreadsCrawlerComponent:
                             ui_data["posts"].append(ui_post)
                         
                         st.session_state.final_data = ui_data
+                        
+                        # 🔥 新增：持久化存儲爬蟲結果
+                        try:
+                            from common.crawler_storage import get_crawler_storage
+                            storage = get_crawler_storage()
+                            
+                            # 準備要存儲的數據
+                            posts_to_store = []
+                            for post in final_data.get("posts", []):
+                                post_data = {
+                                    "post_id": post.get("post_id", ""),
+                                    "username": post.get("username", username),
+                                    "content": post.get("content", ""),
+                                    "url": post.get("url", ""),
+                                    "created_at": post.get("created_at", ""),
+                                    "likes_count": post.get("likes_count", 0),
+                                    "comments_count": post.get("comments_count", 0),
+                                    "reposts_count": post.get("reposts_count", 0),
+                                    "shares_count": post.get("shares_count", 0),
+                                    "views_count": post.get("views_count", 0),
+                                    "calculated_score": post.get("calculated_score", 0),
+                                    "images": post.get("images", []),
+                                    "videos": post.get("videos", []),
+                                    "images_count": len(post.get("images", [])),
+                                    "videos_count": len(post.get("videos", []))
+                                }
+                                posts_to_store.append(post_data)
+                            
+                            # 存儲結果
+                            batch_id = ui_data.get("batch_id", task_id)
+                            metadata = {
+                                "crawl_method": "playwright_agent",
+                                "max_posts_requested": max_posts,
+                                "task_id": task_id,
+                                "agent_version": ui_data.get("agent_version", "1.0.0")
+                            }
+                            
+                            storage.save_crawler_result(
+                                username=username,
+                                posts_data=posts_to_store,
+                                batch_id=batch_id,
+                                metadata=metadata
+                            )
+                            
+                            st.session_state.crawler_logs.append(f"💾 爬蟲結果已保存 (批次ID: {batch_id[:8]}...)")
+                            
+                        except Exception as e:
+                            st.session_state.crawler_logs.append(f"⚠️ 保存爬蟲結果失敗: {e}")
+                        
                     else:
                         st.session_state.final_data = final_data
                     
@@ -326,7 +377,9 @@ class ThreadsCrawlerComponent:
             st.session_state.crawler_logs.append("📡 SSE 連接已建立")
             
         elif stage == 'fetch_start':
-            st.session_state.crawler_logs.append(f"🔍 開始爬取 @{data.get('username')} 的貼文...")
+            username = data.get('username', '')
+            st.session_state.crawler_logs.append(f"🔍 開始爬取 @{username} 的貼文...")
+            st.session_state.crawler_current_work = f"正在連接 Threads API..."
             
         elif stage == 'post_parsed':
             current = data.get('current', 0)
@@ -337,6 +390,8 @@ class ThreadsCrawlerComponent:
             likes = data.get('likes', 0)
             
             st.session_state.crawler_progress = progress
+            # 🔥 更新當前工作狀態
+            st.session_state.crawler_current_work = f"已解析 {current}/{total} 篇貼文 - 正在解析下一篇..."
             st.session_state.crawler_logs.append(f"✅ 解析貼文 {post_id[-8:]}: {likes}讚 - {content_preview}")
             
         elif stage == 'batch_parsed':
@@ -344,20 +399,25 @@ class ThreadsCrawlerComponent:
             current = data.get('current', 0)
             total = data.get('total', 1)
             query_name = data.get('query_name', '')
+            st.session_state.crawler_current_work = f"已處理 {query_name} 批次，獲得 {batch_size} 篇新貼文..."
             st.session_state.crawler_logs.append(f"📦 從 {query_name} 解析了 {batch_size} 則貼文，總計: {current}/{total}")
             
         elif stage == 'fill_views_start':
+            st.session_state.crawler_current_work = "正在補齊瀏覽數數據..."
             st.session_state.crawler_logs.append("👁️ 開始補齊瀏覽數...")
             
         elif stage == 'views_fetched':
             post_id = data.get('post_id', '')
             views_formatted = data.get('views_formatted', '0')
+            st.session_state.crawler_current_work = f"正在獲取貼文 {post_id[-8:]} 的瀏覽數..."
             st.session_state.crawler_logs.append(f"👁️ 貼文 {post_id[-8:]}: {views_formatted} 次瀏覽")
             
         elif stage == 'fill_views_completed':
+            st.session_state.crawler_current_work = "瀏覽數補齊完成，準備最終處理..."
             st.session_state.crawler_logs.append("✅ 瀏覽數補齊完成")
             
         elif stage == 'completed':
+            st.session_state.crawler_current_work = "🎉 爬取任務已完成！"
             st.session_state.crawler_logs.append("🎉 爬取任務完成！")
             st.session_state.crawler_progress = 1.0
             st.session_state.crawler_status = 'completed'
@@ -470,9 +530,16 @@ class ThreadsCrawlerComponent:
                 st.progress(0.0)
                 st.info("🔄 初始化中...")
             
-            # 當前狀態
+            # 📊 即時工作狀態報告
             task_id = st.session_state.get('crawler_task_id', 'N/A')
-            st.write(f"🔍 **正在爬取 @{username}** (Task: `{task_id[:8]}...`)")
+            current_work = st.session_state.get('crawler_current_work', '正在初始化...')
+            
+            col1, col2 = st.columns([2, 1])
+            with col1:
+                st.write(f"🔍 **正在爬取 @{username}**")
+                st.info(f"⚡ **當前工作**: {current_work}")
+            with col2:
+                st.write(f"🆔 Task: `{task_id[:8]}...`")
             
             # 🔥 即時貼文預覽 - 直接顯示在主頁面
             if st.session_state.get('crawler_posts'):
@@ -528,8 +595,11 @@ class ThreadsCrawlerComponent:
             st.progress(0.0)
             st.error("❌ 爬取過程中發生錯誤")
         
-        # 顯示日誌
-        self._render_crawler_logs()
+        # 完整日誌（可選展開查看）
+        if st.session_state.get('crawler_logs'):
+            with st.expander("📋 查看完整日誌", expanded=False):
+                for log in st.session_state.crawler_logs[-10:]:  # 最多顯示10條
+                    st.text(log)
     
     def _render_crawler_results(self):
         """渲染爬蟲結果"""
@@ -560,7 +630,7 @@ class ThreadsCrawlerComponent:
         if posts:
             st.subheader("📝 貼文預覽")
             
-            for i, post in enumerate(posts[:5]):  # 只顯示前5篇
+            for i, post in enumerate(posts[:10]):  # 顯示前10篇
                 with st.expander(f"貼文 {i+1} - {post.get('post_id', 'N/A')}", expanded=i < 2):
                     col1, col2 = st.columns([3, 1])
                     
@@ -626,8 +696,10 @@ class ThreadsCrawlerComponent:
     def _reset_crawler(self):
         """重置爬蟲狀態"""
         keys_to_reset = [
-            'crawler_status', 'crawler_target', 'crawler_logs', 
-            'crawler_events', 'final_data', 'crawler_step', 'crawler_progress'
+            'crawler_status', 'crawler_target', 'crawler_logs', 'crawler_posts',
+            'crawler_events', 'final_data', 'crawler_step', 'crawler_progress',
+            'crawler_task_id', 'crawler_progress_file', 'crawler_progress_mtime',
+            'crawler_current_work'
         ]
         for key in keys_to_reset:
             if key in st.session_state:

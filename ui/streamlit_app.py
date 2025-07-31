@@ -17,6 +17,7 @@ sys.path.append(str(project_root))
 from ui.components.crawler_component import ThreadsCrawlerComponent
 from ui.components.monitoring_component import SystemMonitoringComponent
 from ui.components.content_generator_component import ContentGeneratorComponent
+from ui.components.analyzer_component import AnalyzerComponent
 
 # 設置頁面配置
 st.set_page_config(
@@ -32,6 +33,7 @@ class SocialMediaGeneratorApp:
         self.crawler_component = ThreadsCrawlerComponent()
         self.monitoring_component = SystemMonitoringComponent()
         self.content_generator_component = ContentGeneratorComponent()
+        self.analyzer_component = AnalyzerComponent()
         
         # 初始化會話狀態
         self._init_session_state()
@@ -90,13 +92,22 @@ class SocialMediaGeneratorApp:
             }
             st.write(f"📝 內容生成: {step_names.get(content_step, '未知')}")
             
+            # 分析狀態
+            analysis_status = st.session_state.get('analysis_status', 'idle')
+            st.write(f"📊 內容分析: {status_colors.get(analysis_status, '⚪')} {status_names.get(analysis_status, '未知')}")
+            
+            if analysis_status == "completed":
+                analysis_username = st.session_state.get('analysis_username', '')
+                if analysis_username:
+                    st.write(f"   🎯 已分析: @{analysis_username}")
+            
             # 監控狀態
             if hasattr(st.session_state, 'monitoring_results'):
                 results = st.session_state.monitoring_results
                 mcp_healthy = results.get('mcp_server', False)
-                st.write(f"📊 系統監控: {'🟢 正常' if mcp_healthy else '🔴 異常'}")
+                st.write(f"🔧 系統監控: {'🟢 正常' if mcp_healthy else '🔴 異常'}")
             else:
-                st.write("📊 系統監控: ⚪ 待檢查")
+                st.write("🔧 系統監控: ⚪ 待檢查")
             
             st.divider()
             
@@ -118,6 +129,7 @@ class SocialMediaGeneratorApp:
             
             st.write("**擴展服務:**")
             st.write("- 🕷️ Playwright: 8006")
+            st.write("- 📊 Post Analyzer: 8007")
             st.write("- 👁️ Vision: 8005")
             st.write("- 📊 MCP Server: 10100")
             
@@ -145,19 +157,23 @@ class SocialMediaGeneratorApp:
     def render_main_content(self):
         """渲染主要內容"""
         # 標籤頁
-        tab1, tab2, tab3 = st.tabs([
+        tab1, tab2, tab3, tab4 = st.tabs([
             "🕷️ Threads 爬蟲", 
+            "📊 內容分析",
             "📝 內容生成", 
-            "📊 系統監控"
+            "🔧 系統監控"
         ])
         
         with tab1:
             self.crawler_component.render()
         
         with tab2:
-            self.content_generator_component.render()
+            self.analyzer_component.render()
         
         with tab3:
+            self.content_generator_component.render()
+        
+        with tab4:
             self.monitoring_component.render()
     
     def _reset_all_states(self):
