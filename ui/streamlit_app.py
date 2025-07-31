@@ -15,7 +15,7 @@ sys.path.append(str(project_root))
 
 # 導入組件
 # from ui.components.crawler_component import ThreadsCrawlerComponent  # 舊版本
-from ui.components.crawler_component import ThreadsCrawlerComponent  # 重構版本
+from ui.components.crawler_component_refactored import ThreadsCrawlerComponent  # 重構版本
 from ui.components.monitoring_component import SystemMonitoringComponent
 from ui.components.content_generator_component import ContentGeneratorComponent
 from ui.components.analyzer_component import AnalyzerComponent

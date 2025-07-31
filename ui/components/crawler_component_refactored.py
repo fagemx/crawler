@@ -136,9 +136,7 @@ class ThreadsCrawlerComponent:
                 })
         
         # 運行async函數
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(_async_crawler())
+        asyncio.run(_async_crawler())
 
     def _sse_listener(self, task_id: str, progfile: str):
         """SSE 事件監聽線程"""

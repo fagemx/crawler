@@ -228,7 +228,7 @@ class ThreadsCrawlerComponent:
         except Exception as e:
             st.error(f"❌ 無法讀取認證檔案: {e}")
             st.session_state.crawler_status = 'error'
-            st.rerun()
+        st.rerun()
             return
         
         # 啟動真實的爬蟲任務
