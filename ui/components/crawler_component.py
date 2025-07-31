@@ -40,7 +40,7 @@ class ThreadsCrawlerComponent:
         status = st.session_state.get('crawler_status', 'idle')
         
         if status == 'running':
-            self._render_crawler_progress()
+            st.info("🔄 爬蟲正在運行中，請查看左側邊欄的進度反饋...")
         elif status == 'completed':
             self._render_crawler_results()
         elif status == 'error':
@@ -203,6 +203,9 @@ class ThreadsCrawlerComponent:
                                 "likes_count": post.get("likes_count", 0),
                                 "comments_count": post.get("comments_count", 0),
                                 "reposts_count": post.get("reposts_count", 0),
+                                "shares_count": post.get("shares_count", 0),
+                                "views_count": post.get("views_count", 0),
+                                "calculated_score": post.get("calculated_score", 0),
                                 "url": post.get("url", ""),
                                 "source": "threads",
                                 "processing_stage": "completed",
@@ -591,24 +594,58 @@ class ThreadsCrawlerComponent:
             pass
 
     def _render_crawler_progress(self):
-        """渲染爬蟲進度"""
-        st.subheader("📊 爬取狀態")
+        """渲染爬蟲進度（適合側邊欄）"""
+        target = st.session_state.get('crawler_target', {})
+        username = target.get("username", "N/A")
+        max_posts = target.get("max_posts", 0)
         
-        target = st.session_state.crawler_target
-        username = target["username"]
-        max_posts = target["max_posts"]
-        
-        # 真實進度（來自 SSE）
-        progress = st.session_state.get('crawler_progress', 0)
-        status = st.session_state.get('crawler_status', 'running')
-        
-        # 🔥 強制顯示進度條和調試信息（不管什麼狀態都顯示）
+        # 檢查並更新進度
         progress_updated = self._check_and_update_progress()
         progress = st.session_state.get('crawler_progress', 0)
-        st.progress(progress)
+        status = st.session_state.get('crawler_status', 'idle')
+        current_work = st.session_state.get('crawler_current_work', '')
         
-        # 🔥 調試信息面板（總是顯示）
-        with st.expander("🔍 調試信息", expanded=True):
+        # 緊湊顯示
+        st.write(f"👤 @{username}")
+        
+        # 進度條
+        if progress > 0:
+            st.progress(progress)
+            if max_posts > 0:
+                estimated = int(progress * max_posts)
+                st.write(f"📊 {estimated}/{max_posts} ({progress:.1%})")
+            else:
+                st.write(f"📊 {progress:.1%}")
+        else:
+            st.write("📊 準備中...")
+        
+        # 狀態
+        status_emoji = {"idle": "⚪", "running": "🟡", "completed": "🟢", "error": "🔴"}
+        st.write(f"{status_emoji.get(status, '⚪')} {status}")
+        
+        # 當前工作
+        if current_work:
+            st.write(f"🔄 {current_work}")
+        
+        # 最近日誌（緊湊顯示）
+        logs = st.session_state.get('crawler_logs', [])
+        if logs:
+            with st.expander("📝 進度日誌", expanded=False):
+                for log in logs[-5:]:  # 最近5條
+                    st.write(f"• {log}")
+        
+        # 調試信息（可選）
+        if st.session_state.get('show_debug_in_sidebar', False):
+            with st.expander("🔧 調試信息"):
+                st.write(f"🆔 任務: {st.session_state.get('crawler_task_id', 'N/A')[-8:]}")
+                st.write(f"🔄 更新: {progress_updated}")
+                
+                # 進度文件狀態
+                progress_file = st.session_state.get('crawler_progress_file')
+                if progress_file and os.path.exists(progress_file):
+                    st.write("✅ 進度文件存在")
+                else:
+                    st.write("❌ 進度文件不存在")
             st.write(f"📊 進度值: {progress:.1%}")
             st.write(f"🔄 已更新: {progress_updated}")
             st.write(f"🆔 Task ID: {st.session_state.get('crawler_task_id', 'N/A')}")
@@ -793,9 +830,12 @@ class ThreadsCrawlerComponent:
                     
                     with col2:
                         st.write("**統計:**")
-                        st.write(f"👍 {post.get('likes_count', 0)}")
-                        st.write(f"💬 {post.get('comments_count', 0)}")
-                        st.write(f"🔄 {post.get('reposts_count', 0)}")
+                        st.write(f"❤️ 讚: {post.get('likes_count', 0):,}")
+                        st.write(f"💬 留言: {post.get('comments_count', 0):,}")
+                        st.write(f"🔄 轉發: {post.get('reposts_count', 0):,}")
+                        st.write(f"📤 分享: {post.get('shares_count', 0):,}")
+                        st.write(f"👁️ 瀏覽: {post.get('views_count', 0):,}")
+                        st.write(f"⭐ 分數: {post.get('calculated_score', 0):.1f}")
                         
                         st.write("**詳情:**")
                         st.write(f"🔗 [原文]({post.get('url', '#')})")

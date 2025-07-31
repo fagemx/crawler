@@ -133,6 +133,9 @@ class SocialMediaGeneratorApp:
             st.write("- 👁️ Vision: 8005")
             st.write("- 📊 MCP Server: 10100")
             
+            # 🔥 進度反饋區域
+            self._render_sidebar_progress()
+            
             # 使用說明
             with st.expander("📖 使用說明"):
                 st.markdown("""
@@ -153,6 +156,33 @@ class SocialMediaGeneratorApp:
                 3. 監控性能指標
                 4. 下載測試報告
                 """)
+    
+    def _render_sidebar_progress(self):
+        """在側邊欄渲染進度反饋"""
+        # 檢查是否有任何爬蟲相關的session狀態
+        crawler_status = st.session_state.get('crawler_status', 'idle')
+        has_progress = st.session_state.get('crawler_progress', 0) > 0
+        has_logs = bool(st.session_state.get('crawler_logs', []))
+        has_task = bool(st.session_state.get('crawler_task_id'))
+        
+        # 只要有任何爬蟲活動就顯示進度區域
+        if crawler_status != 'idle' or has_progress or has_logs or has_task:
+            st.divider()
+            st.subheader("📊 爬蟲進度")
+            
+            # 調用爬蟲組件的進度渲染方法
+            if hasattr(self, 'crawler_component'):
+                self.crawler_component._render_crawler_progress()
+            else:
+                st.write("⚠️ 爬蟲組件未初始化")
+        elif st.session_state.get('show_debug_progress', False):
+            # 強制顯示調試版本
+            st.divider()
+            st.subheader("🔧 調試進度")
+            st.write("📊 當前狀態: idle")
+            if st.button("🔄 強制顯示進度", key="force_show_progress"):
+                st.session_state.show_debug_progress = True
+                st.rerun()
     
     def render_main_content(self):
         """渲染主要內容"""
