@@ -76,10 +76,8 @@ class ThreadsCrawlerComponent:
         self._init_state()
 
     # ---------- 3. 後台爬蟲 ----------
-    def _crawler_worker(self, username: str, max_posts: int, auth: Dict[str, Any]):
-        """後台爬蟲工作線程"""
-        task_id = st.session_state.crawler_task_id
-        progfile = st.session_state.crawler_progress_file
+    def _crawler_worker(self, username: str, max_posts: int, auth: Dict[str, Any], task_id: str, progfile: str):
+        """後台爬蟲工作線程 - 線程安全版本，不依賴session_state"""
 
         # 初始化進度
         self._write_progress(progfile, {
@@ -241,10 +239,10 @@ class ThreadsCrawlerComponent:
             'final_data': {}
         })
 
-        # 啟動後台工作線程
+        # 啟動後台工作線程 - 傳遞參數避免session_state跨線程問題
         threading.Thread(
             target=self._crawler_worker,
-            args=(username, max_posts, auth_content),
+            args=(username, max_posts, auth_content, task_id, progress_file),
             daemon=True
         ).start()
         
@@ -332,9 +330,11 @@ class ThreadsCrawlerComponent:
                         views = post.get('views_count', 0)
                         st.write(f"❤️ {likes:,} | 👁️ {views:,}")
 
-        # 自動刷新 (每2秒)
-        time.sleep(2)
-        st.rerun()
+        # 提示用戶手動刷新或等待自動檢查
+        st.info("⏱️ 頁面將在狀態變化時自動更新，或點擊🔄按鈕手動刷新")
+        
+        if st.button("🔄 手動刷新進度"):
+            st.rerun()
 
     def _render_results(self):
         """渲染結果界面"""
