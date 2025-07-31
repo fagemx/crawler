@@ -156,31 +156,31 @@ class ThreadsCrawlerComponent:
                             stage = data.get('stage', 'unknown')
                             print(f"🔥 收到SSE事件: {stage}")
                             
-                            # 處理不同類型的SSE事件
-                            if stage == 'post_parsed':
-                                current = data.get('current', 0)
-                                total = data.get('total', 1)
-                                progress = current / total if total > 0 else 0
-                                
-                                # 寫入進度和當前工作狀態
-                                self._write_progress(progfile, {
-                                    **data,
-                                    "progress": progress,
-                                    "current_work": f"已解析 {current}/{total} 篇貼文"
-                                })
-                            elif stage == 'batch_parsed':
-                                self._write_progress(progfile, {
-                                    **data,
-                                    "current_work": "批次解析完成，正在填充觀看數..."
-                                })
-                            elif stage == 'fill_views_start':
-                                self._write_progress(progfile, {
-                                    **data,
-                                    "current_work": "正在填充觀看數據..."
-                                })
+                            # 👉 統一寫入欄位：stage / progress / current_work
+                            if stage == "post_parsed":
+                                cur, tot = data.get("current", 0), data.get("total", 1)
+                                progress = cur / tot if tot else 0
+                                self._write_progress(
+                                    progfile,
+                                    dict(stage=stage,
+                                         progress=progress,
+                                         current_work=f"已解析 {cur}/{tot} 篇貼文")
+                                )
+                            elif stage == "batch_parsed":
+                                self._write_progress(
+                                    progfile,
+                                    dict(stage=stage,
+                                         current_work="批次解析完成，正在填充觀看數...")
+                                )
+                            elif stage == "fill_views_start":
+                                self._write_progress(
+                                    progfile,
+                                    dict(stage=stage,
+                                         current_work="正在填充觀看數據...")
+                                )
                             else:
-                                # 其他事件直接寫入
-                                self._write_progress(progfile, data)
+                                # 其餘事件直接寫
+                                self._write_progress(progfile, dict(stage=stage))
                             
                             # 檢查是否完成
                             if stage in ("completed", "error"):
@@ -308,39 +308,20 @@ class ThreadsCrawlerComponent:
         progress_file = st.session_state.get('crawler_progress_file', '')
         
         if progress_file and os.path.exists(progress_file):
-            # 檢查文件修改時間
-            current_mtime = os.path.getmtime(progress_file)
-            last_mtime = st.session_state.get('_progress_mtime', 0)
-            
-            if current_mtime > last_mtime:
-                # 文件已更新，讀取新數據
-                st.session_state._progress_mtime = current_mtime
-                progress_data = self._read_progress(progress_file)
-                
-                if progress_data:
-                    # 更新狀態
-                    st.session_state.crawler_progress = progress_data.get('progress', 0)
-                    st.session_state.crawler_current_work = progress_data.get('current_work', '')
-                    
-                    # 檢查完成狀態
-                    stage = progress_data.get('stage', '')
-                    if stage in ('api_completed', 'completed'):
-                        st.session_state.crawler_status = 'completed'
-                        if 'final_data' in progress_data:
-                            st.session_state.final_data = progress_data['final_data']
-                        st.rerun()
-                    elif stage == 'error':
-                        st.session_state.crawler_status = 'error'
-                        st.rerun()
-                    
-                    # 處理即時貼文
-                    if 'post_parsed' in progress_data:
-                        post_data = progress_data['post_parsed']
-                        if post_data not in st.session_state.crawler_posts:
-                            st.session_state.crawler_posts.append(post_data)
-                
-                # 觸發重新渲染
-                st.rerun()
+            mtime = os.path.getmtime(progress_file)
+            if mtime != st.session_state.get("_progress_mtime", 0):
+                st.session_state._progress_mtime = mtime
+                pd = self._read_progress(progress_file)
+                st.session_state.crawler_progress = pd.get("progress", 0.0)
+                st.session_state.crawler_current_work = pd.get("current_work", "")
+
+                if pd.get("stage") in ("api_completed", "completed"):
+                    st.session_state.crawler_status = "completed"
+                    st.session_state.final_data = pd.get("final_data", {})
+                elif pd.get("stage") == "error":
+                    st.session_state.crawler_status = "error"
+
+                st.rerun()   # 🔄 立刻刷新
 
         # 顯示進度
         target = st.session_state.crawler_target
@@ -395,11 +376,8 @@ class ThreadsCrawlerComponent:
                         views = post.get('views_count', 0)
                         st.write(f"❤️ {likes:,} | 👁️ {views:,}")
 
-        # 提示用戶手動刷新或等待自動檢查
-        st.info("⏱️ 頁面將在狀態變化時自動更新，或點擊🔄按鈕手動刷新")
-        
-        if st.button("🔄 手動刷新進度"):
-            st.rerun()
+        # 自動更新提示
+        st.info("⏱️ 進度將自動更新，無需手動刷新")
 
     def _render_results(self):
         """渲染結果界面"""
