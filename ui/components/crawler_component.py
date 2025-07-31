@@ -16,6 +16,7 @@ from typing import Dict, Any, Optional
 class ThreadsCrawlerComponent:
     def __init__(self):
         self.agent_url = "http://localhost:8006/v1/playwright/crawl"
+        self.orchestrator_url = "http://localhost:8000"  # 🔥 添加SSE服務器URL
         # 使用統一的配置管理
         from common.config import get_auth_file_path
         self.auth_file_path = get_auth_file_path(from_project_root=True)
