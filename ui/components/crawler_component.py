@@ -40,7 +40,32 @@ class ThreadsCrawlerComponent:
         status = st.session_state.get('crawler_status', 'idle')
         
         if status == 'running':
-            st.info("🔄 爬蟲正在運行中，請查看左側邊欄的進度反饋...")
+            target = st.session_state.get('crawler_target', {})
+            username = target.get('username', 'unknown')
+            max_posts = target.get('max_posts', 0)
+            current_progress = st.session_state.get('crawler_progress', 0)
+            
+            # 顯示當前進度概覽
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.info(f"🔄 正在爬取 @{username} 的貼文...")
+                if current_progress > 0 and max_posts > 0:
+                    estimated = int(current_progress * max_posts)
+                    st.write(f"📊 進度: {estimated}/{max_posts} 篇 ({current_progress:.1%})")
+                else:
+                    st.write("📊 準備中...")
+            
+            with col2:
+                st.metric("進度", f"{current_progress:.1%}")
+            
+            st.info("💡 **即時進度反饋**：請查看左側邊欄下方的「📊 爬蟲進度」區域，每2秒自動更新！")
+            
+            # 顯示最近的幾條日誌
+            logs = st.session_state.get('crawler_logs', [])
+            if logs:
+                st.subheader("📝 最近活動")
+                for log in logs[-3:]:  # 最近3條
+                    st.write(f"• {log}")
         elif status == 'completed':
             self._render_crawler_results()
         elif status == 'error':
@@ -380,6 +405,11 @@ class ThreadsCrawlerComponent:
         
         progress_file_path = st.session_state.get('crawler_progress_file')
         if not progress_file_path or not os.path.exists(progress_file_path):
+            # 🔥 更詳細的調試信息
+            if not progress_file_path:
+                print("🔍 沒有進度文件路徑")
+            else:
+                print(f"🔍 進度文件不存在: {progress_file_path}")
             return False
             
         try:
@@ -388,14 +418,18 @@ class ThreadsCrawlerComponent:
             last_mtime = st.session_state.get('crawler_progress_mtime', 0)
             
             if current_mtime <= last_mtime:
+                # print(f"🔍 檔案沒有更新: {current_mtime} <= {last_mtime}")
                 return False  # 沒有更新
                 
             # 更新修改時間
             st.session_state.crawler_progress_mtime = current_mtime
+            print(f"🔥 檢測到進度文件更新: {current_mtime}")
             
             # 讀取進度數據
             with open(progress_file_path, 'r') as f:
                 data = json.load(f)
+            
+            print(f"🔥 讀取到進度數據: stage={data.get('stage')}, progress={data.get('progress')}")
             
             # 更新 UI 狀態
             self._update_ui_from_progress(data)
@@ -626,6 +660,10 @@ class ThreadsCrawlerComponent:
         # 當前工作
         if current_work:
             st.write(f"🔄 {current_work}")
+        else:
+            # 如果沒有當前工作但狀態是running，顯示默認信息
+            if status == 'running':
+                st.write("🔄 正在處理中...")
         
         # 最近日誌（緊湊顯示）
         logs = st.session_state.get('crawler_logs', [])
@@ -633,6 +671,10 @@ class ThreadsCrawlerComponent:
             with st.expander("📝 進度日誌", expanded=False):
                 for log in logs[-5:]:  # 最近5條
                     st.write(f"• {log}")
+        
+        # 🔥 實時更新提示
+        if status == 'running':
+            st.info("⏱️ 每2秒自動更新進度")
         
         # 調試信息（可選）
         if st.session_state.get('show_debug_in_sidebar', False):

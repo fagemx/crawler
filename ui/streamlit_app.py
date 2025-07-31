@@ -172,7 +172,8 @@ class SocialMediaGeneratorApp:
             
             # 調用爬蟲組件的進度渲染方法
             if hasattr(self, 'crawler_component'):
-                self.crawler_component._render_crawler_progress()
+                # 🔥 使用 fragment 來局部刷新進度區域
+                self._render_progress_fragment()
             else:
                 st.write("⚠️ 爬蟲組件未初始化")
         elif st.session_state.get('show_debug_progress', False):
@@ -183,6 +184,27 @@ class SocialMediaGeneratorApp:
             if st.button("🔄 強制顯示進度", key="force_show_progress"):
                 st.session_state.show_debug_progress = True
                 st.rerun()
+    
+    @st.fragment(run_every=2)  # 🔥 每2秒自動刷新
+    def _render_progress_fragment(self):
+        """自動刷新的進度片段"""
+        if hasattr(self, 'crawler_component'):
+            # 檢查並更新進度
+            progress_updated = self.crawler_component._check_and_update_progress()
+            
+            # 渲染進度顯示
+            self.crawler_component._render_crawler_progress()
+            
+            # 顯示最後更新時間
+            import datetime
+            current_time = datetime.datetime.now().strftime("%H:%M:%S")
+            st.caption(f"🕒 最後更新: {current_time}")
+            
+            # 如果有更新，顯示提示
+            if progress_updated:
+                st.success("✨ 進度已更新")
+        else:
+            st.write("⚠️ 爬蟲組件未初始化")
     
     def render_main_content(self):
         """渲染主要內容"""
