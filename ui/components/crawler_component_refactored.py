@@ -17,10 +17,8 @@ from typing import Dict, Any, Optional
 
 class ThreadsCrawlerComponent:
     def __init__(self):
-        # 簡單修復：Docker環境用容器名稱，否則用localhost
-        agent_host = os.getenv("AGENT_HOST", "social-media-playwright-crawler")
-        self.agent_url = f"http://{agent_host}:8006/v1/playwright/crawl"
-        self.sse_url = f"http://social-media-orchestrator:8000/stream"
+        self.agent_url = "http://localhost:8006/v1/playwright/crawl"
+        self.sse_url = "http://localhost:8000/stream"
         # 使用統一的配置管理
         from common.config import get_auth_file_path
         self.auth_file_path = get_auth_file_path(from_project_root=True)
@@ -310,20 +308,17 @@ class ThreadsCrawlerComponent:
         progress_file = st.session_state.get('crawler_progress_file', '')
         
         if progress_file and os.path.exists(progress_file):
-            mtime = os.path.getmtime(progress_file)
-            if mtime != st.session_state.get("_progress_mtime", 0):
-                st.session_state._progress_mtime = mtime
-                pd = self._read_progress(progress_file)
-                st.session_state.crawler_progress = pd.get("progress", 0.0)
-                st.session_state.crawler_current_work = pd.get("current_work", "")
+            pd = self._read_progress(progress_file)
+            st.session_state.crawler_progress = pd.get("progress", 0.0)
+            st.session_state.crawler_current_work = pd.get("current_work", "")
 
-                if pd.get("stage") in ("api_completed", "completed"):
-                    st.session_state.crawler_status = "completed"
-                    st.session_state.final_data = pd.get("final_data", {})
-                elif pd.get("stage") == "error":
-                    st.session_state.crawler_status = "error"
-
-                st.rerun()   # 🔄 立刻刷新
+            if pd.get("stage") in ("api_completed", "completed"):
+                st.session_state.crawler_status = "completed"
+                st.session_state.final_data = pd.get("final_data", {})
+                st.rerun()
+            elif pd.get("stage") == "error":
+                st.session_state.crawler_status = "error"
+                st.rerun()
 
         # 顯示進度
         target = st.session_state.crawler_target
@@ -378,8 +373,17 @@ class ThreadsCrawlerComponent:
                         views = post.get('views_count', 0)
                         st.write(f"❤️ {likes:,} | 👁️ {views:,}")
 
-        # 自動更新提示
-        st.info("⏱️ 進度將自動更新，無需手動刷新")
+        # 自動更新提示和刷新按鈕
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.info("⏱️ 進度將自動更新，無需手動刷新")
+        with col2:
+            if st.button("🔄 刷新", key="refresh_progress"):
+                st.rerun()
+                
+        # 定時刷新（每3秒）
+        time.sleep(3)
+        st.rerun()
 
     def _render_results(self):
         """渲染結果界面"""
