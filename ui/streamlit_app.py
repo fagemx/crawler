@@ -14,7 +14,8 @@ project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
 # 導入組件
-from ui.components.crawler_component import ThreadsCrawlerComponent
+# from ui.components.crawler_component import ThreadsCrawlerComponent  # 舊版本
+from ui.components.crawler_component_refactored import ThreadsCrawlerComponent  # 重構版本
 from ui.components.monitoring_component import SystemMonitoringComponent
 from ui.components.content_generator_component import ContentGeneratorComponent
 from ui.components.analyzer_component import AnalyzerComponent
@@ -158,56 +159,34 @@ class SocialMediaGeneratorApp:
                 """)
     
     def _render_sidebar_progress(self):
-        """在側邊欄渲染進度反饋"""
-        # 🔥 總是顯示進度區域，不管狀態如何（現在在功能導航下面）
+        """在側邊欄渲染簡化的進度顯示"""
         st.subheader("📊 爬蟲進度")
         
-        # 檢查是否有任何爬蟲相關的session狀態
+        # 簡單的狀態顯示
         crawler_status = st.session_state.get('crawler_status', 'idle')
-        has_progress = st.session_state.get('crawler_progress', 0) > 0
-        has_logs = bool(st.session_state.get('crawler_logs', []))
-        has_task = bool(st.session_state.get('crawler_task_id'))
         
-        # 根據是否有活動決定顯示內容
-        if crawler_status != 'idle' or has_progress or has_logs or has_task:
-            # 有活動時顯示實時進度
-            if hasattr(self, 'crawler_component'):
-                # 🔥 使用 fragment 來局部刷新進度區域
-                self._render_progress_fragment()
-            else:
-                st.write("⚠️ 爬蟲組件未初始化")
-        else:
-            # 沒有活動時顯示待機狀態
+        if crawler_status == 'idle':
             st.write("⚪ 待機中")
-            st.write("👆 點擊「🕷️ Threads 爬蟲」標籤開始爬取")
-            
-            # 顯示上次爬取的簡要信息（如果有的話）
+            # 顯示上次爬取結果（如果有）
             final_data = st.session_state.get('final_data')
             if final_data:
                 username = final_data.get('username', 'unknown')
                 posts_count = len(final_data.get('posts', []))
-                st.success(f"📋 上次爬取: @{username} ({posts_count} 篇)")
-                
-            # 調試選項 (控制側邊欄調試信息顯示)
-            st.checkbox("🔧 顯示調試信息", key="show_debug_sidebar", value=True, 
-                       help="控制左側邊欄是否顯示詳細的調試信息")
-    
-    @st.fragment(run_every=2)  # 🔥 每2秒自動刷新側邊欄
-    def _render_progress_fragment(self):
-        """自動刷新的進度片段"""
-        if hasattr(self, 'crawler_component'):
-            # 檢查並更新進度
-            progress_updated = self.crawler_component._check_and_update_progress()
-            
-            # 🔥 修復：只渲染進度內容，不渲染標題（標題已在_render_sidebar_progress中顯示）
-            self.crawler_component._render_crawler_progress_content_only()
-            
-            # 顯示最後更新時間
-            import datetime
-            current_time = datetime.datetime.now().strftime("%H:%M:%S")
-            st.caption(f"🕒 最後更新: {current_time}")
-        else:
-            st.write("⚠️ 爬蟲組件未初始化")
+                st.success(f"📋 上次: @{username} ({posts_count} 篇)")
+        elif crawler_status == 'running':
+            st.write("🟡 爬蟲運行中...")
+            progress = st.session_state.get('crawler_progress', 0)
+            st.progress(max(0.0, min(1.0, progress)))
+        elif crawler_status == 'completed':
+            st.write("🟢 爬蟲已完成")
+            final_data = st.session_state.get('final_data')
+            if final_data:
+                username = final_data.get('username', 'unknown')
+                posts_count = len(final_data.get('posts', []))
+                st.success(f"✅ @{username} ({posts_count} 篇)")
+        elif crawler_status == 'error':
+            st.write("🔴 爬蟲發生錯誤")
+            st.error("請檢查設定後重試")
     
     def render_main_content(self):
         """渲染主要內容"""
