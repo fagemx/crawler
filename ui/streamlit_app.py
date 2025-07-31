@@ -55,6 +55,9 @@ class SocialMediaGeneratorApp:
             st.header("🎯 功能導航")
             st.markdown("選擇你要使用的功能模組")
             
+            # 🔥 爬蟲進度區域（最重要，放在最前面）
+            self._render_sidebar_progress()
+            
             st.divider()
             
             # 功能狀態
@@ -118,7 +121,7 @@ class SocialMediaGeneratorApp:
                 self._reset_all_states()
                 st.rerun()
             
-            # 系統信息
+            # 系統信息（移到最後）
             st.divider()
             st.subheader("🔧 系統信息")
             st.write("**核心服務:**")
@@ -133,10 +136,7 @@ class SocialMediaGeneratorApp:
             st.write("- 👁️ Vision: 8005")
             st.write("- 📊 MCP Server: 10100")
             
-            # 🔥 進度反饋區域
-            self._render_sidebar_progress()
-            
-            # 使用說明
+            # 使用說明（最後）
             with st.expander("📖 使用說明"):
                 st.markdown("""
                 **🕷️ Threads 爬蟲:**
@@ -159,31 +159,42 @@ class SocialMediaGeneratorApp:
     
     def _render_sidebar_progress(self):
         """在側邊欄渲染進度反饋"""
+        # 🔥 總是顯示進度區域，不管狀態如何（現在在功能導航下面）
+        st.subheader("📊 爬蟲進度")
+        
         # 檢查是否有任何爬蟲相關的session狀態
         crawler_status = st.session_state.get('crawler_status', 'idle')
         has_progress = st.session_state.get('crawler_progress', 0) > 0
         has_logs = bool(st.session_state.get('crawler_logs', []))
         has_task = bool(st.session_state.get('crawler_task_id'))
         
-        # 只要有任何爬蟲活動就顯示進度區域
+        # 根據是否有活動決定顯示內容
         if crawler_status != 'idle' or has_progress or has_logs or has_task:
-            st.divider()
-            st.subheader("📊 爬蟲進度")
-            
-            # 調用爬蟲組件的進度渲染方法
+            # 有活動時顯示實時進度
             if hasattr(self, 'crawler_component'):
                 # 🔥 使用 fragment 來局部刷新進度區域
                 self._render_progress_fragment()
             else:
                 st.write("⚠️ 爬蟲組件未初始化")
-        elif st.session_state.get('show_debug_progress', False):
-            # 強制顯示調試版本
-            st.divider()
-            st.subheader("🔧 調試進度")
-            st.write("📊 當前狀態: idle")
-            if st.button("🔄 強制顯示進度", key="force_show_progress"):
-                st.session_state.show_debug_progress = True
-                st.rerun()
+        else:
+            # 沒有活動時顯示待機狀態
+            st.write("⚪ 待機中")
+            st.write("👆 點擊「🕷️ Threads 爬蟲」標籤開始爬取")
+            
+            # 顯示上次爬取的簡要信息（如果有的話）
+            final_data = st.session_state.get('final_data')
+            if final_data:
+                username = final_data.get('username', 'unknown')
+                posts_count = len(final_data.get('posts', []))
+                st.success(f"📋 上次爬取: @{username} ({posts_count} 篇)")
+                
+            # 調試選項
+            if st.checkbox("🔧 顯示調試信息", key="show_debug_sidebar"):
+                st.write("**狀態檢查:**")
+                st.write(f"- crawler_status: {crawler_status}")
+                st.write(f"- has_progress: {has_progress}")
+                st.write(f"- has_logs: {has_logs}")
+                st.write(f"- has_task: {has_task}")
     
     @st.fragment(run_every=2)  # 🔥 每2秒自動刷新
     def _render_progress_fragment(self):

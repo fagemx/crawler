@@ -130,6 +130,48 @@ class ThreadsCrawlerComponent:
         st.session_state.crawler_progress = 0
         st.session_state.crawler_current_work = "正在初始化爬蟲..."
         
+        # 🔥 立即記錄啟動日誌，確保側邊欄有內容顯示
+        st.session_state.crawler_logs.append("🚀 爬蟲已啟動，正在初始化...")
+        st.session_state.crawler_logs.append(f"🎯 目標: @{username} ({max_posts} 篇)")
+        
+        # 🔥 生成任務ID，確保 has_task 條件滿足
+        import uuid
+        task_id = str(uuid.uuid4())
+        st.session_state.crawler_task_id = task_id
+        
+        # 🔥 初始化調試信息
+        if 'debug_messages' not in st.session_state:
+            st.session_state.debug_messages = []
+        st.session_state.debug_messages.append(f"🚀 爬蟲啟動: task_id={task_id[:8]}")
+        
+        # 🔥 立即創建進度文件，確保側邊欄條件檢查生效
+        import tempfile
+        import json
+        import time
+        import os
+        
+        progress_file = tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix=f'_{task_id}.json')
+        progress_file_path = progress_file.name
+        progress_file.close()
+        st.session_state.crawler_progress_file = progress_file_path
+        
+        # 寫入初始進度
+        initial_progress = {
+            "stage": "initialization",
+            "progress": 0.0,
+            "status": "running",
+            "current_work": "正在初始化爬蟲...",
+            "task_id": task_id,
+            "timestamp": time.time()
+        }
+        with open(progress_file_path, 'w') as f:
+            json.dump(initial_progress, f)
+            f.flush()
+            os.fsync(f.fileno())
+        
+        print(f"🔥 爬蟲啟動: status={st.session_state.crawler_status}, task_id={task_id[:8]}, target={username}")
+        print(f"🔥 進度文件已創建: {progress_file_path}")
+        
         # 讀取認證文件
         try:
             with open(self.auth_file_path, "r", encoding="utf-8") as f:
@@ -163,8 +205,9 @@ class ThreadsCrawlerComponent:
         import threading
         import requests
         
-        # 生成 task_id 用於追蹤進度
-        task_id = str(uuid.uuid4())
+        # 🔥 使用已設置的 task_id，不重新生成
+        task_id = st.session_state.crawler_task_id
+        print(f"🔥 使用已設置的 task_id: {task_id[:8]}")
         
         payload = {
             "username": username,
@@ -173,8 +216,7 @@ class ThreadsCrawlerComponent:
             "task_id": task_id  # 確保 Playwright Agent 使用這個 task_id
         }
         
-        # 儲存 task_id 供 SSE 使用
-        st.session_state.crawler_task_id = task_id
+        # task_id 已經在 _start_crawler 中設置，無需重複設置
         
         try:
             timeout = httpx.Timeout(600.0)  # 10分鐘超時（支持更多貼文爬取）
@@ -320,13 +362,9 @@ class ThreadsCrawlerComponent:
         import json
         import os
         
-        # 創建共享的進度文件
-        progress_file = tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix=f'_{task_id}.json')
-        progress_file_path = progress_file.name
-        progress_file.close()
-        
-        # 存儲進度文件路徑
-        st.session_state.crawler_progress_file = progress_file_path
+        # 🔥 使用已創建的進度文件路徑
+        progress_file_path = st.session_state.crawler_progress_file
+        print(f"🔥 使用已創建的進度文件: {progress_file_path}")
         
         def sse_worker():
             try:
@@ -848,10 +886,58 @@ class ThreadsCrawlerComponent:
         if posts:
             st.subheader("📝 貼文預覽")
             
-            # 🔥 修復排序問題：確保預覽也按時間降序排列
-            sorted_posts = sorted(posts, 
-                                 key=lambda p: p.get('created_at', '') or '', 
-                                 reverse=True)
+            # 🔥 排序方式選擇
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.write(f"**共 {len(posts)} 篇貼文，顯示前 10 篇**")
+            with col2:
+                sort_method = st.selectbox(
+                    "排序方式",
+                    options=["score", "date", "views", "likes"],
+                    format_func=lambda x: {
+                        "score": "🏆 權重排序",
+                        "date": "📅 日期排序", 
+                        "views": "👁️ 觀看排序",
+                        "likes": "❤️ 按讚排序"
+                    }[x],
+                    key="post_sort_method"
+                )
+            
+            # 🔥 根據選擇的排序方式對所有貼文進行排序
+            if sort_method == "score":
+                # 權重排序 (calculated_score 高到低)
+                sorted_posts = sorted(posts, 
+                                     key=lambda p: p.get('calculated_score', 0), 
+                                     reverse=True)
+            elif sort_method == "date":
+                # 日期排序 (最新在前)
+                sorted_posts = sorted(posts, 
+                                     key=lambda p: p.get('created_at', '') or '', 
+                                     reverse=True)
+            elif sort_method == "views":
+                # 觀看排序 (views_count 高到低)
+                sorted_posts = sorted(posts, 
+                                     key=lambda p: p.get('views_count', 0), 
+                                     reverse=True)
+            elif sort_method == "likes":
+                # 按讚排序 (likes_count 高到低)
+                sorted_posts = sorted(posts, 
+                                     key=lambda p: p.get('likes_count', 0), 
+                                     reverse=True)
+            else:
+                # 默認權重排序
+                sorted_posts = sorted(posts, 
+                                     key=lambda p: p.get('calculated_score', 0), 
+                                     reverse=True)
+            
+            # 顯示排序說明
+            sort_descriptions = {
+                "score": f"📊 按權重分數排序 (最高: {sorted_posts[0].get('calculated_score', 0):.1f})",
+                "date": f"📅 按發布時間排序 (最新: {sorted_posts[0].get('created_at', 'N/A')[:10]})",
+                "views": f"👁️ 按觀看數排序 (最多: {sorted_posts[0].get('views_count', 0):,} 次)",
+                "likes": f"❤️ 按按讚數排序 (最多: {sorted_posts[0].get('likes_count', 0):,} 讚)"
+            }
+            st.info(sort_descriptions.get(sort_method, ""))
             
             for i, post in enumerate(sorted_posts[:10]):  # 顯示前10篇
                 with st.expander(f"貼文 {i+1} - {post.get('post_id', 'N/A')}", expanded=i < 2):
