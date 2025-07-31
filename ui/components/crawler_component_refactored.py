@@ -194,52 +194,41 @@ class ThreadsCrawlerComponent:
                             stage = data.get('stage', 'unknown')
                             print(f"🔥 收到SSE事件: {stage}")
                             
-                            # --------- 計算進度 ---------
+                            # --- 通用事件處理 ---
+                            # 對於所有事件，都準備一個基礎的 payload
+                            payload = {'stage': stage}
+
+                            # 提取工作描述
+                            work_description = None
+                            if "current_work" in data:
+                                work_description = data["current_work"]
+                            elif "message" in data:
+                                work_description = data["message"]
+                            
+                            if work_description:
+                                payload['current_work'] = work_description
+
+                            # --- 針對性計算進度 ---
                             if stage == "post_parsed":
-                                # 後端沒帶 current/total？自己數
                                 current_cnt += 1
-                                total_cnt = data.get("total") or total_cnt
+                                if data.get("total"):
+                                    total_cnt = data["total"]
+                                
                                 if total_cnt:
-                                    progress = current_cnt / total_cnt
+                                    progress = min(1.0, current_cnt / total_cnt)
+                                    payload['current_work'] = f"已解析 {current_cnt}/{total_cnt} 篇貼文"
                                 else:
-                                    # 退而求其次：給一個遞增但不超 1 的假進度
-                                    progress = min(0.99, current_cnt * 0.02)
-                                progress = max(0.0, min(1.0, progress))    # Clamp
-                                self._write_progress(
-                                    progfile,
-                                    dict(stage=stage,
-                                         progress=progress,
-                                         current_work=f"已解析 {current_cnt}/{total_cnt or '?'} 篇貼文")
-                                )
-                            # 通用 fetch_progress 事件（若後端有送）
-                            elif stage == "fetch_progress":
-                                progress = max(0.0, min(1.0, float(data.get("progress", 0))))
-                                self._write_progress(
-                                    progfile,
-                                    dict(stage=stage,
-                                         progress=progress,
-                                         current_work=f"已完成 {progress*100:.1f}%")
-                                )
-                            elif stage == "batch_parsed":
-                                self._write_progress(
-                                    progfile,
-                                    dict(stage=stage,
-                                         current_work="批次解析完成，正在填充觀看數...")
-                                )
-                            elif stage == "fill_views_start":
-                                self._write_progress(
-                                    progfile,
-                                    dict(stage=stage,
-                                         current_work="正在填充觀看數據...")
-                                )
-                            else:
-                                # 其餘事件：只更新 stage / current_work，不覆蓋 progress
-                                payload = dict(stage=stage)
-                                if "current_work" in data:
-                                    payload["current_work"] = data["current_work"]
-                                elif "message" in data:
-                                     payload["current_work"] = data["message"]
-                                self._write_progress(progfile, payload)
+                                    # total 不確定時，給一個遞增但不到 100% 的假進度
+                                    progress = min(0.99, current_cnt * 0.02) 
+                                    payload['current_work'] = f"已解析 {current_cnt} 篇貼文..."
+                                
+                                payload['progress'] = max(0.0, min(1.0, progress))
+
+                            elif stage == "fetch_progress" and "progress" in data:
+                                payload['progress'] = max(0.0, min(1.0, float(data["progress"])))
+                            
+                            # 無論哪種事件，都用一個 write 完成
+                            self._write_progress(progfile, payload)
                             
                             # 檢查是否完成
                             if stage in ("completed", "error"):
