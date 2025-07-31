@@ -188,13 +188,9 @@ class SocialMediaGeneratorApp:
                 posts_count = len(final_data.get('posts', []))
                 st.success(f"📋 上次爬取: @{username} ({posts_count} 篇)")
                 
-            # 調試選項
-            if st.checkbox("🔧 顯示調試信息", key="show_debug_sidebar", value=True):
-                st.write("**狀態檢查:**")
-                st.write(f"- crawler_status: {crawler_status}")
-                st.write(f"- has_progress: {has_progress}")
-                st.write(f"- has_logs: {has_logs}")
-                st.write(f"- has_task: {has_task}")
+            # 調試選項 (控制側邊欄調試信息顯示)
+            st.checkbox("🔧 顯示調試信息", key="show_debug_sidebar", value=True, 
+                       help="控制左側邊欄是否顯示詳細的調試信息")
     
     @st.fragment(run_every=2)  # 🔥 每2秒自動刷新
     def _render_progress_fragment(self):

@@ -233,17 +233,32 @@ class ThreadsCrawlerComponent:
         # 啟動真實的爬蟲任務
         st.success("🚀 爬蟲已啟動！即將開始爬取...")
         
-        # 🔥 修復UI阻塞：將長時間運行的任務移到後台線程
+        # 🔥 修復：傳遞必要參數到後台線程，避免session_state跨線程問題
+        task_id = st.session_state.crawler_task_id
+        progress_file = st.session_state.crawler_progress_file
+        
         def crawler_worker():
             """後台爬蟲工作線程"""
             try:
                 import asyncio
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
-                loop.run_until_complete(self._execute_crawler(username, max_posts, auth_content))
+                loop.run_until_complete(self._execute_crawler_safe(username, max_posts, auth_content, task_id, progress_file))
             except Exception as e:
-                st.session_state.crawler_logs.append(f"❌ 爬蟲執行失敗: {e}")
-                st.session_state.crawler_status = 'error'
+                # 直接寫入進度文件，避免session_state問題
+                import json
+                import time
+                error_data = {
+                    "stage": "error",
+                    "error": str(e),
+                    "timestamp": time.time()
+                }
+                try:
+                    with open(progress_file, 'w', encoding='utf-8') as f:
+                        json.dump(error_data, f, ensure_ascii=False)
+                        f.flush()
+                except:
+                    pass
                 print(f"❌ 爬蟲執行失敗: {e}")
         
         # 在後台線程啟動爬蟲，避免阻塞UI
@@ -251,15 +266,23 @@ class ThreadsCrawlerComponent:
         threading.Thread(target=crawler_worker, daemon=True).start()
         st.info("⚡ 爬蟲已在後台啟動，請查看左側邊欄的進度更新！")
     
-    async def _execute_crawler(self, username: str, max_posts: int, auth_content: dict):
-        """執行真實的爬蟲任務，使用混合模式：觸發爬蟲 + SSE 進度"""
-        import uuid
-        import threading
+    async def _execute_crawler_safe(self, username: str, max_posts: int, auth_content: dict, task_id: str, progress_file: str):
+        """執行真實的爬蟲任務，線程安全版本，不依賴session_state"""
         import requests
+        import json
+        import time
         
-        # 🔥 使用已設置的 task_id，不重新生成
-        task_id = st.session_state.crawler_task_id
         print(f"🔥 使用已設置的 task_id: {task_id[:8]}")
+        
+        # 寫入初始狀態到進度文件
+        def write_progress(stage, **kwargs):
+            data = {"stage": stage, "timestamp": time.time(), **kwargs}
+            try:
+                with open(progress_file, 'w', encoding='utf-8') as f:
+                    json.dump(data, f, ensure_ascii=False)
+                    f.flush()
+            except Exception as e:
+                print(f"❌ 寫入進度文件失敗: {e}")
         
         payload = {
             "username": username,
@@ -268,30 +291,27 @@ class ThreadsCrawlerComponent:
             "task_id": task_id  # 確保 Playwright Agent 使用這個 task_id
         }
         
-        # task_id 已經在 _start_crawler 中設置，無需重複設置
-        
         try:
             timeout = httpx.Timeout(600.0)  # 10分鐘超時（支持更多貼文爬取）
             async with httpx.AsyncClient(timeout=timeout) as client:
-                st.session_state.crawler_logs.append("🚀 啟動爬蟲並開始 SSE 進度監聽...")
+                write_progress("crawler_start", message="🚀 啟動爬蟲並開始 SSE 進度監聽...")
                 
                 # 啟動 SSE 監聽（在背景執行）
-                self._start_sse_listener(task_id)
+                self._start_sse_listener_safe(task_id, progress_file)
                 
                 # 觸發爬蟲（同步調用）
                 response = await client.post(self.agent_url, json=payload)
                 
                 if response.status_code != 200:
                     error_msg = f"❌ API 請求失敗，狀態碼: {response.status_code}"
-                    st.session_state.crawler_logs.append(error_msg)
-                    st.session_state.crawler_logs.append(f"錯誤內容: {response.text}")
-                    st.session_state.crawler_status = 'error'
+                    write_progress("error", error=error_msg, response_text=response.text)
+                    print(error_msg)
                     return
 
                 # 解析最終結果
                 try:
                     final_data = response.json()
-                    st.session_state.crawler_logs.append("✅ 成功收到最終爬取結果！")
+                    write_progress("api_success", message="✅ 成功收到最終爬取結果！")
                     
                     # 🔥 調試：檢查收到的數據格式
                     data_type = type(final_data).__name__
@@ -299,157 +319,77 @@ class ThreadsCrawlerComponent:
                     posts_exists = "posts" in final_data if isinstance(final_data, dict) else False
                     posts_count = len(final_data.get("posts", [])) if isinstance(final_data, dict) else 0
                     
-                    st.session_state.crawler_logs.append(f"🔍 數據類型: {data_type}")
-                    st.session_state.crawler_logs.append(f"🔍 數據鍵值: {data_keys}")
-                    st.session_state.crawler_logs.append(f"🔍 包含posts: {posts_exists}")
-                    st.session_state.crawler_logs.append(f"🔍 貼文數量: {posts_count}")
+                    write_progress("api_debug", 
+                        data_type=data_type, 
+                        data_keys=str(data_keys), 
+                        posts_exists=posts_exists, 
+                        posts_count=posts_count
+                    )
                     
                     print(f"🔥 調試final_data: type={data_type}, keys={data_keys}, posts={posts_exists}, count={posts_count}")
                     
-                    # 轉換為UI期望的格式
-                    if isinstance(final_data, dict) and "posts" in final_data:
-                        ui_data = {
-                            "batch_id": final_data.get("batch_id", task_id),
-                            "username": final_data.get("username", username),
-                            "processing_stage": "completed",
-                            "total_count": final_data.get("total_count", len(final_data.get("posts", []))),
-                            "posts": [],
-                            "crawl_timestamp": time.time(),
-                            "agent_version": "1.0.0"
-                        }
-                        
-                        # 轉換貼文格式（添加與Playwright Agent相同的排序邏輯）
-                        posts_data = final_data.get("posts", [])
-                        # 🔥 修復排序問題：按created_at時間降序排列（最新在前）
-                        if posts_data:
-                            posts_data = sorted(posts_data, 
-                                               key=lambda p: p.get('created_at', '') or '', 
-                                               reverse=True)
-                        
-                        for post in posts_data:
-                            ui_post = {
-                                "post_id": post.get("post_id", ""),
-                                "username": post.get("username", username),
-                                "content": post.get("content", ""),
-                                "created_at": post.get("created_at", ""),
-                                "likes_count": post.get("likes_count", 0),
-                                "comments_count": post.get("comments_count", 0),
-                                "reposts_count": post.get("reposts_count", 0),
-                                "shares_count": post.get("shares_count", 0),
-                                "views_count": post.get("views_count", 0),
-                                "calculated_score": post.get("calculated_score", 0),
-                                "url": post.get("url", ""),
-                                "source": "threads",
-                                "processing_stage": "completed",
-                                "media_urls": post.get("images", []) + post.get("videos", [])
-                            }
-                            ui_data["posts"].append(ui_post)
-                        
-                        st.session_state.final_data = ui_data
-                        
-                        # 🔥 新增：持久化存儲爬蟲結果
-                        try:
-                            from common.crawler_storage import get_crawler_storage
-                            storage = get_crawler_storage()
-                            
-                            # 準備要存儲的數據
-                            posts_to_store = []
-                            # 🔥 對第二處posts處理也添加相同的排序邏輯
-                            posts_data_2 = final_data.get("posts", [])
-                            if posts_data_2:
-                                posts_data_2 = sorted(posts_data_2, 
-                                                      key=lambda p: p.get('created_at', '') or '', 
-                                                      reverse=True)
-                            
-                            for post in posts_data_2:
-                                post_data = {
-                                    "post_id": post.get("post_id", ""),
-                                    "username": post.get("username", username),
-                                    "content": post.get("content", ""),
-                                    "url": post.get("url", ""),
-                                    "created_at": post.get("created_at", ""),
-                                    "likes_count": post.get("likes_count", 0),
-                                    "comments_count": post.get("comments_count", 0),
-                                    "reposts_count": post.get("reposts_count", 0),
-                                    "shares_count": post.get("shares_count", 0),
-                                    "views_count": post.get("views_count", 0),
-                                    "calculated_score": post.get("calculated_score", 0),
-                                    "images": post.get("images", []),
-                                    "videos": post.get("videos", []),
-                                    "images_count": len(post.get("images", [])),
-                                    "videos_count": len(post.get("videos", []))
-                                }
-                                posts_to_store.append(post_data)
-                            
-                            # 存儲結果
-                            batch_id = ui_data.get("batch_id", task_id)
-                            metadata = {
-                                "crawl_method": "playwright_agent",
-                                "max_posts_requested": max_posts,
-                                "task_id": task_id,
-                                "agent_version": ui_data.get("agent_version", "1.0.0")
-                            }
-                            
-                            storage.save_crawler_result(
-                                username=username,
-                                posts_data=posts_to_store,
-                                batch_id=batch_id,
-                                metadata=metadata
-                            )
-                            
-                            st.session_state.crawler_logs.append(f"💾 爬蟲結果已保存 (批次ID: {batch_id[:8]}...)")
-                            
-                        except Exception as e:
-                            st.session_state.crawler_logs.append(f"⚠️ 保存爬蟲結果失敗: {e}")
-                        
-                    else:
-                        # 🔥 修復：數據格式不符合預期時的處理
-                        st.session_state.crawler_logs.append("⚠️ 數據格式不符合預期，嘗試修復...")
-                        
-                        # 嘗試創建標準格式
-                        if isinstance(final_data, dict):
-                            # 如果是字典但沒有posts字段，嘗試修復
-                            fixed_data = {
-                                "batch_id": final_data.get("batch_id", task_id),
-                                "username": final_data.get("username", username),
-                                "processing_stage": "completed",
-                                "total_count": final_data.get("total_count", 0),
-                                "posts": final_data.get("posts", []),  # 可能是空的
-                                "crawl_timestamp": time.time(),
-                                "agent_version": "1.0.0"
-                            }
-                            st.session_state.final_data = fixed_data
-                            st.session_state.crawler_logs.append(f"🔧 已修復數據格式")
-                        else:
-                            # 完全不是預期格式，創建空結果
-                            empty_data = {
-                                "batch_id": task_id,
-                                "username": username,
-                                "processing_stage": "completed",
-                                "total_count": 0,
-                                "posts": [],
-                                "crawl_timestamp": time.time(),
-                                "agent_version": "1.0.0",
-                                "error": f"收到非預期的數據格式: {type(final_data).__name__}"
-                            }
-                            st.session_state.final_data = empty_data
-                            st.session_state.crawler_logs.append(f"🔧 創建空結果結構")
-                    
-                    st.session_state.crawler_status = 'completed'
-                    posts_count = len(st.session_state.final_data.get("posts", []))
-                    st.session_state.crawler_logs.append(f"✅ 爬取完成！成功獲取 {posts_count} 篇貼文")
+                    # 將最終數據寫入進度文件，供UI讀取
+                    write_progress("final_data_received", 
+                        final_data=final_data,
+                        username=username,
+                        task_id=task_id
+                    )
                     
                 except json.JSONDecodeError as e:
-                    st.session_state.crawler_logs.append(f"❌ 無法解析響應 JSON: {e}")
-                    st.session_state.crawler_status = 'error'
-                
-        except httpx.ConnectError as e:
-            error_msg = f"連線錯誤: 無法連線至 {self.agent_url}。請確認 Docker 容器是否正在運行。"
-            st.session_state.crawler_logs.append(error_msg)
-            st.session_state.crawler_status = 'error'
+                    write_progress("json_error", error=f"無法解析響應 JSON: {e}")
+                    
         except Exception as e:
-            st.session_state.crawler_logs.append(f"執行時發生未預期的錯誤: {e}")
-            st.session_state.crawler_status = 'error'
+            write_progress("general_error", error=str(e))
+            print(f"❌ 爬蟲執行失敗: {e}")
+    
+    def _start_sse_listener_safe(self, task_id: str, progress_file: str):
+        """線程安全的SSE監聽器，不依賴session_state"""
+        import threading
+        
+        def sse_worker():
+            """SSE監聽工作線程"""
+            self._run_sse_listener_safe(task_id, progress_file)
+        
+        # 啟動SSE監聽線程
+        threading.Thread(target=sse_worker, daemon=True).start()
+        print(f"🔥 SSE監聽器已啟動: {task_id[:8]}")
+    
+    def _run_sse_listener_safe(self, task_id: str, progress_file: str):
+        """運行SSE監聽器，線程安全版本"""
+        import requests
+        import json
+        
+        sse_url = f"{self.orchestrator_url.rstrip('/')}/stream/{task_id}"
+        
+        try:
+            with requests.get(sse_url, stream=True, timeout=600) as response:
+                if response.status_code == 200:
+                    print(f"📡 SSE 連接成功: {response.status_code}")
+                    
+                    for line in response.iter_lines():
+                        if line:
+                            line_str = line.decode('utf-8')
+                            print(f"🔍 收到 SSE 行: {line_str}")
+                            
+                            if line_str.startswith('data: '):
+                                try:
+                                    data_str = line_str[6:]  # 移除 "data: " 前綴
+                                    data = json.loads(data_str)
+                                    print(f"📊 解析成功: {data}")
+                                    
+                                    # 寫入進度文件
+                                    with open(progress_file, 'w', encoding='utf-8') as f:
+                                        json.dump(data, f, ensure_ascii=False)
+                                        f.flush()
+                                    print("💾 進度已寫入文件")
+                                    
+                                except json.JSONDecodeError as e:
+                                    print(f"❌ SSE JSON解析失敗: {e}")
+                else:
+                    print(f"❌ SSE 連接失敗: {response.status_code}")
+                    
+        except Exception as e:
+            print(f"❌ SSE 監聽錯誤: {e}")
 
     def _start_sse_listener(self, task_id: str):
         """啟動 SSE 監聽器（在背景執行）"""
