@@ -222,13 +222,25 @@ class ThreadsCrawlerComponent:
 
     def _start_sse_listener(self, task_id: str):
         """啟動 SSE 監聽器（在背景執行）"""
+        import tempfile
+        import json
+        import os
+        
+        # 創建共享的進度文件
+        progress_file = tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix=f'_{task_id}.json')
+        progress_file_path = progress_file.name
+        progress_file.close()
+        
+        # 存儲進度文件路徑
+        st.session_state.crawler_progress_file = progress_file_path
+        
         def sse_worker():
             try:
                 import requests
                 import json
                 
                 orchestrator_url = f"http://localhost:8000/stream/{task_id}"
-                st.session_state.crawler_logs.append(f"📡 連接 SSE: {orchestrator_url}")
+                print(f"📡 連接 SSE: {orchestrator_url}")
                 
                 with requests.get(orchestrator_url, stream=True, timeout=300) as response:
                     if response.status_code == 200:
@@ -238,7 +250,13 @@ class ThreadsCrawlerComponent:
                                 if line_str.startswith('data: '):
                                     try:
                                         data = json.loads(line_str[6:])  # 移除 'data: ' 前綴
-                                        self._handle_sse_event(data)
+                                        
+                                        # 將進度寫入共享文件
+                                        try:
+                                            with open(progress_file_path, 'w') as f:
+                                                json.dump(data, f)
+                                        except Exception as e:
+                                            print(f"⚠️ 寫入進度文件錯誤: {e}")
                                         
                                         # 如果收到完成或錯誤事件，結束監聽
                                         if data.get('stage') in ['completed', 'error']:
@@ -247,29 +265,148 @@ class ThreadsCrawlerComponent:
                                     except json.JSONDecodeError:
                                         continue
                     else:
-                        st.session_state.crawler_logs.append(f"❌ SSE 連接失敗: {response.status_code}")
+                        print(f"❌ SSE 連接失敗: {response.status_code}")
                         
             except Exception as e:
-                st.session_state.crawler_logs.append(f"❌ SSE 監聽錯誤: {e}")
+                print(f"❌ SSE 監聽錯誤: {e}")
+            finally:
+                # 清理：創建完成標記文件
+                try:
+                    completion_file = progress_file_path.replace('.json', '_completed.json')
+                    with open(completion_file, 'w') as f:
+                        json.dump({'completed': True}, f)
+                except Exception:
+                    pass
         
         # 在背景執行緒中啟動 SSE 監聽
         import threading
         threading.Thread(target=sse_worker, daemon=True).start()
     
-    def _handle_sse_event(self, data: dict):
-        """處理 SSE 事件"""
+    def _check_and_update_progress(self):
+        """檢查進度文件並更新 UI 狀態，返回是否有更新"""
+        import json
+        import os
+        
+        progress_file_path = st.session_state.get('crawler_progress_file')
+        if not progress_file_path or not os.path.exists(progress_file_path):
+            return False
+            
+        try:
+            # 檢查文件修改時間
+            current_mtime = os.path.getmtime(progress_file_path)
+            last_mtime = st.session_state.get('crawler_progress_mtime', 0)
+            
+            if current_mtime <= last_mtime:
+                return False  # 沒有更新
+                
+            # 更新修改時間
+            st.session_state.crawler_progress_mtime = current_mtime
+            
+            # 讀取進度數據
+            with open(progress_file_path, 'r') as f:
+                data = json.load(f)
+            
+            # 更新 UI 狀態
+            self._update_ui_from_progress(data)
+            return True
+            
+        except Exception as e:
+            print(f"⚠️ 檢查進度文件錯誤: {e}")
+            return False
+    
+    def _update_ui_from_progress(self, data: dict):
+        """根據進度數據更新 UI 狀態"""
         stage = data.get('stage', '')
+        
+        # 確保日誌列表存在
+        if 'crawler_logs' not in st.session_state:
+            st.session_state.crawler_logs = []
         
         if stage == 'connected':
             st.session_state.crawler_logs.append("📡 SSE 連接已建立")
+            
         elif stage == 'fetch_start':
             st.session_state.crawler_logs.append(f"🔍 開始爬取 @{data.get('username')} 的貼文...")
+            
+        elif stage == 'post_parsed':
+            current = data.get('current', 0)
+            total = data.get('total', 1)
+            progress = data.get('progress', 0)
+            post_id = data.get('post_id', '')
+            content_preview = data.get('content_preview', '')
+            likes = data.get('likes', 0)
+            
+            st.session_state.crawler_progress = progress
+            st.session_state.crawler_logs.append(f"✅ 解析貼文 {post_id[-8:]}: {likes}讚 - {content_preview}")
+            
+        elif stage == 'batch_parsed':
+            batch_size = data.get('batch_size', 0)
+            current = data.get('current', 0)
+            total = data.get('total', 1)
+            query_name = data.get('query_name', '')
+            st.session_state.crawler_logs.append(f"📦 從 {query_name} 解析了 {batch_size} 則貼文，總計: {current}/{total}")
+            
+        elif stage == 'fill_views_start':
+            st.session_state.crawler_logs.append("👁️ 開始補齊瀏覽數...")
+            
+        elif stage == 'views_fetched':
+            post_id = data.get('post_id', '')
+            views_formatted = data.get('views_formatted', '0')
+            st.session_state.crawler_logs.append(f"👁️ 貼文 {post_id[-8:]}: {views_formatted} 次瀏覽")
+            
+        elif stage == 'fill_views_completed':
+            st.session_state.crawler_logs.append("✅ 瀏覽數補齊完成")
+            
+        elif stage == 'completed':
+            st.session_state.crawler_logs.append("🎉 爬取任務完成！")
+            st.session_state.crawler_progress = 1.0
+            st.session_state.crawler_status = 'completed'
+            
+        elif stage == 'error':
+            error_msg = data.get('error', '未知錯誤')
+            st.session_state.crawler_logs.append(f"❌ 爬取錯誤: {error_msg}")
+            st.session_state.crawler_status = 'error'
+    
+    def _handle_sse_event(self, data: dict):
+        """處理 SSE 事件（線程安全版本）"""
+        stage = data.get('stage', '')
+        
+        def safe_log(message: str):
+            """安全地記錄日誌到 session state"""
+            try:
+                if hasattr(st.session_state, 'crawler_logs') and st.session_state.crawler_logs is not None:
+                    st.session_state.crawler_logs.append(message)
+                else:
+                    print(message)  # 備用日誌
+            except Exception:
+                print(message)  # 備用日誌
+        
+        def safe_set_progress(progress: float):
+            """安全地設置進度"""
+            try:
+                if hasattr(st.session_state, 'crawler_progress'):
+                    st.session_state.crawler_progress = progress
+            except Exception:
+                print(f"📊 進度: {progress:.1%}")
+        
+        def safe_set_status(status: str):
+            """安全地設置狀態"""
+            try:
+                if hasattr(st.session_state, 'crawler_status'):
+                    st.session_state.crawler_status = status
+            except Exception:
+                print(f"狀態: {status}")
+        
+        if stage == 'connected':
+            safe_log("📡 SSE 連接已建立")
+        elif stage == 'fetch_start':
+            safe_log(f"🔍 開始爬取 @{data.get('username')} 的貼文...")
         elif stage == 'fetch_progress':
             current = data.get('current', 0)
             total = data.get('total', 1)
             progress = data.get('progress', 0)
-            st.session_state.crawler_progress = progress
-            st.session_state.crawler_logs.append(f"📊 進度: {current}/{total} 篇貼文 ({progress:.1%})")
+            safe_set_progress(progress)
+            safe_log(f"📊 進度: {current}/{total} 篇貼文 ({progress:.1%})")
         elif stage == 'post_parsed':
             # 🔥 新增：每解析一個貼文的詳細進度
             current = data.get('current', 0)
@@ -278,31 +415,31 @@ class ThreadsCrawlerComponent:
             post_id = data.get('post_id', '')
             content_preview = data.get('content_preview', '')
             likes = data.get('likes', 0)
-            st.session_state.crawler_progress = progress
-            st.session_state.crawler_logs.append(f"✅ 解析貼文 {post_id[-8:]}: {likes}讚 - {content_preview}")
+            safe_set_progress(progress)
+            safe_log(f"✅ 解析貼文 {post_id[-8:]}: {likes}讚 - {content_preview}")
         elif stage == 'batch_parsed':
             # 🔥 新增：每批解析完成的進度
             batch_size = data.get('batch_size', 0)
             current = data.get('current', 0)
             total = data.get('total', 1)
             query_name = data.get('query_name', '')
-            st.session_state.crawler_logs.append(f"📦 從 {query_name} 解析了 {batch_size} 則貼文，總計: {current}/{total}")
+            safe_log(f"📦 從 {query_name} 解析了 {batch_size} 則貼文，總計: {current}/{total}")
         elif stage == 'fill_views_start':
-            st.session_state.crawler_logs.append("👁️ 開始補齊瀏覽數...")
+            safe_log("👁️ 開始補齊瀏覽數...")
         elif stage == 'views_fetched':
             # 🔥 新增：每獲取一個瀏覽數的詳細進度
             post_id = data.get('post_id', '')
             views_formatted = data.get('views_formatted', '0')
-            st.session_state.crawler_logs.append(f"👁️ 貼文 {post_id[-8:]}: {views_formatted} 次瀏覽")
+            safe_log(f"👁️ 貼文 {post_id[-8:]}: {views_formatted} 次瀏覽")
         elif stage == 'fill_views_completed':
-            st.session_state.crawler_logs.append("✅ 瀏覽數補齊完成")
+            safe_log("✅ 瀏覽數補齊完成")
         elif stage == 'completed':
-            st.session_state.crawler_logs.append("🎉 爬取任務完成！")
-            st.session_state.crawler_progress = 1.0
+            safe_log("🎉 爬取任務完成！")
+            safe_set_progress(1.0)
         elif stage == 'error':
             error_msg = data.get('error', '未知錯誤')
-            st.session_state.crawler_logs.append(f"❌ 爬取錯誤: {error_msg}")
-            st.session_state.crawler_status = 'error'
+            safe_log(f"❌ 爬取錯誤: {error_msg}")
+            safe_set_status('error')
         elif stage == 'heartbeat':
             # 心跳事件，不顯示
             pass
@@ -319,6 +456,9 @@ class ThreadsCrawlerComponent:
         progress = st.session_state.get('crawler_progress', 0)
         status = st.session_state.get('crawler_status', 'running')
         
+        # 🔥 新增：檢查並更新進度
+        progress_updated = self._check_and_update_progress()
+        
         # 顯示進度條
         if status == 'running':
             if progress > 0:
@@ -334,9 +474,12 @@ class ThreadsCrawlerComponent:
             st.info(f"🔍 正在爬取 @{username} 的貼文... (Task ID: {task_id[:8]})")
             st.info("📡 使用 SSE 即時更新進度，請查看下方日誌了解詳細狀態。")
             
-            # 自動刷新每3秒
-            time.sleep(3)
-            st.rerun()
+            # 自動刷新每3秒或有進度更新時立即刷新
+            if progress_updated:
+                st.rerun()
+            else:
+                time.sleep(3)
+                st.rerun()
             
         elif status == 'completed':
             st.progress(1.0)

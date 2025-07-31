@@ -91,50 +91,50 @@ services:
   # 監控和追蹤服務
   # =============================================================================
 
-  # Jaeger 分散式追蹤
-  jaeger:
-    image: jaegertracing/all-in-one:1.50
-    container_name: social-media-jaeger
-    ports:
-      - "16686:16686"  # Jaeger UI
-      - "14268:14268"  # HTTP collector
-    environment:
-      COLLECTOR_OTLP_ENABLED: true
-    networks:
-      - social-media-network
+  # Jaeger 分散式追蹤 (暫時停用)
+  # jaeger:
+  #   image: jaegertracing/all-in-one:1.50
+  #   container_name: social-media-jaeger
+  #   ports:
+  #     - "16686:16686"  # Jaeger UI
+  #     - "14268:14268"  # HTTP collector
+  #   environment:
+  #     COLLECTOR_OTLP_ENABLED: true
+  #   networks:
+  #     - social-media-network
 
-  # Prometheus 監控
-  prometheus:
-    image: prom/prometheus:v2.45.0
-    container_name: social-media-prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--web.enable-lifecycle'
-    networks:
-      - social-media-network
+  # Prometheus 監控 (暫時停用)
+  # prometheus:
+  #   image: prom/prometheus:v2.45.0
+  #   container_name: social-media-prometheus
+  #   ports:
+  #     - "9090:9090"
+  #   volumes:
+  #     - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+  #     - prometheus_data:/prometheus
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yml'
+  #     - '--storage.tsdb.path=/prometheus'
+  #     - '--web.console.libraries=/etc/prometheus/console_libraries'
+  #     - '--web.console.templates=/etc/prometheus/consoles'
+  #     - '--web.enable-lifecycle'
+  #   networks:
+  #     - social-media-network
 
-  # Grafana 視覺化
-  grafana:
-    image: grafana/grafana:10.1.0
-    container_name: social-media-grafana
-    ports:
-      - "3000:3000"
-    environment:
-      GF_SECURITY_ADMIN_PASSWORD: admin
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
-      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
-    networks:
-      - social-media-network
+  # Grafana 視覺化 (暫時停用)
+  # grafana:
+  #   image: grafana/grafana:10.1.0
+  #   container_name: social-media-grafana
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     GF_SECURITY_ADMIN_PASSWORD: admin
+  #   volumes:
+  #     - grafana_data:/var/lib/grafana
+  #     - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+  #     - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+  #   networks:
+  #     - social-media-network
 
   # =============================================================================
   # MCP Server 和核心服務
@@ -405,30 +405,30 @@ services:
   # 用戶介面
   # =============================================================================
 
-  # Streamlit UI
-  streamlit-ui:
-    build:
-      context: .
-      dockerfile: ui/Dockerfile
-    container_name: social-media-ui
-    ports:
-      - "8501:8501"
-    environment:
-      - PYTHONPATH=/app
-      - STREAMLIT_SERVER_PORT=8501
-      - ORCHESTRATOR_URL=http://orchestrator-agent:8000
-      - FORM_API_URL=http://form-api:8010
-    env_file:
-      - .env
-    volumes:
-      - .:/app
-    depends_on:
-      orchestrator-agent:
-        condition: service_healthy
-      form-api:
-        condition: service_healthy
-    networks:
-      - social-media-network
+  # Streamlit UI (暫時停用 - 使用本地啟動)
+  # streamlit-ui:
+  #   build:
+  #     context: .
+  #     dockerfile: ui/Dockerfile
+  #   container_name: social-media-ui
+  #   ports:
+  #     - "8501:8501"
+  #   environment:
+  #     - PYTHONPATH=/app
+  #     - STREAMLIT_SERVER_PORT=8501
+  #     - ORCHESTRATOR_URL=http://orchestrator-agent:8000
+  #     - FORM_API_URL=http://form-api:8010
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - .:/app
+  #   depends_on:
+  #     orchestrator-agent:
+  #       condition: service_healthy
+  #     form-api:
+  #       condition: service_healthy
+  #   networks:
+  #     - social-media-network
 
   # =============================================================================
   # 工具和維護服務
