@@ -302,86 +302,41 @@ class ThreadsCrawlerComponent:
 
     def _render_progress(self):
         """渲染進度界面"""
-        # 核心：檢查文件更新並觸發UI刷新
         progress_file = st.session_state.get('crawler_progress_file', '')
         
+        # 核心邏輯：檢查文件更新
         if progress_file and os.path.exists(progress_file):
-            pd = self._read_progress(progress_file)
-            st.session_state.crawler_progress = pd.get("progress", 0.0)
-            st.session_state.crawler_current_work = pd.get("current_work", "")
-
-            if pd.get("stage") in ("api_completed", "completed"):
-                st.session_state.crawler_status = "completed"
-                st.session_state.final_data = pd.get("final_data", {})
+            mtime = os.path.getmtime(progress_file)
+            if mtime != st.session_state.get('_progress_mtime', 0):
+                st.session_state._progress_mtime = mtime
+                progress_data = self._read_progress(progress_file)
+                
+                if progress_data:
+                    # 更新 session_state
+                    st.session_state.crawler_progress = progress_data.get("progress", 0.0)
+                    st.session_state.crawler_current_work = progress_data.get("current_work", "")
+                    
+                    stage = progress_data.get("stage")
+                    if stage in ("api_completed", "completed"):
+                        st.session_state.crawler_status = "completed"
+                        st.session_state.final_data = progress_data.get("final_data", {})
+                    elif stage == "error":
+                        st.session_state.crawler_status = "error"
+                
+                # 只有在狀態更新時才 rerun
                 st.rerun()
-            elif pd.get("stage") == "error":
-                st.session_state.crawler_status = "error"
-                st.rerun()
 
-        # 顯示進度
+        # --- 以下是純顯示邏輯 ---
         target = st.session_state.crawler_target
         username = target.get('username', 'unknown')
         max_posts = target.get('max_posts', 0)
         progress = st.session_state.crawler_progress
         current_work = st.session_state.crawler_current_work
 
-        # 進度概覽
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            st.info(f"🔄 正在爬取 @{username} 的貼文...")
-            if progress > 0 and max_posts > 0:
-                estimated = int(progress * max_posts)
-                st.write(f"📊 進度: {estimated}/{max_posts} 篇 ({progress:.1%})")
-            else:
-                st.write("📊 準備中...")
+        st.info(f"🔄 正在爬取 @{username} 的貼文...")
+        st.progress(max(0.0, min(1.0, progress)), text=f"{progress:.1%} - {current_work}")
         
-        with col2:
-            st.metric("進度", f"{progress:.1%}")
-
-        # 進度條
-        st.progress(max(0.0, min(1.0, progress)))
-        
-        # 當前工作
-        if current_work:
-            st.write(f"🔄 {current_work}")
-
-        # 即時貼文預覽
-        posts = st.session_state.crawler_posts
-        if posts:
-            st.markdown("---")
-            st.subheader("📝 即時貼文預覽")
-            
-            # 顯示最新的3個貼文
-            recent_posts = posts[-3:]
-            
-            for post in recent_posts:
-                with st.container():
-                    st.markdown(f"**📝 {post.get('summary', 'N/A')}**")
-                    
-                    col1, col2 = st.columns([2, 1])
-                    with col1:
-                        content_preview = post.get('content_preview', post.get('content', ''))
-                        if content_preview:
-                            st.write(f"💬 {content_preview[:100]}...")
-                        else:
-                            st.write("💬 無內容")
-                    
-                    with col2:
-                        likes = post.get('likes_count', 0)
-                        views = post.get('views_count', 0)
-                        st.write(f"❤️ {likes:,} | 👁️ {views:,}")
-
-        # 自動更新提示和刷新按鈕
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            st.info("⏱️ 進度將自動更新，無需手動刷新")
-        with col2:
-            if st.button("🔄 刷新", key="refresh_progress"):
-                st.rerun()
-                
-        # 定時刷新（每3秒）
-        time.sleep(3)
-        st.rerun()
+        st.info("⏱️ 進度將自動更新，無需手動操作。")
 
     def _render_results(self):
         """渲染結果界面"""
@@ -449,27 +404,43 @@ class ThreadsCrawlerComponent:
 
             # 顯示前10篇
             for i, post in enumerate(sorted_posts[:10], 1):
-                with st.expander(f"#{i} {post.get('summary', 'N/A')}"):
+                # --- 生成標題 ---
+                title = post.get('summary', '').strip()
+                if not title:
+                    title = post.get('content', '無標題')[:30] + '...'
+                
+                with st.expander(f"#{i} {title}"):
+                    # --- 顯示內容和媒體 ---
                     col1, col2 = st.columns([2, 1])
-                    
                     with col1:
-                        content = post.get('content', '無內容')
-                        st.write(f"**內容:** {content[:200]}...")
-                    
-                    with col2:
-                        likes = post.get('likes_count', 0)
-                        comments = post.get('comments_count', 0)
-                        reposts = post.get('reposts_count', 0)
-                        shares = post.get('shares_count', 0)
-                        views = post.get('views_count', 0)
-                        score = post.get('calculated_score', 0)
+                        st.write("**內容:**")
+                        st.markdown(post.get('content', '無內容'))
+
+                        # 顯示圖片
+                        if post.get('image_urls'):
+                            st.image(post['image_urls'], caption="圖片", width=150)
                         
-                        st.write(f"❤️ 讚: {likes:,}")
-                        st.write(f"💬 評論: {comments:,}")
-                        st.write(f"🔄 轉發: {reposts:,}")
-                        st.write(f"📤 分享: {shares:,}")
-                        st.write(f"👁️ 觀看: {views:,}")
-                        st.write(f"⭐ 分數: {score:.1f}")
+                        # 顯示影片
+                        if post.get('video_urls'):
+                            for video_url in post['video_urls']:
+                                st.video(video_url)
+
+                    # --- 顯示所有統計數據 ---
+                    with col2:
+                        stats = {
+                            "❤️ 讚": post.get('likes_count', 0),
+                            "💬 評論": post.get('comments_count', 0),
+                            "🔄 轉發": post.get('reposts_count', 0),
+                            "📤 分享": post.get('shares_count', 0),
+                            "👁️ 觀看": post.get('views_count', 0),
+                            "⭐ 分數": post.get('calculated_score', 0.0)
+                        }
+                        
+                        for key, value in stats.items():
+                            display_value = f"{value:,.0f}" if isinstance(value, (int, float)) and value >= 0 else "N/A"
+                            if key == "⭐ 分數":
+                                display_value = f"{value:.1f}" if isinstance(value, float) else display_value
+                            st.write(f"**{key}:** {display_value}")
 
         # 操作按鈕
         col1, col2 = st.columns([1, 1])
