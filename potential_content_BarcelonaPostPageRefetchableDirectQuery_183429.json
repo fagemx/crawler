@@ -1,0 +1,477 @@
+{
+  "query_name": "BarcelonaPostPageRefetchableDirectQuery",
+  "request_post_data": "av=17841476182615522&__user=0&__a=1&__req=5&__hs=20301.HYP%3Abarcelona_web_pkg.2.1...0&dpr=3&__ccg=EXCELLENT&__rev=1025400969&__s=9jxzt0%3Aphf96q%3A67na7t&__hsi=7533563618356429818&__dyn=7xeUmwlEnwn8K2Wmh0no6u5U4e0yoW3q32360CEbo1nEhw2nVE4W0qa0FE2awgo9oO0n24oaEd82lwv89k2C1Fwc60D85m1mzXwae4UaEW0Loco5G0zK5o4q0HU420n6azo7u0zE2ZwrUdUbGw4mwr86C2q6oe84J0lEbUaUuwhUyu4Q2-qfwio2own85SU7y&__csr=g_2q9kZ4mxAyqN5lblZmQTcEBCHHlqQ8yO7iUB0wx28y8S4kQ2qp6wxwww05ShIM1gFQ2O04NUsy86Cg80q8lxibgnB2UKoEnPo2r2-g80fC0HooDU0SuQ0cWiF5zVUqwde5E463R0dS4E0Ji583hwloao3eyciEkkm9306h1a9Owm83tU3pwNwe7woEB05UG0Ios8RZ4hpxg4q8xOuEkgn60WxKBxWmchS5AoB7gbQPh81wo0Ne2SE3GxG2B7ykb504tIE02htBgK3h0&__hsdp=gmMHfaxI2cCMby2gk8QNAbpkxw92yyFigQyy73x1Chz8j1ANh18-EZEIAiOK38bk83x6c7r5jS3YwskEsh8o62D10Ehgl6wFCBu2yuQ583-wnEJpo7-3q7U521qg6-5FU2ryk1uxm2S6obVQ2a3i0qy&__hblp=4g22g3gyonxWEeC1mwk45Emw9e22i9G2iu3q1nwTxjxO7FA3p3V87u0Yoy3-0VU5K19G9xzxCKcwkVHwzCz4EbK7EKaGu5EmxC263CfwyU1G8&__sjsp=gmMEylaxI2cCMby2gk8QNAbpkEfyL93ia8se460Fwh45ax6GjGb80XO0&__comet_req=29&fb_dtsg=NAfvCCZ0wTzkjNX92YEKejWhkIfXst3VFbl-OSlXEUw_Zm4bobOq1ew%3A17865145036029998%3A1754031247&jazoest=26410&lsd=AMwS4wVLiZ0OE_zdiHPHTX&__spin_r=1025400969&__spin_b=trunk&__spin_t=1754044466&__jssesw=2&__crn=comet.threads.BarcelonaPostColumnRoute&fb_api_caller_class=RelayModern&fb_api_req_friendly_name=BarcelonaPostPageRefetchableDirectQuery&variables=%7B%22after%22%3A%22GBZkb3dud2FyZF9vdGhlcl9yZXBsaWVzNh4a9g-IvaOyxcDjs2awtLCKlJ7As2aO3syk4rHnsmaSk-LsyKHlsmacyfXUjJues2bin96cy5OAs2ak9MzkwKmDs2aox-jb8PD8smbogqKy3qWGs2asqbrI4qOKs2bq5d_suqmOs2awha3AkIuCs2byo6iQtYKrs2b28qSMta_Rs2b6iOGk8bPvsmYW1puU04xmFR4A%22%2C%22before%22%3Anull%2C%22first%22%3A4%2C%22is_logged_in%22%3Atrue%2C%22last%22%3Anull%2C%22postID%22%3A%223689219480905289907%22%2C%22sort_order%22%3A%22TOP%22%2C%22__relay_internal__pv__BarcelonaIsLoggedInrelayprovider%22%3Atrue%2C%22__relay_internal__pv__BarcelonaHasSelfReplyContextrelayprovider%22%3Afalse%2C%22__relay_internal__pv__BarcelonaShouldShowFediverseM1Featuresrelayprovider%22%3Atrue%2C%22__relay_internal__pv__BarcelonaHasInlineReplyComposerrelayprovider%22%3Afalse%2C%22__relay_internal__pv__BarcelonaHasEventBadgerelayprovider%22%3Afalse%2C%22__relay_internal__pv__BarcelonaIsSearchDiscoveryEnabledrelayprovider%22%3Afalse%2C%22__relay_internal__pv__IsTagIndicatorEnabledrelayprovider%22%3Atrue%2C%22__relay_internal__pv__BarcelonaOptionalCookiesEnabledrelayprovider%22%3Atrue%2C%22__relay_internal__pv__BarcelonaHasSelfThreadCountrelayprovider%22%3Afalse%2C%22__relay_internal__pv__BarcelonaHasSpoilerStylingInforelayprovider%22%3Atrue%2C%22__relay_internal__pv__BarcelonaHasDeepDiverelayprovider%22%3Afalse%2C%22__relay_internal__pv__BarcelonaQuotedPostUFIEnabledrelayprovider%22%3Afalse%2C%22__relay_internal__pv__BarcelonaHasTopicTagsrelayprovider%22%3Atrue%2C%22__relay_internal__pv__BarcelonaIsCrawlerrelayprovider%22%3Afalse%2C%22__relay_internal__pv__BarcelonaHasDisplayNamesrelayprovider%22%3Afalse%2C%22__relay_internal__pv__BarcelonaCanSeeSponsoredContentrelayprovider%22%3Afalse%2C%22__relay_internal__pv__BarcelonaShouldShowFediverseM075Featuresrelayprovider%22%3Atrue%2C%22__relay_internal__pv__BarcelonaImplicitTrendsGKrelayprovider%22%3Afalse%2C%22__relay_internal__pv__BarcelonaIsInternalUserrelayprovider%22%3Afalse%2C%22__relay_internal__pv__BarcelonaInlineComposerEnabledrelayprovider%22%3Afalse%7D&server_timestamps=true&doc_id=24061215210199287",
+  "response_data": {
+    "data": {
+      "data": {
+        "edges": [
+          {
+            "node": {
+              "thread_header_context": null,
+              "thread_items": [
+                {
+                  "post": {
+                    "pk": "3689360526012275766",
+                    "user": {
+                      "friendship_status": {
+                        "muting": false,
+                        "following": false,
+                        "followed_by": false,
+                        "outgoing_request": null
+                      },
+                      "id": "65969687179",
+                      "pk": "65969687179",
+                      "text_app_last_visited_time": 1754044198,
+                      "profile_pic_url": "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/515406006_17903325498199180_472306083101474650_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMxIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=104&_nc_oc=Q6cZ2QGLDtrUTTpb38oFe-dFQndPt7RcHaF1-hz1OZi4ffEgRTWe2XVxyhOao5C_zhVhsm4&_nc_ohc=hUITj91IilsQ7kNvwFfz0N6&_nc_gid=bwggtSQG8Qi4NnDsZCV9NQ&edm=AEnw0QABAAAA&ccb=7-5&oh=00_AfTsrfsPKscKNRsDpkyUwsjd8dNy4nddwpvdeo56uhfl4g&oe=68927018&_nc_sid=9705cc",
+                      "username": "weasech",
+                      "full_name": "Andy",
+                      "transparency_label": null,
+                      "transparency_product": null,
+                      "transparency_product_enabled": false,
+                      "is_verified": false,
+                      "text_post_app_is_private": false,
+                      "has_onboarded_to_text_post_app": true
+                    },
+                    "text_post_app_info": {
+                      "is_post_unavailable": false,
+                      "pinned_post_info": {
+                        "is_pinned_to_profile": false,
+                        "is_pinned_to_parent_post": false
+                      },
+                      "share_info": {
+                        "reposted_post": null,
+                        "is_reposted_by_viewer": false,
+                        "can_quote_post": true,
+                        "quoted_attachment_author_attribution_allowed": true,
+                        "quoted_attachment_post_unavailable": false,
+                        "quoted_attachment_post": null,
+                        "quoted_post": null
+                      },
+                      "show_header_follow": false,
+                      "is_spoiler_media": false,
+                      "is_markup": false,
+                      "custom_feed_preview_info": null,
+                      "link_preview_attachment": null,
+                      "linked_inline_media": null,
+                      "snippet_attachment_info": null,
+                      "special_effects_enabled_str": "",
+                      "text_fragments": {
+                        "fragments": [
+                          {
+                            "fragment_type": "plaintext",
+                            "link_fragment": null,
+                            "mention_fragment": null,
+                            "plaintext": "😂😂",
+                            "linkified_web_url": null,
+                            "styling_info": null
+                          }
+                        ]
+                      },
+                      "reply_control": "everyone",
+                      "can_reply": true,
+                      "tag_header": null,
+                      "direct_reply_count": 0,
+                      "can_private_reply": false,
+                      "repost_count": 0,
+                      "quote_count": 0,
+                      "reshare_count": null,
+                      "reply_to_author": {
+                        "username": "wuyiju28",
+                        "id": "75723563845"
+                      },
+                      "private_reply_partner": {
+                        "username": "weasech",
+                        "id": "65969687179"
+                      },
+                      "fediverse_info": {
+                        "is_federated": false,
+                        "enqueued_for_federation": false,
+                        "federated_like_count": null,
+                        "reply_instance_count": null,
+                        "fediverse_reply_count": null,
+                        "reply_owner_profile_pic_uris": null
+                      },
+                      "self_thread_count": null,
+                      "root_post_author": {
+                        "pk": "75723563845",
+                        "profile_pic_url": "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/517025509_17842731738534111_8244300071474873467_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby40MDAuYzEifQ&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=103&_nc_oc=Q6cZ2QGLDtrUTTpb38oFe-dFQndPt7RcHaF1-hz1OZi4ffEgRTWe2XVxyhOao5C_zhVhsm4&_nc_ohc=hb5gpXFIbAQQ7kNvwFFIMYz&_nc_gid=bwggtSQG8Qi4NnDsZCV9NQ&edm=AEnw0QABAAAA&ccb=7-5&oh=00_AfRA4mzl9gWLIYFbuwEDRpKPFNo8nBtxKX3xJwJcU3JZIA&oe=68928254&_nc_sid=9705cc",
+                        "username": "wuyiju28",
+                        "id": "75723563845"
+                      },
+                      "is_liked_by_root_author": false,
+                      "related_trends_info": null,
+                      "is_reply": true,
+                      "post_unavailable_reason": null,
+                      "hush_info": null
+                    },
+                    "id": "3689360526012275766_65969687179",
+                    "is_paid_partnership": null,
+                    "audio": null,
+                    "caption": {
+                      "text": "😂😂",
+                      "pk": "18064490777220178",
+                      "has_translation": null
+                    },
+                    "caption_is_edited": false,
+                    "transcription_data": null,
+                    "carousel_media": null,
+                    "code": "DMzPdnxT1w2",
+                    "image_versions2": {
+                      "candidates": []
+                    },
+                    "original_height": 612,
+                    "original_width": 612,
+                    "accessibility_caption": null,
+                    "usertags": null,
+                    "video_versions": null,
+                    "has_audio": null,
+                    "media_type": 19,
+                    "caption_add_on": null,
+                    "giphy_media_info": null,
+                    "has_liked": false,
+                    "like_count": 0,
+                    "logging_info_token": null,
+                    "media_overlay_info": null,
+                    "sharing_friction_info": {
+                      "should_have_sharing_friction": false,
+                      "sharing_friction_payload": null
+                    },
+                    "metaPlace": null,
+                    "meta_place": null,
+                    "gen_ai_detection_method": {
+                      "detection_method": "NONE"
+                    },
+                    "taken_at": 1754026068,
+                    "organic_tracking_token": "eyJ2ZXJzaW9uIjo1LCJwYXlsb2FkIjp7ImlzX2FuYWx5dGljc190cmFja2VkIjpmYWxzZSwidXVpZCI6IjhhZDE5M2UwY2JhYzQxNTBiY2ZiNzA5MzJmZGQ3OTQ2MzY4OTM2MDUyNjAxMjI3NTc2NiIsInNlcnZlcl90b2tlbiI6IjE3NTQwNDQ0Njg4MDF8MzY4OTM2MDUyNjAxMjI3NTc2Nnw3NjIwNDE3OTQyMHwzODk2NjZjZTQ0MzM1YTBmMzc1MjI3NTFkY2E3NWFhYTQ1ZDIwYTNiZjZlZDFhNDAxMTBhODNiMGY1YWVhNDk0In0sInNpZ25hdHVyZSI6IiJ9",
+                    "like_and_view_counts_disabled": false,
+                    "fbid": "18064490774220178"
+                  }
+                }
+              ],
+              "thread_type": "thread",
+              "header": null,
+              "id": "3689360526012275766",
+              "__typename": "XDTThread"
+            },
+            "cursor": ""
+          },
+          {
+            "node": {
+              "thread_header_context": null,
+              "thread_items": [
+                {
+                  "post": {
+                    "pk": "3689277749274194733",
+                    "user": {
+                      "friendship_status": {
+                        "muting": false,
+                        "following": false,
+                        "followed_by": false,
+                        "outgoing_request": null
+                      },
+                      "id": "76369904403",
+                      "pk": "76369904403",
+                      "text_app_last_visited_time": 0,
+                      "profile_pic_url": "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/524340599_17842298112549611_8114139454303182556_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMxIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=111&_nc_oc=Q6cZ2QGLDtrUTTpb38oFe-dFQndPt7RcHaF1-hz1OZi4ffEgRTWe2XVxyhOao5C_zhVhsm4&_nc_ohc=TbrCFRxlMQkQ7kNvwEdukgd&_nc_gid=bwggtSQG8Qi4NnDsZCV9NQ&edm=AEnw0QABAAAA&ccb=7-5&oh=00_AfRt4wY_XpJsrKFOAuRALEVRfmyHO_4hnoWuVMhgSkPG2A&oe=689251D3&_nc_sid=9705cc",
+                      "username": "kirbypuff77",
+                      "full_name": "",
+                      "transparency_label": null,
+                      "transparency_product": null,
+                      "transparency_product_enabled": false,
+                      "is_verified": false,
+                      "text_post_app_is_private": false,
+                      "has_onboarded_to_text_post_app": true
+                    },
+                    "text_post_app_info": {
+                      "is_post_unavailable": false,
+                      "pinned_post_info": {
+                        "is_pinned_to_profile": false,
+                        "is_pinned_to_parent_post": false
+                      },
+                      "share_info": {
+                        "reposted_post": null,
+                        "is_reposted_by_viewer": false,
+                        "can_quote_post": true,
+                        "quoted_attachment_author_attribution_allowed": true,
+                        "quoted_attachment_post_unavailable": false,
+                        "quoted_attachment_post": null,
+                        "quoted_post": null
+                      },
+                      "show_header_follow": false,
+                      "is_spoiler_media": false,
+                      "is_markup": false,
+                      "custom_feed_preview_info": null,
+                      "link_preview_attachment": null,
+                      "linked_inline_media": null,
+                      "snippet_attachment_info": null,
+                      "special_effects_enabled_str": "",
+                      "text_fragments": {
+                        "fragments": [
+                          {
+                            "fragment_type": "plaintext",
+                            "link_fragment": null,
+                            "mention_fragment": null,
+                            "plaintext": "理由王",
+                            "linkified_web_url": null,
+                            "styling_info": null
+                          }
+                        ]
+                      },
+                      "reply_control": "everyone",
+                      "can_reply": true,
+                      "tag_header": null,
+                      "direct_reply_count": 0,
+                      "can_private_reply": false,
+                      "repost_count": 0,
+                      "quote_count": 0,
+                      "reshare_count": null,
+                      "reply_to_author": {
+                        "username": "wuyiju28",
+                        "id": "75723563845"
+                      },
+                      "private_reply_partner": {
+                        "username": "kirbypuff77",
+                        "id": "76369904403"
+                      },
+                      "fediverse_info": {
+                        "is_federated": false,
+                        "enqueued_for_federation": false,
+                        "federated_like_count": null,
+                        "reply_instance_count": null,
+                        "fediverse_reply_count": null,
+                        "reply_owner_profile_pic_uris": null
+                      },
+                      "self_thread_count": null,
+                      "root_post_author": {
+                        "pk": "75723563845",
+                        "profile_pic_url": "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/517025509_17842731738534111_8244300071474873467_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby40MDAuYzEifQ&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=103&_nc_oc=Q6cZ2QGLDtrUTTpb38oFe-dFQndPt7RcHaF1-hz1OZi4ffEgRTWe2XVxyhOao5C_zhVhsm4&_nc_ohc=hb5gpXFIbAQQ7kNvwFFIMYz&_nc_gid=bwggtSQG8Qi4NnDsZCV9NQ&edm=AEnw0QABAAAA&ccb=7-5&oh=00_AfRA4mzl9gWLIYFbuwEDRpKPFNo8nBtxKX3xJwJcU3JZIA&oe=68928254&_nc_sid=9705cc",
+                        "username": "wuyiju28",
+                        "id": "75723563845"
+                      },
+                      "is_liked_by_root_author": false,
+                      "related_trends_info": null,
+                      "is_reply": true,
+                      "post_unavailable_reason": null,
+                      "hush_info": null
+                    },
+                    "id": "3689277749274194733_76369904403",
+                    "is_paid_partnership": null,
+                    "audio": null,
+                    "caption": {
+                      "text": "理由王",
+                      "pk": "17945243268010576",
+                      "has_translation": null
+                    },
+                    "caption_is_edited": false,
+                    "transcription_data": null,
+                    "carousel_media": null,
+                    "code": "DMy8pD7PbMt",
+                    "image_versions2": {
+                      "candidates": []
+                    },
+                    "original_height": 612,
+                    "original_width": 612,
+                    "accessibility_caption": null,
+                    "usertags": null,
+                    "video_versions": null,
+                    "has_audio": null,
+                    "media_type": 19,
+                    "caption_add_on": null,
+                    "giphy_media_info": null,
+                    "has_liked": false,
+                    "like_count": 0,
+                    "logging_info_token": null,
+                    "media_overlay_info": null,
+                    "sharing_friction_info": {
+                      "should_have_sharing_friction": false,
+                      "sharing_friction_payload": null
+                    },
+                    "metaPlace": null,
+                    "meta_place": null,
+                    "gen_ai_detection_method": {
+                      "detection_method": "NONE"
+                    },
+                    "taken_at": 1754016201,
+                    "organic_tracking_token": "eyJ2ZXJzaW9uIjo1LCJwYXlsb2FkIjp7ImlzX2FuYWx5dGljc190cmFja2VkIjpmYWxzZSwidXVpZCI6IjhhZDE5M2UwY2JhYzQxNTBiY2ZiNzA5MzJmZGQ3OTQ2MzY4OTI3Nzc0OTI3NDE5NDczMyIsInNlcnZlcl90b2tlbiI6IjE3NTQwNDQ0Njg4MDV8MzY4OTI3Nzc0OTI3NDE5NDczM3w3NjIwNDE3OTQyMHwyMWMwYjlkMzc5ZDgwYzgyYTI5ODY0MDVmY2VkYmU3Mjc4OTUzYThkMzMzYjQ4ZjhiMWNjNmRiMGJiNGExOGE3In0sInNpZ25hdHVyZSI6IiJ9",
+                    "like_and_view_counts_disabled": false,
+                    "fbid": "17945243265010576"
+                  }
+                }
+              ],
+              "thread_type": "thread",
+              "header": null,
+              "id": "3689277749274194733",
+              "__typename": "XDTThread"
+            },
+            "cursor": ""
+          },
+          {
+            "node": {
+              "thread_header_context": null,
+              "thread_items": [
+                {
+                  "post": {
+                    "pk": "3689298952148329163",
+                    "user": {
+                      "friendship_status": {
+                        "muting": false,
+                        "following": false,
+                        "followed_by": false,
+                        "outgoing_request": null
+                      },
+                      "id": "64634909750",
+                      "pk": "64634909750",
+                      "text_app_last_visited_time": 1754042908,
+                      "profile_pic_url": "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/424491941_1073650013852918_6328549723957452201_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby41NzYuYzEifQ&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=102&_nc_oc=Q6cZ2QGLDtrUTTpb38oFe-dFQndPt7RcHaF1-hz1OZi4ffEgRTWe2XVxyhOao5C_zhVhsm4&_nc_ohc=c63aocGJN6QQ7kNvwG_Ugfo&_nc_gid=bwggtSQG8Qi4NnDsZCV9NQ&edm=AEnw0QABAAAA&ccb=7-5&oh=00_AfRsUeH2crJZJnhehd628Z3i20Bqoc4vad_w-k8htTgc6Q&oe=6892547E&_nc_sid=9705cc",
+                      "username": "guo_0508",
+                      "full_name": "Xin Wei",
+                      "transparency_label": null,
+                      "transparency_product": null,
+                      "transparency_product_enabled": false,
+                      "is_verified": false,
+                      "text_post_app_is_private": false,
+                      "has_onboarded_to_text_post_app": true
+                    },
+                    "text_post_app_info": {
+                      "is_post_unavailable": false,
+                      "pinned_post_info": {
+                        "is_pinned_to_profile": false,
+                        "is_pinned_to_parent_post": false
+                      },
+                      "share_info": {
+                        "reposted_post": null,
+                        "is_reposted_by_viewer": false,
+                        "can_quote_post": true,
+                        "quoted_attachment_author_attribution_allowed": true,
+                        "quoted_attachment_post_unavailable": false,
+                        "quoted_attachment_post": null,
+                        "quoted_post": null
+                      },
+                      "show_header_follow": false,
+                      "is_spoiler_media": false,
+                      "is_markup": false,
+                      "custom_feed_preview_info": null,
+                      "link_preview_attachment": null,
+                      "linked_inline_media": null,
+                      "snippet_attachment_info": null,
+                      "special_effects_enabled_str": "",
+                      "text_fragments": {
+                        "fragments": [
+                          {
+                            "fragment_type": "plaintext",
+                            "link_fragment": null,
+                            "mention_fragment": null,
+                            "plaintext": "邏輯思考有障礙",
+                            "linkified_web_url": null,
+                            "styling_info": null
+                          }
+                        ]
+                      },
+                      "reply_control": "everyone",
+                      "can_reply": true,
+                      "tag_header": null,
+                      "direct_reply_count": 0,
+                      "can_private_reply": false,
+                      "repost_count": 0,
+                      "quote_count": 0,
+                      "reshare_count": null,
+                      "reply_to_author": {
+                        "username": "wuyiju28",
+                        "id": "75723563845"
+                      },
+                      "private_reply_partner": {
+                        "username": "guo_0508",
+                        "id": "64634909750"
+                      },
+                      "fediverse_info": {
+                        "is_federated": false,
+                        "enqueued_for_federation": false,
+                        "federated_like_count": null,
+                        "reply_instance_count": null,
+                        "fediverse_reply_count": null,
+                        "reply_owner_profile_pic_uris": null
+                      },
+                      "self_thread_count": null,
+                      "root_post_author": {
+                        "pk": "75723563845",
+                        "profile_pic_url": "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/517025509_17842731738534111_8244300071474873467_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby40MDAuYzEifQ&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=103&_nc_oc=Q6cZ2QGLDtrUTTpb38oFe-dFQndPt7RcHaF1-hz1OZi4ffEgRTWe2XVxyhOao5C_zhVhsm4&_nc_ohc=hb5gpXFIbAQQ7kNvwFFIMYz&_nc_gid=bwggtSQG8Qi4NnDsZCV9NQ&edm=AEnw0QABAAAA&ccb=7-5&oh=00_AfRA4mzl9gWLIYFbuwEDRpKPFNo8nBtxKX3xJwJcU3JZIA&oe=68928254&_nc_sid=9705cc",
+                        "username": "wuyiju28",
+                        "id": "75723563845"
+                      },
+                      "is_liked_by_root_author": false,
+                      "related_trends_info": null,
+                      "is_reply": true,
+                      "post_unavailable_reason": null,
+                      "hush_info": null
+                    },
+                    "id": "3689298952148329163_64634909750",
+                    "is_paid_partnership": null,
+                    "audio": null,
+                    "caption": {
+                      "text": "邏輯思考有障礙",
+                      "pk": "17993851415667369",
+                      "has_translation": null
+                    },
+                    "caption_is_edited": false,
+                    "transcription_data": null,
+                    "carousel_media": null,
+                    "code": "DMzBdmpBaLL",
+                    "image_versions2": {
+                      "candidates": []
+                    },
+                    "original_height": 612,
+                    "original_width": 612,
+                    "accessibility_caption": null,
+                    "usertags": null,
+                    "video_versions": null,
+                    "has_audio": null,
+                    "media_type": 19,
+                    "caption_add_on": null,
+                    "giphy_media_info": null,
+                    "has_liked": false,
+                    "like_count": 1,
+                    "logging_info_token": null,
+                    "media_overlay_info": null,
+                    "sharing_friction_info": {
+                      "should_have_sharing_friction": false,
+                      "sharing_friction_payload": null
+                    },
+                    "metaPlace": null,
+                    "meta_place": null,
+                    "gen_ai_detection_method": {
+                      "detection_method": "NONE"
+                    },
+                    "taken_at": 1754018728,
+                    "organic_tracking_token": "eyJ2ZXJzaW9uIjo1LCJwYXlsb2FkIjp7ImlzX2FuYWx5dGljc190cmFja2VkIjpmYWxzZSwidXVpZCI6IjhhZDE5M2UwY2JhYzQxNTBiY2ZiNzA5MzJmZGQ3OTQ2MzY4OTI5ODk1MjE0ODMyOTE2MyIsInNlcnZlcl90b2tlbiI6IjE3NTQwNDQ0Njg4MDZ8MzY4OTI5ODk1MjE0ODMyOTE2M3w3NjIwNDE3OTQyMHw0ZjIyYmI3NjA0OTgzN2Y4YjEzY2I5NjA4MzE5NDdhMmFhODJmYWQxZjIyNjdmZDM2YmRjZTYxMWQyNDZiY2Y1In0sInNpZ25hdHVyZSI6IiJ9",
+                    "like_and_view_counts_disabled": false,
+                    "fbid": "17993851412667369"
+                  }
+                }
+              ],
+              "thread_type": "thread",
+              "header": null,
+              "id": "3689298952148329163",
+              "__typename": "XDTThread"
+            },
+            "cursor": ""
+          }
+        ],
+        "page_info": {
+          "has_next_page": true,
+          "has_previous_page": false,
+          "end_cursor": "GBZkb3dud2FyZF9vdGhlcl9yZXBsaWVzNiYa9hOO3syk4rHnsmak9MzkwKmDs2awtLCKlJ7As2bazO2zn6T5smbogqKy3qWGs2bs8PqUvvaes2b28qSMta_Rs2b6iOGk8bPvsmaIvaOyxcDjs2aSk-LsyKHlsmaWi62QtfaCs2acyfXUjJues2aox-jb8PD8smasqbrI4qOKs2awha3AkIuCs2bin96cy5OAs2bkhdWkstGLs2bq5d_suqmOs2byo6iQtYKrs2YW1puU04xmFSYA",
+          "start_cursor": null
+        },
+        "show_unavailable_replies_disclaimer": false
+      }
+    },
+    "extensions": {
+      "is_final": true,
+      "server_metadata": {
+        "request_start_time_ms": 1754044468432,
+        "time_at_flush_ms": 1754044468886
+      }
+    },
+    "status": "ok"
+  }
+}

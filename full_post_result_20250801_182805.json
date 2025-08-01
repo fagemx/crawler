@@ -1,0 +1,26 @@
+{
+  "post_id": "3689219480905289907",
+  "code": "DMyvZJRz5Cz",
+  "author": "star_shining0828",
+  "like_count": 246,
+  "comment_count": 67,
+  "repost_count": 6,
+  "share_count": 39,
+  "content": "",
+  "images": [],
+  "videos": [],
+  "data_source": "dual_api",
+  "has_content_api": false,
+  "raw_counts": {
+    "pk": "3689219480905289907",
+    "like_count": 246,
+    "text_post_app_info": {
+      "direct_reply_count": 67,
+      "quote_count": 1,
+      "repost_count": 6,
+      "reshare_count": 39
+    },
+    "id": "3689219480905289907_75723563845"
+  },
+  "raw_content": null
+}

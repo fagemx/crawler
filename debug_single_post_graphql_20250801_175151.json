@@ -1,0 +1,19 @@
+{
+  "test_url": "https://www.threads.com/@star_shining0828/post/DMyvZJRz5Cz",
+  "target_code": "DMyvZJRz5Cz",
+  "expected_data": {
+    "likes": 233,
+    "comments": 66,
+    "reposts": 6,
+    "shares": 34
+  },
+  "total_responses": 22,
+  "target_responses": [],
+  "all_query_names": [
+    "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+    "BarcelonaUsernameHovercardImplDirectQuery",
+    "BarcelonaQuickPromotionLoginInterstitialContainerQuery",
+    "BarcelonaNotificationBadgeContextQueryDirectQuery",
+    "BarcelonaPostPageRefetchableDirectQuery"
+  ]
+}

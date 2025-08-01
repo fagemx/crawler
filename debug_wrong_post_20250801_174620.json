@@ -1,0 +1,1000 @@
+{
+  "test_url": "https://www.threads.com/@star_shining0828/post/DMyvZJRz5Cz",
+  "target_code": "DMyvZJRz5Cz",
+  "batch_responses": [
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "data": {
+        "data": {
+          "data": {
+            "posts": [
+              {
+                "pk": "3689219480905289907",
+                "like_count": 235,
+                "text_post_app_info": {
+                  "direct_reply_count": 66,
+                  "quote_count": 1,
+                  "repost_count": 6,
+                  "reshare_count": 34
+                },
+                "id": "3689219480905289907_75723563845"
+              },
+              {
+                "pk": "3689238399170484103",
+                "like_count": 7,
+                "text_post_app_info": {
+                  "direct_reply_count": 2,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689238399170484103_64048702489"
+              },
+              {
+                "pk": "3689256027729699389",
+                "like_count": 14,
+                "text_post_app_info": {
+                  "direct_reply_count": 0,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689256027729699389_66219974975"
+              },
+              {
+                "pk": "3689433775326235928",
+                "like_count": 3,
+                "text_post_app_info": {
+                  "direct_reply_count": 0,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689433775326235928_64603786275"
+              }
+            ]
+          }
+        },
+        "extensions": {
+          "is_final": true,
+          "server_metadata": {
+            "request_start_time_ms": 1754041566857,
+            "time_at_flush_ms": 1754041566925
+          }
+        },
+        "status": "ok"
+      },
+      "timestamp": "2025-08-01T17:46:07.271553"
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "data": {
+        "data": {
+          "data": {
+            "posts": [
+              {
+                "pk": "3689219480905289907",
+                "like_count": 235,
+                "text_post_app_info": {
+                  "direct_reply_count": 66,
+                  "quote_count": 1,
+                  "repost_count": 6,
+                  "reshare_count": 34
+                },
+                "id": "3689219480905289907_75723563845"
+              },
+              {
+                "pk": "3689238399170484103",
+                "like_count": 7,
+                "text_post_app_info": {
+                  "direct_reply_count": 2,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689238399170484103_64048702489"
+              },
+              {
+                "pk": "3689256027729699389",
+                "like_count": 14,
+                "text_post_app_info": {
+                  "direct_reply_count": 0,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689256027729699389_66219974975"
+              },
+              {
+                "pk": "3689433775326235928",
+                "like_count": 3,
+                "text_post_app_info": {
+                  "direct_reply_count": 0,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689433775326235928_64603786275"
+              }
+            ]
+          }
+        },
+        "extensions": {
+          "is_final": true,
+          "server_metadata": {
+            "request_start_time_ms": 1754041569758,
+            "time_at_flush_ms": 1754041569820
+          }
+        },
+        "status": "ok"
+      },
+      "timestamp": "2025-08-01T17:46:10.140078"
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "data": {
+        "data": {
+          "data": {
+            "posts": [
+              {
+                "pk": "3689219480905289907",
+                "like_count": 235,
+                "text_post_app_info": {
+                  "direct_reply_count": 66,
+                  "quote_count": 1,
+                  "repost_count": 6,
+                  "reshare_count": 34
+                },
+                "id": "3689219480905289907_75723563845"
+              },
+              {
+                "pk": "3689238399170484103",
+                "like_count": 7,
+                "text_post_app_info": {
+                  "direct_reply_count": 2,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689238399170484103_64048702489"
+              },
+              {
+                "pk": "3689256027729699389",
+                "like_count": 14,
+                "text_post_app_info": {
+                  "direct_reply_count": 0,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689256027729699389_66219974975"
+              },
+              {
+                "pk": "3689433775326235928",
+                "like_count": 3,
+                "text_post_app_info": {
+                  "direct_reply_count": 0,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689433775326235928_64603786275"
+              }
+            ]
+          }
+        },
+        "extensions": {
+          "is_final": true,
+          "server_metadata": {
+            "request_start_time_ms": 1754041572787,
+            "time_at_flush_ms": 1754041572872
+          }
+        },
+        "status": "ok"
+      },
+      "timestamp": "2025-08-01T17:46:13.185378"
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "data": {
+        "data": {
+          "data": {
+            "posts": [
+              {
+                "pk": "3689412725860575432",
+                "like_count": 2,
+                "text_post_app_info": {
+                  "direct_reply_count": 0,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689412725860575432_69078564111"
+              },
+              {
+                "pk": "3689233722832078025",
+                "like_count": 23,
+                "text_post_app_info": {
+                  "direct_reply_count": 0,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689233722832078025_73517583091"
+              },
+              {
+                "pk": "3689315865885216602",
+                "like_count": 0,
+                "text_post_app_info": {
+                  "direct_reply_count": 0,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689315865885216602_64911953430"
+              }
+            ]
+          }
+        },
+        "extensions": {
+          "is_final": true,
+          "server_metadata": {
+            "request_start_time_ms": 1754041574784,
+            "time_at_flush_ms": 1754041574858
+          }
+        },
+        "status": "ok"
+      },
+      "timestamp": "2025-08-01T17:46:15.170035"
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "data": {
+        "data": {
+          "data": {
+            "posts": [
+              {
+                "pk": "3689219480905289907",
+                "like_count": 235,
+                "text_post_app_info": {
+                  "direct_reply_count": 66,
+                  "quote_count": 1,
+                  "repost_count": 6,
+                  "reshare_count": 34
+                },
+                "id": "3689219480905289907_75723563845"
+              },
+              {
+                "pk": "3689238399170484103",
+                "like_count": 7,
+                "text_post_app_info": {
+                  "direct_reply_count": 2,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689238399170484103_64048702489"
+              },
+              {
+                "pk": "3689256027729699389",
+                "like_count": 14,
+                "text_post_app_info": {
+                  "direct_reply_count": 0,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689256027729699389_66219974975"
+              },
+              {
+                "pk": "3689433775326235928",
+                "like_count": 3,
+                "text_post_app_info": {
+                  "direct_reply_count": 0,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689433775326235928_64603786275"
+              },
+              {
+                "pk": "3689412725860575432",
+                "like_count": 2,
+                "text_post_app_info": {
+                  "direct_reply_count": 0,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689412725860575432_69078564111"
+              },
+              {
+                "pk": "3689233722832078025",
+                "like_count": 23,
+                "text_post_app_info": {
+                  "direct_reply_count": 0,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689233722832078025_73517583091"
+              },
+              {
+                "pk": "3689315865885216602",
+                "like_count": 0,
+                "text_post_app_info": {
+                  "direct_reply_count": 0,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689315865885216602_64911953430"
+              }
+            ]
+          }
+        },
+        "extensions": {
+          "is_final": true,
+          "server_metadata": {
+            "request_start_time_ms": 1754041575803,
+            "time_at_flush_ms": 1754041575894
+          }
+        },
+        "status": "ok"
+      },
+      "timestamp": "2025-08-01T17:46:16.203018"
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "data": {
+        "data": {
+          "data": {
+            "posts": [
+              {
+                "pk": "3689276219813716552",
+                "like_count": 2,
+                "text_post_app_info": {
+                  "direct_reply_count": 0,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689276219813716552_70194908079"
+              },
+              {
+                "pk": "3689277307966365357",
+                "like_count": 1,
+                "text_post_app_info": {
+                  "direct_reply_count": 0,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689277307966365357_73273190859"
+              }
+            ]
+          }
+        },
+        "extensions": {
+          "is_final": true,
+          "server_metadata": {
+            "request_start_time_ms": 1754041576800,
+            "time_at_flush_ms": 1754041576878
+          }
+        },
+        "status": "ok"
+      },
+      "timestamp": "2025-08-01T17:46:17.206459"
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "data": {
+        "data": {
+          "data": {
+            "posts": [
+              {
+                "pk": "3689433775326235928",
+                "like_count": 3,
+                "text_post_app_info": {
+                  "direct_reply_count": 0,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689433775326235928_64603786275"
+              },
+              {
+                "pk": "3689412725860575432",
+                "like_count": 2,
+                "text_post_app_info": {
+                  "direct_reply_count": 0,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689412725860575432_69078564111"
+              },
+              {
+                "pk": "3689233722832078025",
+                "like_count": 23,
+                "text_post_app_info": {
+                  "direct_reply_count": 0,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689233722832078025_73517583091"
+              },
+              {
+                "pk": "3689315865885216602",
+                "like_count": 0,
+                "text_post_app_info": {
+                  "direct_reply_count": 0,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689315865885216602_64911953430"
+              },
+              {
+                "pk": "3689276219813716552",
+                "like_count": 2,
+                "text_post_app_info": {
+                  "direct_reply_count": 0,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689276219813716552_70194908079"
+              },
+              {
+                "pk": "3689277307966365357",
+                "like_count": 1,
+                "text_post_app_info": {
+                  "direct_reply_count": 0,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689277307966365357_73273190859"
+              },
+              {
+                "pk": "3689315124503857750",
+                "like_count": 2,
+                "text_post_app_info": {
+                  "direct_reply_count": 0,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689315124503857750_70465565886"
+              },
+              {
+                "pk": "3689479260441369819",
+                "like_count": 0,
+                "text_post_app_info": {
+                  "direct_reply_count": 0,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": null
+                },
+                "id": "3689479260441369819_64758900851"
+              }
+            ]
+          }
+        },
+        "extensions": {
+          "is_final": true,
+          "server_metadata": {
+            "request_start_time_ms": 1754041578823,
+            "time_at_flush_ms": 1754041578910
+          }
+        },
+        "status": "ok"
+      },
+      "timestamp": "2025-08-01T17:46:19.237332"
+    }
+  ],
+  "analyses": [
+    {
+      "total_posts": 4,
+      "posts": [
+        {
+          "index": 0,
+          "pk": "3689219480905289907",
+          "id": "3689219480905289907_75723563845",
+          "code": null,
+          "like_count": 235,
+          "text_post_app_info": {
+            "direct_reply_count": 66,
+            "repost_count": 6,
+            "reshare_count": 34,
+            "quote_count": 1
+          }
+        },
+        {
+          "index": 1,
+          "pk": "3689238399170484103",
+          "id": "3689238399170484103_64048702489",
+          "code": null,
+          "like_count": 7,
+          "text_post_app_info": {
+            "direct_reply_count": 2,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        },
+        {
+          "index": 2,
+          "pk": "3689256027729699389",
+          "id": "3689256027729699389_66219974975",
+          "code": null,
+          "like_count": 14,
+          "text_post_app_info": {
+            "direct_reply_count": 0,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        },
+        {
+          "index": 3,
+          "pk": "3689433775326235928",
+          "id": "3689433775326235928_64603786275",
+          "code": null,
+          "like_count": 3,
+          "text_post_app_info": {
+            "direct_reply_count": 0,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        }
+      ],
+      "target_found": false,
+      "target_index": -1,
+      "response_info": {
+        "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "timestamp": "2025-08-01T17:46:07.271553"
+      }
+    },
+    {
+      "total_posts": 4,
+      "posts": [
+        {
+          "index": 0,
+          "pk": "3689219480905289907",
+          "id": "3689219480905289907_75723563845",
+          "code": null,
+          "like_count": 235,
+          "text_post_app_info": {
+            "direct_reply_count": 66,
+            "repost_count": 6,
+            "reshare_count": 34,
+            "quote_count": 1
+          }
+        },
+        {
+          "index": 1,
+          "pk": "3689238399170484103",
+          "id": "3689238399170484103_64048702489",
+          "code": null,
+          "like_count": 7,
+          "text_post_app_info": {
+            "direct_reply_count": 2,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        },
+        {
+          "index": 2,
+          "pk": "3689256027729699389",
+          "id": "3689256027729699389_66219974975",
+          "code": null,
+          "like_count": 14,
+          "text_post_app_info": {
+            "direct_reply_count": 0,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        },
+        {
+          "index": 3,
+          "pk": "3689433775326235928",
+          "id": "3689433775326235928_64603786275",
+          "code": null,
+          "like_count": 3,
+          "text_post_app_info": {
+            "direct_reply_count": 0,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        }
+      ],
+      "target_found": false,
+      "target_index": -1,
+      "response_info": {
+        "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "timestamp": "2025-08-01T17:46:10.140078"
+      }
+    },
+    {
+      "total_posts": 4,
+      "posts": [
+        {
+          "index": 0,
+          "pk": "3689219480905289907",
+          "id": "3689219480905289907_75723563845",
+          "code": null,
+          "like_count": 235,
+          "text_post_app_info": {
+            "direct_reply_count": 66,
+            "repost_count": 6,
+            "reshare_count": 34,
+            "quote_count": 1
+          }
+        },
+        {
+          "index": 1,
+          "pk": "3689238399170484103",
+          "id": "3689238399170484103_64048702489",
+          "code": null,
+          "like_count": 7,
+          "text_post_app_info": {
+            "direct_reply_count": 2,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        },
+        {
+          "index": 2,
+          "pk": "3689256027729699389",
+          "id": "3689256027729699389_66219974975",
+          "code": null,
+          "like_count": 14,
+          "text_post_app_info": {
+            "direct_reply_count": 0,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        },
+        {
+          "index": 3,
+          "pk": "3689433775326235928",
+          "id": "3689433775326235928_64603786275",
+          "code": null,
+          "like_count": 3,
+          "text_post_app_info": {
+            "direct_reply_count": 0,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        }
+      ],
+      "target_found": false,
+      "target_index": -1,
+      "response_info": {
+        "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "timestamp": "2025-08-01T17:46:13.185378"
+      }
+    },
+    {
+      "total_posts": 3,
+      "posts": [
+        {
+          "index": 0,
+          "pk": "3689412725860575432",
+          "id": "3689412725860575432_69078564111",
+          "code": null,
+          "like_count": 2,
+          "text_post_app_info": {
+            "direct_reply_count": 0,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        },
+        {
+          "index": 1,
+          "pk": "3689233722832078025",
+          "id": "3689233722832078025_73517583091",
+          "code": null,
+          "like_count": 23,
+          "text_post_app_info": {
+            "direct_reply_count": 0,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        },
+        {
+          "index": 2,
+          "pk": "3689315865885216602",
+          "id": "3689315865885216602_64911953430",
+          "code": null,
+          "like_count": 0,
+          "text_post_app_info": {
+            "direct_reply_count": 0,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        }
+      ],
+      "target_found": false,
+      "target_index": -1,
+      "response_info": {
+        "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "timestamp": "2025-08-01T17:46:15.170035"
+      }
+    },
+    {
+      "total_posts": 7,
+      "posts": [
+        {
+          "index": 0,
+          "pk": "3689219480905289907",
+          "id": "3689219480905289907_75723563845",
+          "code": null,
+          "like_count": 235,
+          "text_post_app_info": {
+            "direct_reply_count": 66,
+            "repost_count": 6,
+            "reshare_count": 34,
+            "quote_count": 1
+          }
+        },
+        {
+          "index": 1,
+          "pk": "3689238399170484103",
+          "id": "3689238399170484103_64048702489",
+          "code": null,
+          "like_count": 7,
+          "text_post_app_info": {
+            "direct_reply_count": 2,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        },
+        {
+          "index": 2,
+          "pk": "3689256027729699389",
+          "id": "3689256027729699389_66219974975",
+          "code": null,
+          "like_count": 14,
+          "text_post_app_info": {
+            "direct_reply_count": 0,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        },
+        {
+          "index": 3,
+          "pk": "3689433775326235928",
+          "id": "3689433775326235928_64603786275",
+          "code": null,
+          "like_count": 3,
+          "text_post_app_info": {
+            "direct_reply_count": 0,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        },
+        {
+          "index": 4,
+          "pk": "3689412725860575432",
+          "id": "3689412725860575432_69078564111",
+          "code": null,
+          "like_count": 2,
+          "text_post_app_info": {
+            "direct_reply_count": 0,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        },
+        {
+          "index": 5,
+          "pk": "3689233722832078025",
+          "id": "3689233722832078025_73517583091",
+          "code": null,
+          "like_count": 23,
+          "text_post_app_info": {
+            "direct_reply_count": 0,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        },
+        {
+          "index": 6,
+          "pk": "3689315865885216602",
+          "id": "3689315865885216602_64911953430",
+          "code": null,
+          "like_count": 0,
+          "text_post_app_info": {
+            "direct_reply_count": 0,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        }
+      ],
+      "target_found": false,
+      "target_index": -1,
+      "response_info": {
+        "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "timestamp": "2025-08-01T17:46:16.203018"
+      }
+    },
+    {
+      "total_posts": 2,
+      "posts": [
+        {
+          "index": 0,
+          "pk": "3689276219813716552",
+          "id": "3689276219813716552_70194908079",
+          "code": null,
+          "like_count": 2,
+          "text_post_app_info": {
+            "direct_reply_count": 0,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        },
+        {
+          "index": 1,
+          "pk": "3689277307966365357",
+          "id": "3689277307966365357_73273190859",
+          "code": null,
+          "like_count": 1,
+          "text_post_app_info": {
+            "direct_reply_count": 0,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        }
+      ],
+      "target_found": false,
+      "target_index": -1,
+      "response_info": {
+        "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "timestamp": "2025-08-01T17:46:17.206459"
+      }
+    },
+    {
+      "total_posts": 8,
+      "posts": [
+        {
+          "index": 0,
+          "pk": "3689433775326235928",
+          "id": "3689433775326235928_64603786275",
+          "code": null,
+          "like_count": 3,
+          "text_post_app_info": {
+            "direct_reply_count": 0,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        },
+        {
+          "index": 1,
+          "pk": "3689412725860575432",
+          "id": "3689412725860575432_69078564111",
+          "code": null,
+          "like_count": 2,
+          "text_post_app_info": {
+            "direct_reply_count": 0,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        },
+        {
+          "index": 2,
+          "pk": "3689233722832078025",
+          "id": "3689233722832078025_73517583091",
+          "code": null,
+          "like_count": 23,
+          "text_post_app_info": {
+            "direct_reply_count": 0,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        },
+        {
+          "index": 3,
+          "pk": "3689315865885216602",
+          "id": "3689315865885216602_64911953430",
+          "code": null,
+          "like_count": 0,
+          "text_post_app_info": {
+            "direct_reply_count": 0,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        },
+        {
+          "index": 4,
+          "pk": "3689276219813716552",
+          "id": "3689276219813716552_70194908079",
+          "code": null,
+          "like_count": 2,
+          "text_post_app_info": {
+            "direct_reply_count": 0,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        },
+        {
+          "index": 5,
+          "pk": "3689277307966365357",
+          "id": "3689277307966365357_73273190859",
+          "code": null,
+          "like_count": 1,
+          "text_post_app_info": {
+            "direct_reply_count": 0,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        },
+        {
+          "index": 6,
+          "pk": "3689315124503857750",
+          "id": "3689315124503857750_70465565886",
+          "code": null,
+          "like_count": 2,
+          "text_post_app_info": {
+            "direct_reply_count": 0,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        },
+        {
+          "index": 7,
+          "pk": "3689479260441369819",
+          "id": "3689479260441369819_64758900851",
+          "code": null,
+          "like_count": 0,
+          "text_post_app_info": {
+            "direct_reply_count": 0,
+            "repost_count": 0,
+            "reshare_count": null,
+            "quote_count": 0
+          }
+        }
+      ],
+      "target_found": false,
+      "target_index": -1,
+      "response_info": {
+        "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "timestamp": "2025-08-01T17:46:19.237332"
+      }
+    }
+  ]
+}

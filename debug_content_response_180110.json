@@ -1,0 +1,9 @@
+{
+  "errors": [
+    {
+      "message": "execution error",
+      "severity": "CRITICAL"
+    }
+  ],
+  "status": "ok"
+}

@@ -1,0 +1,25 @@
+{
+  "pk": "3689219480905289907",
+  "code": "",
+  "username": "",
+  "content": "",
+  "like_count": 260,
+  "comment_count": 69,
+  "repost_count": 6,
+  "share_count": 43,
+  "images": [],
+  "videos": [],
+  "url": "",
+  "extracted_at": "2025-08-01T19:13:01.591139",
+  "raw_post_data": {
+    "pk": "3689219480905289907",
+    "like_count": 260,
+    "text_post_app_info": {
+      "direct_reply_count": 69,
+      "quote_count": 1,
+      "repost_count": 6,
+      "reshare_count": 43
+    },
+    "id": "3689219480905289907_75723563845"
+  }
+}
