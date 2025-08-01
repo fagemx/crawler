@@ -354,35 +354,31 @@ class ThreadsCrawlerComponent:
         st.rerun()
 
     def _render_progress(self):
-        """渲染進度界面"""
+        """渲染進度界面 (V3, 移除mtime, 每次都讀檔)"""
         progress_file = st.session_state.get('crawler_progress_file', '')
         
-        # 核心邏輯：檢查文件更新
+        # -- 數據更新邏輯 --
         if progress_file and os.path.exists(progress_file):
-            mtime = os.path.getmtime(progress_file)
-            if mtime != st.session_state.get('_progress_mtime', 0):
-                st.session_state._progress_mtime = mtime
-                progress_data = self._read_progress(progress_file)
+            progress_data = self._read_progress(progress_file)
+            
+            if progress_data:
+                # 總是以最新檔案內容更新 session state
+                st.session_state.crawler_progress = progress_data.get("progress", 0.0)
+                st.session_state.crawler_current_work = progress_data.get("current_work", "")
                 
-                if progress_data:
-                    # 更新 session_state
-                    st.session_state.crawler_progress = progress_data.get("progress", 0.0)
-                    st.session_state.crawler_current_work = progress_data.get("current_work", "")
-                    
-                    stage = progress_data.get("stage")
-                    if stage in ("api_completed", "completed"):
-                        st.session_state.crawler_status = "completed"
-                        st.session_state.final_data = progress_data.get("final_data", {})
-                    elif stage == "error":
-                        st.session_state.crawler_status = "error"
-                
-                # 只有在狀態更新時才 rerun
-                st.rerun()
+                # 檢查是否達到需要切換頁面的最終狀態
+                stage = progress_data.get("stage")
+                if stage in ("api_completed", "completed"):
+                    st.session_state.crawler_status = "completed"
+                    st.session_state.final_data = progress_data.get("final_data", {})
+                    st.rerun() # 切換到結果頁面
+                elif stage == "error":
+                    st.session_state.crawler_status = "error"
+                    st.rerun() # 切換到錯誤頁面
 
-        # --- 以下是純顯示邏輯 ---
+        # -- UI 顯示邏輯 --
         target = st.session_state.crawler_target
         username = target.get('username', 'unknown')
-        max_posts = target.get('max_posts', 0)
         progress = st.session_state.crawler_progress
         current_work = st.session_state.crawler_current_work
 
@@ -390,6 +386,12 @@ class ThreadsCrawlerComponent:
         st.progress(max(0.0, min(1.0, progress)), text=f"{progress:.1%} - {current_work}")
         
         st.info("⏱️ 進度將自動更新，無需手動操作。")
+
+        # -- 自動刷新機制 --
+        # 只要還在 running 狀態，就安排一個延遲刷新
+        if st.session_state.crawler_status == 'running':
+            time.sleep(1) # 降低刷新頻率
+            st.rerun()
 
     def _render_results(self):
         """渲染結果界面"""
