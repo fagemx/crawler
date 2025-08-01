@@ -12,6 +12,7 @@ import tempfile
 import threading
 import time
 import requests
+import shutil
 from pathlib import Path
 from typing import Dict, Any, Optional
 
@@ -27,8 +28,7 @@ class ThreadsCrawlerComponent:
     def _write_progress(self, path: str, data: Dict[str, Any]):
         """
         線程安全寫入進度：
-        - 先讀舊檔 → 缺少的欄位沿用舊值
-        - 再寫回（單檔案，避免 race）
+        - 使用 tempfile + shutil.move 實現原子寫入，避免讀取到不完整的檔案。
         """
         old: Dict[str, Any] = {}
         if os.path.exists(path):
@@ -38,25 +38,17 @@ class ThreadsCrawlerComponent:
             except Exception:
                 pass
 
-        # 1️⃣ stage 若已經是 completed 就不要被後面事件覆寫
+        # 合併邏輯 (與之前相同)
         stage_priority = {
-            "initialization": 0,
-            "fetch_start": 1,
-            "post_parsed": 2,
-            "batch_parsed": 3,
-            "fill_views_start": 4,
-            "fill_views_completed": 5,
-            "api_completed": 6,
-            "completed": 7,
-            "error": 8,
+            "initialization": 0, "fetch_start": 1, "post_parsed": 2,
+            "batch_parsed": 3, "fill_views_start": 4, "fill_views_completed": 5,
+            "api_completed": 6, "completed": 7, "error": 8
         }
         old_stage = old.get("stage", "")
         new_stage = data.get("stage", old_stage)
         if stage_priority.get(new_stage, 0) < stage_priority.get(old_stage, 0):
-            # 舊 stage 優先級比較高 → 保留舊值
             data.pop("stage", None)
 
-        # 2️⃣ 若新資料沒有 progress，就沿用舊 progress
         if "progress" not in data and "progress" in old:
             data["progress"] = old["progress"]
         if "current_work" not in data and "current_work" in old:
@@ -64,10 +56,22 @@ class ThreadsCrawlerComponent:
 
         merged = {**old, **data, "timestamp": time.time()}
 
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(merged, f, ensure_ascii=False)
-            f.flush()
-            os.fsync(f.fileno())
+        # --- 🔑 先寫到 tmp，再 atomic rename ---
+        dir_ = os.path.dirname(path)
+        # 確保目錄存在
+        os.makedirs(dir_, exist_ok=True)
+        
+        try:
+            with tempfile.NamedTemporaryFile("w", delete=False, dir=dir_, suffix=".tmp", encoding='utf-8') as tmp:
+                json.dump(merged, tmp, ensure_ascii=False)
+                tmp.flush()
+                os.fsync(tmp.fileno())
+                tmp_path = tmp.name
+            
+            # 使用 shutil.move 來保證原子性
+            shutil.move(tmp_path, path)
+        except Exception as e:
+            print(f"❌ 寫入進度文件失敗: {e}")
 
     def _read_progress(self, path: str) -> Dict[str, Any]:
         """讀取進度文件"""
@@ -208,21 +212,18 @@ class ThreadsCrawlerComponent:
                             if work_description:
                                 payload['current_work'] = work_description
 
-                            # --- 針對性計算進度 ---
                             if stage == "post_parsed":
                                 current_cnt += 1
-                                if data.get("total"):
-                                    total_cnt = data["total"]
+                                total_cnt = total_cnt or data.get("total") # 只要拿一次就好
                                 
                                 if total_cnt:
                                     progress = min(1.0, current_cnt / total_cnt)
-                                    payload['current_work'] = f"已解析 {current_cnt}/{total_cnt} 篇貼文"
                                 else:
-                                    # total 不確定時，給一個遞增但不到 100% 的假進度
-                                    progress = min(0.99, current_cnt * 0.02) 
-                                    payload['current_work'] = f"已解析 {current_cnt} 篇貼文..."
+                                    # 沒 total 時，每篇+2%，至多 98%
+                                    progress = min(0.98, current_cnt * 0.02)
                                 
-                                payload['progress'] = max(0.0, min(1.0, progress))
+                                payload['progress'] = progress
+                                payload['current_work'] = f"已解析 {current_cnt}/{total_cnt or '?'} 篇"
 
                             elif stage == "fetch_progress" and "progress" in data:
                                 payload['progress'] = max(0.0, min(1.0, float(data["progress"])))
