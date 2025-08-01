@@ -212,18 +212,35 @@ class ThreadsCrawlerComponent:
                             if work_description:
                                 payload['current_work'] = work_description
 
+                            # --- 針對性計算進度 (V2 - 分段權重) ---
+                            PARSE_WEIGHT = 0.60   # 解析階段佔 60%
+                            POST_PROCESS_W = 0.40   # 後處理佔 40%
+
                             if stage == "post_parsed":
                                 current_cnt += 1
                                 total_cnt = total_cnt or data.get("total") # 只要拿一次就好
                                 
                                 if total_cnt:
-                                    progress = min(1.0, current_cnt / total_cnt)
+                                    unit_progress = min(1.0, current_cnt / total_cnt)
+                                    payload['progress'] = unit_progress * PARSE_WEIGHT # 映射到 0% -> 80%
                                 else:
-                                    # 沒 total 時，每篇+2%，至多 98%
-                                    progress = min(0.98, current_cnt * 0.02)
-                                
-                                payload['progress'] = progress
+                                    # 沒 total 時，給一個遞增但接近80%的假進度
+                                    progress = min(PARSE_WEIGHT * 0.99, current_cnt * (PARSE_WEIGHT * 0.02))
+                                    payload['progress'] = progress
                                 payload['current_work'] = f"已解析 {current_cnt}/{total_cnt or '?'} 篇"
+                            
+                            elif stage == "fill_views_start":
+                                payload["progress"] = PARSE_WEIGHT # 到達 80%
+                                payload["current_work"] = "正在補齊瀏覽數..."
+
+                            elif stage == "fill_views_completed":
+                                payload["progress"] = PARSE_WEIGHT + POST_PROCESS_W * 0.75 # 80% + 15% = 95%
+                                payload["current_work"] = "瀏覽數已補齊，準備收尾..."
+
+                            elif stage in ("completed", "api_completed"):
+                                payload["progress"] = 1.0
+                                if not payload.get('current_work'):
+                                    payload['current_work'] = "全部完成！"
 
                             elif stage == "fetch_progress" and "progress" in data:
                                 payload['progress'] = max(0.0, min(1.0, float(data["progress"])))
