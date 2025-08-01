@@ -151,6 +151,7 @@ class PlaywrightSettings(BaseSettings):
         default="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
         description="Playwright 使用的 User-Agent"
     )
+    enable_details_filling: bool = Field(default=True, description="是否啟用詳細數據補齊（likes, content, images等）")
     
     class Config:
         env_prefix = "PLAYWRIGHT_"

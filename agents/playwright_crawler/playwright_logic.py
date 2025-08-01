@@ -8,6 +8,7 @@ import uuid
 from pathlib import Path
 from typing import Dict, List, Optional, AsyncIterable, Callable, Any
 from datetime import datetime
+import httpx
 
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError, Browser, BrowserContext, Page, Route, APIResponse
 
@@ -22,6 +23,9 @@ from common.utils import (
     first_of,
     parse_thread_item
 )
+
+# Vision Agent URL - 指向我們即將建立的新端點
+VISION_AGENT_URL = "http://vision-agent:8005/v1/vision/extract-views-from-image"
 
 # 調試檔案路徑
 DEBUG_DIR = Path(__file__).parent / "debug"
@@ -208,48 +212,52 @@ def parse_post_data(thread_item: Dict[str, Any], username: str) -> Optional[Post
         reposts_count=int(repost_count) if isinstance(repost_count, (int, str)) and str(repost_count).isdigit() else 0,
         shares_count=int(share_count) if isinstance(share_count, (int, str)) and str(share_count).isdigit() else 0,
         content=content,
-        created_at=created_at,
+        created_at=datetime.fromtimestamp(created_at) if created_at and isinstance(created_at, (int, float)) else datetime.utcnow(),
         images=images,
         videos=videos,
         # 新增：直接從 API 解析 views_count（按指引優先嘗試 API）
         views_count=first_of(post, *FIELD_MAP["view_count"]) if first_of(post, *FIELD_MAP["view_count"]) is not None else None,
     )
 
-# +++ 新增：從前端解析瀏覽數的輔助函式 +++
+# +++ 新增：從前端解析瀏覽數的輔助函式（修復空格問題） +++
 def parse_views_text(text: Optional[str]) -> Optional[int]:
-    """將 '161.9萬次瀏覽' 或 '1.2M views' 這類文字轉換為整數"""
+    """將 '161.9萬次瀏覽' 或 '4 萬次瀏覽' 或 '1.2M views' 這類文字轉換為整數"""
     if not text:
         return None
     try:
         original_text = text
-        text_lower = text.lower().replace(",", "").strip()
         
-        # 移除「次瀏覽」和「views」等後綴
-        text_clean = text_lower.replace("次瀏覽", "").replace("views", "").replace("view", "").strip()
+        # 移除不必要的文字，保留數字和單位
+        text = re.sub(r'串文\s*', '', text)  # 移除 "串文"
         
-        # 提取數字部分
-        num_part = re.findall(r"[\d\.]+", text_clean)
-        if not num_part:
-            logging.debug(f"🔍 無法從 '{original_text}' 中提取數字")
-            return None
+        # 處理中文格式：1.2萬、4 萬次瀏覽、5000次瀏覽
+        if '萬' in text:
+            match = re.search(r'([\d.]+)\s*萬', text)  # 允許數字和萬之間有空格
+            if match:
+                return int(float(match.group(1)) * 10000)
+        elif '億' in text:
+            match = re.search(r'([\d.]+)\s*億', text)  # 允許數字和億之間有空格
+            if match:
+                return int(float(match.group(1)) * 100000000)
         
-        num = float(num_part[0])
+        # 處理英文格式：1.2M views, 500K views
+        text_upper = text.upper()
+        if 'M' in text_upper:
+            match = re.search(r'([\d.]+)M', text_upper)
+            if match:
+                return int(float(match.group(1)) * 1000000)
+        elif 'K' in text_upper:
+            match = re.search(r'([\d.]+)K', text_upper)
+            if match:
+                return int(float(match.group(1)) * 1000)
         
-        # 處理中文單位
-        if "萬" in text:
-            result = int(num * 10000)
-        elif "億" in text:
-            result = int(num * 100000000)
-        # 處理英文單位
-        elif "m" in text_lower:
-            result = int(num * 1000000)
-        elif "k" in text_lower:
-            result = int(num * 1000)
-        else:
-            result = int(num)
-            
-        logging.debug(f"🔍 成功解析 '{original_text}' -> {result}")
-        return result
+        # 處理純數字格式（可能包含逗號）
+        match = re.search(r'[\d,]+', text)
+        if match:
+            return int(match.group(0).replace(',', ''))
+        
+        logging.debug(f"🔍 無法解析瀏覽數文字: '{original_text}'")
+        return None
         
     except (ValueError, IndexError) as e:
         logging.warning(f"⚠️ 無法解析瀏覽數文字: '{text}' - {e}")
@@ -357,6 +365,52 @@ class PlaywrightLogic:
                     
         return _handle_response
 
+    async def get_ordered_post_urls_from_page(self, page: Page, username: str, max_posts: int) -> List[str]:
+        """
+        從用戶頁面直接提取貼文 URLs，保持時間順序
+        這是解決貼文順序混亂問題的關鍵方法
+        """
+        user_url = f"https://www.threads.com/@{username}"
+        logging.info(f"🔍 正在從用戶頁面獲取有序的貼文 URLs: {user_url}")
+        
+        await page.goto(user_url, wait_until="networkidle")
+        
+        # 等待頁面載入
+        await asyncio.sleep(3)
+        
+        # 滾動以載入更多貼文（但不要滾動太多次避免載入過舊的貼文）
+        scroll_count = min(3, max(1, max_posts // 10))  # 根據需求動態調整滾動次數
+        for i in range(scroll_count):
+            await page.mouse.wheel(0, 1000)
+            await asyncio.sleep(2)
+        
+        # 提取貼文 URLs，保持原始順序
+        post_urls = await page.evaluate("""
+            () => {
+                // 獲取所有貼文連結，保持DOM中的原始順序
+                const links = Array.from(document.querySelectorAll('a[href*="/post/"]'));
+                const urls = [];
+                const seen = new Set();
+                
+                // 遍歷時保持順序，只去重但不重排
+                for (const link of links) {
+                    const url = link.href;
+                    if (url.includes('/post/') && !seen.has(url)) {
+                        seen.add(url);
+                        urls.push(url);
+                    }
+                }
+                
+                return urls;
+            }
+        """)
+        
+        # 限制數量但保持順序
+        post_urls = post_urls[:max_posts]
+        logging.info(f"   ✅ 按時間順序找到 {len(post_urls)} 個貼文 URLs")
+        
+        return post_urls
+
     async def fetch_posts(
         self,
         username: str,
@@ -395,12 +449,24 @@ class PlaywrightLogic:
                     viewport={"width": 1920, "height": 1080},
                     locale="zh-TW",  # 設定為繁體中文
                     has_touch=True,
-                    accept_downloads=False
+                    accept_downloads=False,
+                    bypass_csp=True  # 新增：繞過 CSP 限制
                 )
+                # 新增：隱藏 webdriver 屬性
+                await self.context.add_init_script(
+                    "Object.defineProperty(navigator,'webdriver',{get:()=>undefined})"
+                )
+                
                 page = await self.context.new_page()
                 page.on("console", lambda m: logging.info(f"CONSOLE [{m.type}] {m.text}"))
 
-                # Response handler
+                # --- 新方法：先獲取有序的貼文 URLs ---
+                logging.info(f"🎯 [Task: {task_id}] 使用新的有序貼文獲取方法")
+                ordered_post_urls = await self.get_ordered_post_urls_from_page(page, username, max_posts)
+                
+                if not ordered_post_urls:
+                    logging.warning(f"⚠️ [Task: {task_id}] 無法從用戶頁面獲取貼文 URLs，回退至舊方法")
+                    # 回退至原始的 GraphQL 攔截方法
                 response_handler = self._build_response_handler(username, posts, task_id, max_posts, stream_callback=None)
                 page.on("response", response_handler)
 
@@ -440,14 +506,67 @@ class PlaywrightLogic:
                             total=max_posts,
                             progress=min(len(posts) / max_posts, 1.0)
                         )
+                else:
+                    # --- 新方法：使用有序URLs創建PostMetrics，稍後補齊詳細數據 ---
+                    logging.info(f"✅ [Task: {task_id}] 使用有序URLs創建基礎PostMetrics，保持時間順序")
+                    ordered_posts = []  # 保持順序的陣列
+                    
+                    for i, post_url in enumerate(ordered_post_urls):
+                        # 從 URL 中提取 post_id 和 code
+                        url_parts = post_url.split('/')
+                        if len(url_parts) >= 2:
+                            code = url_parts[-1] if url_parts[-1] != 'media' else url_parts[-2]  # 處理 /media 結尾
+                            post_id = f"{username}_{code}"  # 生成唯一的 post_id
+                            
+                            # 創建基本的 PostMetrics 物件
+                            post_metrics = PostMetrics(
+                                url=post_url,
+                                post_id=post_id,
+                                username=username,
+                                source="playwright_ordered",
+                                processing_stage="url_extracted",
+                                likes_count=0,  # 將通過頁面訪問補齊
+                                comments_count=0,  # 將通過頁面訪問補齊
+                                reposts_count=0,  # 將通過頁面訪問補齊
+                                shares_count=0,  # 將通過頁面訪問補齊
+                                content="",  # 將通過頁面訪問補齊
+                                created_at=datetime.utcnow(),  # 使用當前時間作為預設值
+                                images=[],  # 將通過頁面訪問補齊
+                                videos=[],  # 將通過頁面訪問補齊
+                                views_count=None  # 將通過 fill_views_from_page 補齊
+                            )
+                            
+                            ordered_posts.append(post_metrics)
+                            posts[post_id] = post_metrics  # 同時加入字典供後續處理
+                            
+                            # 發布進度
+                            await publish_progress(
+                                task_id, 
+                                "post_url_extracted",
+                                username=username,
+                                post_id=post_id,
+                                current=len(ordered_posts),
+                                total=max_posts,
+                                progress=len(ordered_posts) / max_posts,
+                                url=post_url
+                            )
+                    
+                    # 使用 ordered_posts 而不是 posts.values() 來保持順序
+                    logging.info(f"✅ [Task: {task_id}] 創建了 {len(ordered_posts)} 個有序的基礎PostMetrics")
                 
                 # 關閉 page 但保留 context 供 fill_views_from_page 使用
                 await page.close()
 
                 # --- 整理並回傳結果 ---
+                # 使用有序的 posts 列表或回退到原始方法
+                if 'ordered_posts' in locals():
+                    final_posts = ordered_posts[:max_posts]  # 保持原始順序，只限制數量
+                    total_found = len(ordered_posts)
+                    logging.info(f"🎯 [Task: {task_id}] 使用有序貼文列表，保持DOM提取的時間順序")
+                else:
+                    # 回退到原始方法（GraphQL攔截的情況）
                 final_posts = list(posts.values())
                 total_found = len(final_posts)
-                
                 # 根據 max_posts 截斷結果
                 if total_found > max_posts:
                     try:
@@ -455,10 +574,31 @@ class PlaywrightLogic:
                     except Exception:
                         pass 
                     final_posts = final_posts[:max_posts]
+                    logging.info(f"🔄 [Task: {task_id}] 使用GraphQL攔截方法，按created_at排序")
                 
                 logging.info(f"🔄 [Task: {task_id}] 準備回傳最終資料：共發現 {total_found} 則貼文, 回傳 {len(final_posts)} 則")
                 
-                # --- 補齊觀看數 (在 browser context 還存在時執行) ---
+                # --- 補齊詳細數據和觀看數 (在 browser context 還存在時執行) ---
+                if 'ordered_posts' in locals():
+                    # 配置選項：是否啟用詳細數據補齊
+                    enable_details_filling = getattr(self.settings, 'enable_details_filling', False)
+                    
+                    if enable_details_filling:
+                        # 新方法：需要補齊詳細數據
+                        logging.info(f"🔍 [Task: {task_id}] 開始補齊詳細數據（likes, content等）...")
+                        await publish_progress(task_id, "fill_details_start", username=username, posts_count=len(final_posts))
+                        
+                        try:
+                            final_posts = await self.fill_post_details_from_page(final_posts, task_id=task_id, username=username)
+                            logging.info(f"✅ [Task: {task_id}] 詳細數據補齊完成")
+                            await publish_progress(task_id, "fill_details_completed", username=username, posts_count=len(final_posts))
+                        except Exception as e:
+                            logging.warning(f"⚠️ [Task: {task_id}] 補齊詳細數據時發生錯誤: {e}")
+                            await publish_progress(task_id, "fill_details_error", username=username, error=str(e))
+                    else:
+                        logging.info(f"⚠️ [Task: {task_id}] 詳細數據補齊已禁用，將只補齊瀏覽數")
+                
+                # 補齊觀看數（兩種方法都需要）
                 logging.info(f"🔍 [Task: {task_id}] 開始補齊觀看數...")
                 await publish_progress(task_id, "fill_views_start", username=username, posts_count=len(final_posts))
                 
@@ -551,18 +691,18 @@ class PlaywrightLogic:
             # 確保 context 被重置（browser 已在上面手動關閉）
             self.context = None 
 
-    # +++ 新增：從前端補齊瀏覽數的核心方法 +++
+    # +++ 新增：從前端補齊瀏覽數的核心方法（整合 Gate 頁面處理） +++
     async def fill_views_from_page(self, posts_to_fill: List[PostMetrics], task_id: str = None, username: str = None) -> List[PostMetrics]:
         """
         遍歷貼文列表，導航到每個貼文的頁面以補齊 views_count。
-        使用並發處理來加速此過程。
+        整合了成功的 Gate 頁面處理和雙策略提取方法。
         """
         if not self.context:
             logging.error("❌ Browser context 未初始化，無法執行 fill_views_from_page。")
             return posts_to_fill
 
-        # 使用 Semaphore 限制並發數，避免被伺服器封鎖
-        semaphore = asyncio.Semaphore(5)
+        # 減少並發數以避免觸發反爬蟲機制
+        semaphore = asyncio.Semaphore(2)
         
         async def fetch_single_view(post: PostMetrics):
             async with semaphore:
@@ -572,26 +712,72 @@ class PlaywrightLogic:
                     # 禁用圖片和影片載入以加速
                     await page.route("**/*.{png,jpg,jpeg,gif,mp4,webp}", lambda r: r.abort())
                     
-                    for attempt in range(3): # 最多重試3次
+                    logging.debug(f"📄 正在處理: {post.url}")
+                    
+                    # 導航到貼文頁面
+                    await page.goto(post.url, wait_until="networkidle", timeout=30000)
+                    
+                    # 檢查頁面類型（完整頁面 vs Gate 頁面）
+                    page_content = await page.content()
+                    is_gate_page = "__NEXT_DATA__" not in page_content
+                    
+                    if is_gate_page:
+                        logging.debug(f"   ⚠️ 檢測到 Gate 頁面，直接使用 DOM 選擇器...")
+                    
+                    views_count = None
+                    extraction_method = None
+                    
+                    # 策略 1: GraphQL 攔截（只在非 Gate 頁面時）
+                    if not is_gate_page:
                         try:
-                            logging.debug(f"  ➡️ (Attempt {attempt+1}) 正在導航至: {post.url}")
-                            await page.goto(post.url, timeout=20000, wait_until='domcontentloaded')
+                            response = await page.wait_for_response(
+                                lambda r: "containing_thread" in r.url and r.status == 200, 
+                                timeout=8000
+                            )
+                            data = await response.json()
                             
-                            # 使用您建議的、最穩健的 Selector
-                            selector = "span:has-text('次瀏覽'), span:has-text('views')"
+                            # 解析瀏覽數
+                            thread_items = data["data"]["containing_thread"]["thread_items"]
+                            post_data = thread_items[0]["post"]
+                            views_count = (post_data.get("feedback_info", {}).get("view_count") or
+                                          post_data.get("video_info", {}).get("play_count") or 0)
                             
-                            # 等待元素出現，最多10秒
-                            element = await page.wait_for_selector(selector, timeout=10000)
-                            
+                            if views_count > 0:
+                                extraction_method = "graphql_api"
+                                logging.debug(f"   ✅ GraphQL API 獲取瀏覽數: {views_count:,}")
+                        except Exception as e:
+                            logging.debug(f"   ⚠️ GraphQL 攔截失敗: {str(e)[:100]}")
+                    
+                    # 策略 2: DOM 選擇器（Gate 頁面的主要方法）
+                    if views_count is None or views_count == 0:
+                        selectors = [
+                            "a:has-text(' 次瀏覽'), a:has-text(' views')",    # 主要選擇器
+                            "*:has-text('次瀏覽'), *:has-text('views')",      # 通用選擇器
+                            "span:has-text('次瀏覽'), span:has-text('views')", # span 元素
+                            "text=/\\d+.*次瀏覽/, text=/\\d+.*views?/",       # 正則表達式
+                        ]
+                        
+                        for i, selector in enumerate(selectors):
+                            try:
+                                element = await page.wait_for_selector(selector, timeout=3000)
                             if element:
                                 view_text = await element.inner_text()
-                                views_count = parse_views_text(view_text)
-                                if views_count is not None:
+                                    parsed_views = parse_views_text(view_text)
+                                    if parsed_views and parsed_views > 0:
+                                        views_count = parsed_views
+                                        extraction_method = f"dom_selector_{i+1}"
+                                        logging.debug(f"   ✅ DOM 選擇器 {i+1} 獲取瀏覽數: {views_count:,}")
+                                        break
+                            except Exception:
+                                continue
+                    
+                    # 更新結果
+                    if views_count and views_count > 0:
                                     post.views_count = views_count
                                     post.views_fetched_at = datetime.utcnow()
-                                    logging.info(f"  ✅ 成功獲取 {post.post_id} 的瀏覽數: {views_count}")
+                        logging.info(f"  ✅ 成功獲取 {post.post_id} 的瀏覽數: {views_count:,} (方法: {extraction_method})")
                                     
-                                    # 🔥 新增：每成功獲取一個瀏覽數就發布即時進度
+                        # 發布進度
                                     if task_id:
                                         from common.nats_client import publish_progress
                                         await publish_progress(
@@ -600,41 +786,195 @@ class PlaywrightLogic:
                                             username=username or "unknown",
                                             post_id=post.post_id,
                                             views_count=views_count,
-                                            views_formatted=f"{views_count:,}",
-                                            progress_detail=f"已獲取 {post.post_id} 的 {views_count:,} 次瀏覽"
-                                        )
-                                    
-                                    return # 成功後退出重試循環
-                            break # 找到元素但解析失敗也跳出
-                        except Exception as e:
-                            logging.warning(f"  ⚠️ (Attempt {attempt+1}) 獲取 {post.post_id} 瀏覽數失敗: {type(e).__name__}")
-                            if attempt < 2:
-                                await asyncio.sleep(2) # 重試前等待
+                                extraction_method=extraction_method,
+                                is_gate_page=is_gate_page
+                            )
                             else:
-                                post.views_count = -1 # 最終失敗，標記為-1
-                                post.views_fetched_at = datetime.utcnow()
+                        logging.warning(f"  ❌ 無法獲取 {post.post_id} 的瀏覽數")
+                        post.views_count = -1
+                                            post.views_fetched_at = datetime.utcnow()
+                    
+                    # 隨機延遲避免反爬蟲
+                    delay = random.uniform(2, 4)
+                    await asyncio.sleep(delay)
+                    
                 except Exception as e:
-                    logging.error(f"  ❌ 處理 {post.post_id} 時發生嚴重錯誤: {e}")
+                    logging.error(f"  ❌ 處理 {post.post_id} 時發生錯誤: {e}")
                     post.views_count = -1
                     post.views_fetched_at = datetime.utcnow()
                 finally:
                     if page:
                         await page.close()
 
-        tasks = []
+        # 序列處理避免並發問題（根據成功經驗）
         for post in posts_to_fill:
-            tasks.append(fetch_single_view(post))
-            
-        await asyncio.gather(*tasks)
+            await fetch_single_view(post)
+        
+        return posts_to_fill
+
+    # +++ 新增：補齊貼文詳細數據的方法 +++
+    async def fill_post_details_from_page(self, posts_to_fill: List[PostMetrics], task_id: str = None, username: str = None) -> List[PostMetrics]:
+        """
+        遍歷貼文列表，導航到每個貼文頁面以補齊詳細數據（likes, content, images等）。
+        保持原始順序不變。
+        """
+        if not self.context:
+            logging.error("❌ Browser context 未初始化，無法執行 fill_post_details_from_page。")
+            return posts_to_fill
+
+        # 減少並發數以避免觸發反爬蟲機制
+        semaphore = asyncio.Semaphore(1)  # 更保守的並發數
+        
+        async def fetch_single_details(post: PostMetrics):
+            async with semaphore:
+                page = None
+                try:
+                    page = await self.context.new_page()
+                    # 禁用圖片和影片載入以加速
+                    await page.route("**/*.{png,jpg,jpeg,gif,mp4,webp}", lambda r: r.abort())
+                    
+                    logging.debug(f"📄 正在補齊詳細數據: {post.url}")
+                    
+                    # 設置GraphQL攔截器來獲取完整數據
+                    captured_data = {}
+                    
+                    async def handle_graphql_response(response):
+                        if GRAPHQL_RE.search(response.url):
+                            try:
+                                data = await response.json()
+                                
+                                # 多種GraphQL結構的支援
+                                thread_items = None
+                                
+                                # 結構1: data.containing_thread.thread_items
+                                if "data" in data and "containing_thread" in data.get("data", {}):
+                                    thread_items = data["data"]["containing_thread"].get("thread_items", [])
+                                
+                                # 結構2: data.mediaData.edges[].node.thread_items  
+                                elif "data" in data and "mediaData" in data.get("data", {}):
+                                    edges = data["data"]["mediaData"].get("edges", [])
+                                    for edge in edges:
+                                        node_items = edge.get("node", {}).get("thread_items", [])
+                                        if node_items:
+                                            thread_items = node_items
+                                            break
+                                
+                                # 結構3: 直接在data層級
+                                elif "data" in data:
+                                    for key, value in data["data"].items():
+                                        if isinstance(value, dict) and "thread_items" in value:
+                                            thread_items = value["thread_items"]
+                                            break
+                                
+                                if thread_items and len(thread_items) > 0:
+                                    captured_data["post_data"] = thread_items[0]
+                                    logging.debug(f"   ✅ 成功攔截到GraphQL數據: {response.url}")
+                                else:
+                                    logging.debug(f"   ⚠️ GraphQL響應中無thread_items: {list(data.get('data', {}).keys())}")
+                                    
+                            except Exception as e:
+                                logging.debug(f"   ❌ 解析GraphQL響應失敗: {e}")
+                    
+                    page.on("response", handle_graphql_response)
+                    
+                    # 導航到貼文頁面
+                    await page.goto(post.url, wait_until="networkidle", timeout=30000)
+                    
+                    # 等待GraphQL響應
+                    await asyncio.sleep(2)
+                    
+                    # 如果獲取到GraphQL數據，解析並更新PostMetrics
+                    if "post_data" in captured_data:
+                        post_data = captured_data["post_data"]
+                        parsed_post = parse_post_data(post_data, username)
+                        
+                        if parsed_post:
+                            # 更新詳細數據，但保持原始的URL和post_id
+                            post.likes_count = parsed_post.likes_count
+                            post.comments_count = parsed_post.comments_count
+                            post.reposts_count = parsed_post.reposts_count
+                            post.shares_count = parsed_post.shares_count
+                            post.content = parsed_post.content
+                            post.images = parsed_post.images
+                            post.videos = parsed_post.videos
+                            post.processing_stage = "details_filled_graphql"
+                            
+                            logging.info(f"  ✅ GraphQL成功補齊 {post.post_id}: 讚={post.likes_count}, 內容長度={len(post.content)}")
+                            
+                            # 發布進度
+                            if task_id:
+                                from common.nats_client import publish_progress
+                                await publish_progress(
+                                    task_id, 
+                                    "details_fetched_graphql",
+                                    username=username or "unknown",
+                                    post_id=post.post_id,
+                                    likes_count=post.likes_count,
+                                    content_length=len(post.content)
+                                )
+                        else:
+                            logging.warning(f"  ⚠️ 無法解析 {post.post_id} 的GraphQL數據")
+                    else:
+                        # GraphQL 回退方案：使用 DOM 提取基本資訊
+                        logging.info(f"  🔄 GraphQL失敗，改用DOM提取 {post.post_id} 的基本資訊...")
+                        
+                        try:
+                            # 等待頁面載入完成
+                            await page.wait_for_load_state("networkidle", timeout=10000)
+                            
+                            # 提取文字內容
+                            try:
+                                content_selectors = [
+                                    '[data-testid="thread-text-content"]',
+                                    'div[dir="auto"]',
+                                    'span:has-text("...")',
+                                    'div:has(span)'
+                                ]
+                                content = ""
+                                for selector in content_selectors:
+                                    elements = await page.query_selector_all(selector)
+                                    for elem in elements:
+                                        text = await elem.inner_text()
+                                        if text and len(text) > len(content):
+                                            content = text
+                                    if content:
+                                        break
+                                
+                                if content:
+                                    post.content = content.strip()
+                                    
+                            except Exception as e:
+                                logging.debug(f"    ⚠️ DOM內容提取失敗: {e}")
+                            
+                            # 簡單的數字提取（讚數等）
+                            try:
+                                # 這裡可以添加DOM選擇器來提取likes等數據
+                                # 目前先跳過，專注於content提取
+                                pass
+                            except Exception as e:
+                                logging.debug(f"    ⚠️ DOM數字提取失敗: {e}")
+                            
+                            post.processing_stage = "details_filled_dom"
+                            logging.info(f"  ✅ DOM成功補齊 {post.post_id}: 內容長度={len(post.content)}")
+                            
+                        except Exception as e:
+                            logging.warning(f"  ⚠️ DOM提取也失敗 {post.post_id}: {e}")
+                            post.processing_stage = "details_failed"
+                    
+                    # 隨機延遲避免反爬蟲
+                    delay = random.uniform(2, 4)
+                    await asyncio.sleep(delay)
+                    
+                except Exception as e:
+                    logging.error(f"  ❌ 處理 {post.post_id} 詳細數據時發生錯誤: {e}")
+                finally:
+                    if page:
+                        await page.close()
+
+        # 序列處理保持順序
+        for post in posts_to_fill:
+            await fetch_single_details(post)
         
         return posts_to_fill
 
 
-    async def _scroll_and_collect(self, page: Page, username: str, max_posts: int):
-        pass
-
-
-    async def _handle_response(self, response: APIResponse, username: str):
-        """處理 GraphQL API 回應"""
-        # ... (這裡的 _handle_response 維持原樣) ...
-# ... existing code ... 
