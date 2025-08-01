@@ -11,7 +11,7 @@ import uuid
 from typing import Dict, Any, AsyncIterable
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from sse_starlette.sse import EventSourceResponse
 
@@ -339,6 +339,29 @@ async def get_queue_status(queue_name: str):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"獲取佇列狀態失敗: {str(e)}")
+
+
+@app.post("/v1/vision/extract-views-from-image", tags=["Vision Extraction"])
+async def extract_views_from_image_endpoint(image: UploadFile = File(...)):
+    """
+    接收上傳的圖片，並從中提取瀏覽次數。
+    這是為 Playwright Crawler 的回落機制設計的專用端點。
+    """
+    try:
+        # 讀取圖片的 bytes
+        image_bytes = await image.read()
+        
+        # 呼叫我們在 gemini_vision.py 中建立的核心邏輯
+        result = await vision_fill_agent.vision_logic.gemini_analyzer.extract_views_from_image(image_bytes)
+        
+        return result
+        
+    except Exception as e:
+        # 記錄詳細錯誤
+        error_message = f"從圖片提取瀏覽次數時發生內部錯誤: {e}"
+        print(f"❌ {error_message}")
+        # 返回一個標準的錯誤回應
+        raise HTTPException(status_code=500, detail=error_message)
 
 
 # MCP 整合端點

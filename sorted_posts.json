@@ -1,0 +1,38 @@
+{
+  "batch_id": "graphql-test-20250801-102549",
+  "username": "starettoday",
+  "total_count": 1,
+  "current_count": 1,
+  "processing_stage": "completed",
+  "posts": [
+    {
+      "post_id": "unknown",
+      "username": "starettoday",
+      "url": "https://www.threads.com/@starettoday/post/unknown",
+      "content": "",
+      "likes_count": 0,
+      "comments_count": 0,
+      "reposts_count": 0,
+      "shares_count": 0,
+      "views_count": 0,
+      "images": [],
+      "videos": [],
+      "created_at": "2025-08-01T10:25:49.420481",
+      "fetched_at": "2025-08-01T10:25:49.420481",
+      "views_fetched_at": null,
+      "source": "graphql",
+      "processing_stage": "graphql_parsed",
+      "is_complete": false,
+      "last_updated": "2025-08-01T10:25:49.420481",
+      "calculated_score": 0.0,
+      "is_pinned": false
+    }
+  ],
+  "created_at": "2025-08-01T10:25:49.420481",
+  "completed_at": "2025-08-01T10:25:49.420481",
+  "metadata": {
+    "source": "graphql_direct",
+    "extraction_method": "view_single_post_graphql.py",
+    "total_posts_found": 1
+  }
+}

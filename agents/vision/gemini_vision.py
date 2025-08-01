@@ -62,30 +62,96 @@ class GeminiVisionAnalyzer:
 
         # 影片內容描述系統提示
         self.video_prompt = """
-請詳細描述這個 Threads 社交媒體影片的內容：
+        請詳細描述這個 Threads 社交媒體影片的內容：
 
-描述重點：
-1. **影片概要**：影片的主要內容和主題
-2. **場景描述**：影片中的場景、環境、背景
-3. **動作和事件**：影片中發生的動作、事件序列
-4. **人物和對象**：出現的人物、物件及其互動
-5. **音視覺效果**：視覺效果、轉場、文字覆蓋等
-6. **文字內容**：影片中出現的所有文字（字幕、標題、註解等）
-7. **情感和氛圍**：影片傳達的情感、氛圍或訊息
+        描述重點：
+        1. **影片概要**：影片的主要內容和主題
+        2. **場景描述**：影片中的場景、環境、背景
+        3. **動作和事件**：影片中發生的動作、事件序列
+        4. **人物和對象**：出現的人物、物件及其互動
+        5. **音視覺效果**：視覺效果、轉場、文字覆蓋等
+        6. **文字內容**：影片中出現的所有文字（字幕、標題、註解等）
+        7. **情感和氛圍**：影片傳達的情感、氛圍或訊息
 
-描述格式：
-{
-  "video_summary": "影片概要",
-  "scene_description": "場景描述",
-  "actions_and_events": "動作和事件",
-  "characters_and_objects": "人物和對象",
-  "visual_effects": "視覺效果",
-  "text_content": "文字內容",
-  "mood_and_message": "情感和訊息"
-}
+        描述格式：
+        {
+          "video_summary": "影片概要",
+          "scene_description": "場景描述",
+          "actions_and_events": "動作和事件",
+          "characters_and_objects": "人物和對象",
+          "visual_effects": "視覺效果",
+          "text_content": "文字內容",
+          "mood_and_message": "情感和訊息"
+        }
 
-請用繁體中文回應，描述要詳細且準確，特別注意影片的時間序列和動態變化。
-"""
+        請用繁體中文回應，描述要詳細且準確，特別注意影片的時間序列和動態變化。
+        """
+
+        # 從截圖中提取瀏覽次數的系統提示
+        self.extract_views_prompt = """
+        你是一個專注於從 Threads 貼文截圖中提取「瀏覽次數」的專家。
+        你的任務是只找出代表瀏覽次數的數字，並忽略所有其他資訊（如按讚、留言、轉發等）。
+
+        - **目標**：找出「次瀏覽」或「views」旁邊的數字。
+        - **格式**：將數字轉換為整數 (integer)。例如 "1,234" 應為 1234，"1.2萬" 應為 12000，"1.2M" 應為 1200000。
+        - **輸出**：必須以以下的 JSON 格式回傳，且不得包含任何其他文字或說明。
+        - **如果找不到**：如果圖片中沒有瀏覽次數，回傳 `{"views_count": null}`。
+
+        範例輸出:
+        {"views_count": 12345}
+
+        範例輸出（找不到時）:
+        {"views_count": null}
+        """
+    
+    async def extract_views_from_image(self, image_bytes: bytes) -> Dict[str, Any]:
+        """
+        從單張圖片中提取瀏覽次數。
+
+        Args:
+            image_bytes: 圖片的二進制數據。
+
+        Returns:
+            一個包含 `views_count` 的字典。
+        """
+        try:
+            import base64
+            media_part = {
+                "mime_type": "image/jpeg", # 假設截圖為 jpeg
+                "data": base64.b64encode(image_bytes).decode('utf-8')
+            }
+            
+            response = self.model.generate_content(
+                [media_part, self.extract_views_prompt],
+                safety_settings=self.safety_settings,
+                generation_config=genai.types.GenerationConfig(
+                    temperature=0.0, # 溫度設為 0 以獲得最精確、可預測的結果
+                    max_output_tokens=100, # 限制輸出 token 數量
+                )
+            )
+            
+            response_text = response.text.strip()
+            # 清理常見的 markdown code block
+            if response_text.startswith("```json"):
+                response_text = response_text[7:-3].strip()
+            
+            data = json.loads(response_text)
+            
+            # 驗證格式並確保 views_count 是整數或 None
+            if "views_count" in data and data["views_count"] is not None:
+                data["views_count"] = int(data["views_count"])
+            else:
+                data["views_count"] = -1 # 使用 -1 表示未找到，以便與 Playwright 的失敗情況區分
+
+            return data
+
+        except json.JSONDecodeError as e:
+            print(f"❌ Gemini Vision - JSON 解析失敗: {e}, 回應: {response.text}")
+            return {"views_count": -1} # 解析失敗也返回 -1
+        except Exception as e:
+            print(f"❌ Gemini Vision - 提取瀏覽次數時發生錯誤: {e}")
+            raise Exception(f"Gemini Vision 提取瀏覽次數失敗: {str(e)}")
+
     
     async def analyze_media(self, media_bytes: bytes, mime_type: str) -> Dict[str, Any]:
         """

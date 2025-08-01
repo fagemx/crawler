@@ -38,3 +38,5 @@
 
 [2025-07-31 14:01:01.717849 +00:00] WARN [rustfs_ecstore::bucket::policy_sys] [crates/ecstore/src/bucket/policy_sys.rs:29] [tokio-runtime-worker:ThreadId(1260)] config get err Io(Custom { kind: Other, error: ConfigNotFound })
 
+[2025-07-31 15:10:30.205325 +00:00] ERROR [s3s::ops] [/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/s3s-0.12.0-minio-preview.2/src/ops/mod.rs:241] [tokio-runtime-worker:ThreadId(1514)] error=S3Error { code: InvalidRequest, message: "invalid header: authorization", source: ParseAuthorizationError { _priv: () }, .. }
+
