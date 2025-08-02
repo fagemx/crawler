@@ -485,7 +485,7 @@ services:
       "-t", "u:Host:localhost:8501",
       "-o", "StrictHostKeyChecking=no",
       "-o", "ServerAliveInterval=30",
-      "RdUOEHSfE2u@pro.pinggy.io"
+      "RdUOEHSfE2u@a.pinggy.io"
     ]
     depends_on:
       streamlit-ui:
