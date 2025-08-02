@@ -86,7 +86,7 @@ async def crawl_and_get_batch(request: CrawlRequest):
     try:
         batch = await logic.fetch_posts(
             username=request.username,
-            max_posts=request.max_posts,
+            extra_posts=request.max_posts,  # 向後兼容：max_posts作為extra_posts傳入
             auth_json_content=request.auth_json_content, # 使用傳入的認證內容
             task_id=task_id
         )
