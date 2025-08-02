@@ -201,9 +201,12 @@ def parse_post_data(thread_item: Dict[str, Any], username: str) -> Optional[Post
     # 成功解析，記錄部分資訊供除錯
     logging.info(f"✅ 成功解析貼文 {post_id}: 作者={author}, 讚數={like_count}, 圖片={len(images)}, 影片={len(videos)}")
     
+    # 統一 post_id 格式：使用 username_code 而不是原始的數字 ID
+    unified_post_id = f"{username}_{code}"
+    
     return PostMetrics(
         url=url,
-        post_id=str(post_id),
+        post_id=unified_post_id,  # 使用統一格式的 post_id
         username=username,
         source="playwright",
         processing_stage="playwright_crawled",
@@ -310,9 +313,15 @@ class PlaywrightLogic:
 
                 for item in thread_items:
                     parsed_post = parse_post_data(item, username)
-                    if parsed_post and parsed_post.post_id not in posts:
-                        posts[parsed_post.post_id] = parsed_post
-                        new_count += 1
+                    if parsed_post:
+                        if parsed_post.post_id in posts:
+                            # 已存在 -> 使用 merge_from 合併數據
+                            posts[parsed_post.post_id].merge_from(parsed_post)
+                            logging.info(f"🔄 合併 GraphQL 數據到已存在的貼文: {parsed_post.post_id}")
+                        else:
+                            # 新貼文 -> 直接加入
+                            posts[parsed_post.post_id] = parsed_post
+                            new_count += 1
                         
                         # 🔥 新增：每解析一個貼文就發布即時進度
                         from common.nats_client import publish_progress
@@ -530,11 +539,11 @@ class PlaywrightLogic:
                                     username=username,
                                     source="playwright_ordered",
                                     processing_stage="url_extracted",
-                                    # ⚠️ 用 None 取代 0，後面 merge 時比較好判斷
-                                    likes_count=None,
-                                    comments_count=None,
-                                    reposts_count=None,
-                                    shares_count=None,
+                                    # 用 0 作為預設值，但後面會被 GraphQL 數據覆蓋
+                                    likes_count=0,
+                                    comments_count=0,
+                                    reposts_count=0,
+                                    shares_count=0,
                                     content="",
                                     created_at=datetime.utcnow(),
                                     images=[],

@@ -123,12 +123,17 @@ class PostMetrics(BaseModel):
             src = getattr(other, field, None)
             dst = getattr(self, field, None)
             
-            # 文字 / List → 只要對方有內容
-            if isinstance(src, (str, list)) and src:
+            # 文字 / List → 只要對方有內容且目標為空
+            if isinstance(src, (str, list)) and src and not dst:
                 setattr(self, field, src)
-            # 數字 → 對方 >0 才覆寫
-            elif isinstance(src, (int, float)) and src and src > 0:
-                setattr(self, field, src)
+            # 數字 → 優先使用非零值，如果都非零則使用較大值
+            elif isinstance(src, (int, float)) and src is not None:
+                if dst is None or dst == 0:
+                    # 目標為 None 或 0，直接使用來源值
+                    setattr(self, field, src)
+                elif src > 0 and src > dst:
+                    # 來源值更大且 > 0，使用來源值
+                    setattr(self, field, src)
         
         # 更新處理階段和時間
         if other.processing_stage and other.processing_stage != "initial":
