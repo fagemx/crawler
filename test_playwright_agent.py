@@ -8,7 +8,7 @@ from pathlib import Path
 TARGET_USERNAME = "natgeo"  # <--- 在這裡修改您想爬取的帳號
 
 # 2. 要爬取的最大貼文數量
-MAX_POSTS_TO_FETCH = 10  # <--- 在這裡修改您想爬取的數量
+MAX_POSTS_TO_FETCH = 5  # <--- 在這裡修改您想爬取的數量
 
 # 3. Playwright Crawler Agent 的 API 端點
 #    請確保您的 docker compose 正在運行，且端口號正確

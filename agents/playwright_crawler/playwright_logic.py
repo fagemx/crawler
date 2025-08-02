@@ -518,26 +518,32 @@ class PlaywrightLogic:
                             code = url_parts[-1] if url_parts[-1] != 'media' else url_parts[-2]  # 處理 /media 結尾
                             post_id = f"{username}_{code}"  # 生成唯一的 post_id
                             
-                            # 創建基本的 PostMetrics 物件
-                            post_metrics = PostMetrics(
-                                url=post_url,
-                                post_id=post_id,
-                                username=username,
-                                source="playwright_ordered",
-                                processing_stage="url_extracted",
-                                likes_count=0,  # 將通過頁面訪問補齊
-                                comments_count=0,  # 將通過頁面訪問補齊
-                                reposts_count=0,  # 將通過頁面訪問補齊
-                                shares_count=0,  # 將通過頁面訪問補齊
-                                content="",  # 將通過頁面訪問補齊
-                                created_at=datetime.utcnow(),  # 使用當前時間作為預設值
-                                images=[],  # 將通過頁面訪問補齊
-                                videos=[],  # 將通過頁面訪問補齊
-                                views_count=None  # 將通過 fill_views_from_page 補齊
-                            )
+                            # ① 先看看這個 post_id 在字典裡有沒有「舊物件」
+                            if post_id in posts:
+                                # 已有 -> 直接沿用；不要重建、不要覆蓋
+                                post_metrics = posts[post_id]
+                            else:
+                                # 沒有 -> 才需要建一個殼
+                                post_metrics = PostMetrics(
+                                    url=post_url,
+                                    post_id=post_id,
+                                    username=username,
+                                    source="playwright_ordered",
+                                    processing_stage="url_extracted",
+                                    # ⚠️ 用 None 取代 0，後面 merge 時比較好判斷
+                                    likes_count=None,
+                                    comments_count=None,
+                                    reposts_count=None,
+                                    shares_count=None,
+                                    content="",
+                                    created_at=datetime.utcnow(),
+                                    images=[],
+                                    videos=[],
+                                    views_count=None,
+                                )
+                                posts[post_id] = post_metrics  # ★ 只在「第一次」才塞進 dict
                             
-                            ordered_posts.append(post_metrics)
-                            posts[post_id] = post_metrics  # 同時加入字典供後續處理
+                            ordered_posts.append(post_metrics)  # 這裡 append 的永遠是同一實例
                             
                             # 發布進度
                             await publish_progress(
@@ -770,28 +776,32 @@ class PlaywrightLogic:
                             except Exception:
                                 continue
                     
-                    # 更新結果
+                    # 更新結果 - 只在現有瀏覽數為 None 或 <= 0 時才更新
                     if views_count and views_count > 0:
-                        post.views_count = views_count
-                        post.views_fetched_at = datetime.utcnow()
-                        logging.info(f"  ✅ 成功獲取 {post.post_id} 的瀏覽數: {views_count:,} (方法: {extraction_method})")
-                        
-                        # 發布進度
-                        if task_id:
-                            from common.nats_client import publish_progress
-                            await publish_progress(
-                                task_id, 
-                                "views_fetched",
-                                username=username or "unknown",
-                                post_id=post.post_id,
-                                views_count=views_count,
-                                extraction_method=extraction_method,
-                                is_gate_page=is_gate_page
-                            )
+                        if post.views_count is None or post.views_count <= 0:
+                            post.views_count = views_count
+                            post.views_fetched_at = datetime.utcnow()
+                            logging.info(f"  ✅ 成功獲取 {post.post_id} 的瀏覽數: {views_count:,} (方法: {extraction_method})")
+                            
+                            # 發布進度
+                            if task_id:
+                                from common.nats_client import publish_progress
+                                await publish_progress(
+                                    task_id, 
+                                    "views_fetched",
+                                    username=username or "unknown",
+                                    post_id=post.post_id,
+                                    views_count=views_count,
+                                    extraction_method=extraction_method,
+                                    is_gate_page=is_gate_page
+                                )
+                        else:
+                            logging.info(f"  ℹ️ {post.post_id} 已有瀏覽數 {post.views_count:,}，跳過更新")
                     else:
-                        logging.warning(f"  ❌ 無法獲取 {post.post_id} 的瀏覽數")
-                        post.views_count = -1
-                        post.views_fetched_at = datetime.utcnow()
+                        if post.views_count is None:
+                            logging.warning(f"  ❌ 無法獲取 {post.post_id} 的瀏覽數")
+                            post.views_count = -1
+                            post.views_fetched_at = datetime.utcnow()
                     
                     # 隨機延遲避免反爬蟲
                     delay = random.uniform(2, 4)
@@ -1030,24 +1040,31 @@ class PlaywrightLogic:
                     # === 步驟 4: 更新貼文數據 ===
                     updated = False
                     
-                    # 更新計數數據
+                    # 更新計數數據 - 只在現有數據為 None 或 0 時才更新
                     if counts_data:
-                        post.likes_count = counts_data.get("likes", post.likes_count)
-                        post.comments_count = counts_data.get("comments", post.comments_count)
-                        post.reposts_count = counts_data.get("reposts", post.reposts_count)
-                        post.shares_count = counts_data.get("shares", post.shares_count)
-                        updated = True
+                        if post.likes_count in (None, 0) and counts_data.get("likes", 0) > 0:
+                            post.likes_count = counts_data["likes"]
+                            updated = True
+                        if post.comments_count in (None, 0) and counts_data.get("comments", 0) > 0:
+                            post.comments_count = counts_data["comments"]
+                            updated = True
+                        if post.reposts_count in (None, 0) and counts_data.get("reposts", 0) > 0:
+                            post.reposts_count = counts_data["reposts"]
+                            updated = True
+                        if post.shares_count in (None, 0) and counts_data.get("shares", 0) > 0:
+                            post.shares_count = counts_data["shares"]
+                            updated = True
                     
-                    # 更新內容數據
-                    if content_data.get("content"):
+                    # 更新內容數據 - 只在現有數據為空時才更新
+                    if content_data.get("content") and not post.content:
                         post.content = content_data["content"]
                         updated = True
                     
-                    if content_data.get("images"):
+                    if content_data.get("images") and not post.images:
                         post.images = content_data["images"]
                         updated = True
                     
-                    if content_data.get("videos"):
+                    if content_data.get("videos") and not post.videos:
                         # 過濾實際影片（排除 POSTER）
                         actual_videos = [v for v in content_data["videos"] if not v.startswith("POSTER::")]
                         if actual_videos:

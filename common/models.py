@@ -109,6 +109,31 @@ class PostMetrics(BaseModel):
         """更新完整性狀態"""
         self.is_complete = len(self.missing_fields()) == 0
         self.last_updated = datetime.utcnow()
+    
+    def merge_from(self, other: "PostMetrics"):
+        """
+        從另一個 PostMetrics 物件合併數據，避免覆蓋已有的有效數據
+        """
+        for field in (
+            "likes_count", "comments_count",
+            "reposts_count", "shares_count",
+            "views_count", "content",
+            "images", "videos",
+        ):
+            src = getattr(other, field, None)
+            dst = getattr(self, field, None)
+            
+            # 文字 / List → 只要對方有內容
+            if isinstance(src, (str, list)) and src:
+                setattr(self, field, src)
+            # 數字 → 對方 >0 才覆寫
+            elif isinstance(src, (int, float)) and src and src > 0:
+                setattr(self, field, src)
+        
+        # 更新處理階段和時間
+        if other.processing_stage and other.processing_stage != "initial":
+            self.processing_stage = other.processing_stage
+        self.last_updated = datetime.utcnow()
 
 
 class PostMetricsBatch(BaseModel):
