@@ -92,7 +92,7 @@ wait_and_show_status() {
     echo -e "${GREEN}🎉 系統啟動完成！${NC}"
     echo -e "${GREEN}================================${NC}"
     echo -e "${GREEN}🌐 本地訪問: http://localhost:8501${NC}"
-    echo -e "${GREEN}🌍 外網訪問: https://hlsbwbzaat.a.pinggy.link${NC}"
+    echo -e "${GREEN}🌍 外網訪問: https://supacool.xyz${NC}"
     echo -e "${GREEN}🤖 Orchestrator: http://localhost:8000${NC}"
     echo -e "${GREEN}📝 Form API: http://localhost:8010${NC}"
     echo -e "${GREEN}🔍 MCP Server: http://localhost:10100${NC}"

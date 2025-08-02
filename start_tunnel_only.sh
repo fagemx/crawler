@@ -61,7 +61,7 @@ check_tunnel_status() {
     echo -e "${GREEN}🎉 Tunnel 啟動完成！${NC}"
     echo -e "${GREEN}================================${NC}"
     echo -e "${GREEN}🌐 本地訪問: http://localhost:8501${NC}"
-    echo -e "${GREEN}🌍 外網訪問: https://hlsbwbzaat.a.pinggy.link${NC}"
+    echo -e "${GREEN}🌍 外網訪問: https://supacool.xyz${NC}"
     echo -e "${GREEN}================================${NC}"
     
     echo -e "${YELLOW}💡 提示：${NC}"
