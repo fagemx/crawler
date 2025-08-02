@@ -22,7 +22,7 @@ check_dependencies() {
     required_services=("orchestrator-agent" "form-api" "redis")
     
     for service in "${required_services[@]}"; do
-        if ! docker-compose ps -q "$service" | grep -q .; then
+        if ! docker compose ps -q "$service" | grep -q .; then
             echo -e "${RED}❌ $service 未運行${NC}"
             echo -e "${YELLOW}💡 請先啟動完整系統：./start_docker_ui.sh${NC}"
             exit 1
@@ -37,17 +37,17 @@ restart_ui() {
     echo -e "${BLUE}🔄 重啟 Streamlit UI...${NC}"
     
     # 停止現有 UI
-    docker-compose stop streamlit-ui
-    docker-compose rm -f streamlit-ui
+    docker compose stop streamlit-ui
+    docker compose rm -f streamlit-ui
     
     # 重新構建和啟動
-    docker-compose up -d --build streamlit-ui
+    docker compose up -d --build streamlit-ui
     
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}✅ UI 重啟成功${NC}"
     else
         echo -e "${RED}❌ UI 重啟失敗${NC}"
-        echo -e "${YELLOW}📋 檢查日誌：docker-compose logs streamlit-ui${NC}"
+        echo -e "${YELLOW}📋 檢查日誌：docker compose logs streamlit-ui${NC}"
         exit 1
     fi
 }
@@ -64,7 +64,7 @@ wait_for_ui() {
         
         if [ $i -eq 30 ]; then
             echo -e "${RED}❌ UI 服務啟動超時${NC}"
-            echo -e "${YELLOW}📋 檢查日誌：docker-compose logs streamlit-ui${NC}"
+            echo -e "${YELLOW}📋 檢查日誌：docker compose logs streamlit-ui${NC}"
             exit 1
         fi
         
@@ -81,9 +81,9 @@ show_result() {
     echo -e "${GREEN}================================${NC}"
     
     echo -e "${YELLOW}💡 提示：${NC}"
-    echo -e "${YELLOW}   - 查看 UI 日誌：docker-compose logs -f streamlit-ui${NC}"
+    echo -e "${YELLOW}   - 查看 UI 日誌：docker compose logs -f streamlit-ui${NC}"
     echo -e "${YELLOW}   - 重啟 UI：./start_ui_only.sh${NC}"
-    echo -e "${YELLOW}   - 停止 UI：docker-compose stop streamlit-ui${NC}"
+    echo -e "${YELLOW}   - 停止 UI：docker compose stop streamlit-ui${NC}"
 }
 
 # 主執行流程

@@ -23,7 +23,7 @@ check_ui_running() {
         echo -e "${GREEN}✅ Streamlit UI 正在運行${NC}"
     else
         echo -e "${RED}❌ Streamlit UI 未運行${NC}"
-        echo -e "${YELLOW}💡 請先啟動 UI：docker-compose up -d streamlit-ui${NC}"
+        echo -e "${YELLOW}💡 請先啟動 UI：docker compose up -d streamlit-ui${NC}"
         echo -e "${YELLOW}💡 或啟動完整系統：./start_with_tunnel.sh${NC}"
         exit 1
     fi
@@ -32,20 +32,20 @@ check_ui_running() {
 # 停止現有 Tunnel
 stop_existing_tunnel() {
     echo -e "${YELLOW}🛑 停止現有 Tunnel...${NC}"
-    docker-compose stop pinggy-tunnel 2>/dev/null || true
-    docker-compose rm -f pinggy-tunnel 2>/dev/null || true
+    docker compose stop pinggy-tunnel 2>/dev/null || true
+    docker compose rm -f pinggy-tunnel 2>/dev/null || true
 }
 
 # 啟動 Pinggy Tunnel
 start_tunnel() {
     echo -e "${BLUE}🌐 啟動 Pinggy Tunnel...${NC}"
-    docker-compose --profile tunnel up -d pinggy-tunnel
+    docker compose --profile tunnel up -d pinggy-tunnel
     
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}✅ Pinggy Tunnel 啟動成功${NC}"
     else
         echo -e "${RED}❌ Pinggy Tunnel 啟動失敗${NC}"
-        echo -e "${YELLOW}📋 檢查日誌：docker-compose logs pinggy-tunnel${NC}"
+        echo -e "${YELLOW}📋 檢查日誌：docker compose logs pinggy-tunnel${NC}"
         exit 1
     fi
 }
@@ -56,7 +56,7 @@ check_tunnel_status() {
     sleep 10
     
     echo -e "${BLUE}📋 Pinggy Tunnel 日誌：${NC}"
-    docker-compose logs --tail=15 pinggy-tunnel
+    docker compose logs --tail=15 pinggy-tunnel
     
     echo -e "${GREEN}🎉 Tunnel 啟動完成！${NC}"
     echo -e "${GREEN}================================${NC}"
@@ -65,8 +65,8 @@ check_tunnel_status() {
     echo -e "${GREEN}================================${NC}"
     
     echo -e "${YELLOW}💡 提示：${NC}"
-    echo -e "${YELLOW}   - 查看 Tunnel 日誌：docker-compose logs -f pinggy-tunnel${NC}"
-    echo -e "${YELLOW}   - 停止 Tunnel：docker-compose stop pinggy-tunnel${NC}"
+    echo -e "${YELLOW}   - 查看 Tunnel 日誌：docker compose logs -f pinggy-tunnel${NC}"
+    echo -e "${YELLOW}   - 停止 Tunnel：docker compose stop pinggy-tunnel${NC}"
     echo -e "${YELLOW}   - 重啟 Tunnel：./start_tunnel_only.sh${NC}"
 }
 

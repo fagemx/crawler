@@ -68,7 +68,7 @@ python check_auth.py
 cd ../..
 
 # 啟動服務
-docker-compose up social-media-playwright-crawler
+docker compose up social-media-playwright-crawler
 
 # 發送爬取請求
 curl -X POST http://localhost:8006/crawl \

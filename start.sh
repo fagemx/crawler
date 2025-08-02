@@ -10,10 +10,10 @@ sudo systemctl stop postgresql 2>/dev/null || true
 sudo systemctl stop redis-server 2>/dev/null || true
 
 # 停止現有 Docker 服務
-docker-compose down 2>/dev/null || true
+docker compose down 2>/dev/null || true
 
 # 啟動所有服務
-docker-compose up -d --build
+docker compose up -d --build
 
 echo "✅ 系統啟動完成！"
 echo "🌐 訪問: http://localhost:8501"
@@ -23,4 +23,4 @@ sleep 10
 
 # 檢查服務狀態
 echo "📊 服務狀態:"
-docker-compose ps
+docker compose ps

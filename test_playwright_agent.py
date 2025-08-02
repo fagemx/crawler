@@ -11,7 +11,7 @@ TARGET_USERNAME = "natgeo"  # <--- 在這裡修改您想爬取的帳號
 MAX_POSTS_TO_FETCH = 10  # <--- 在這裡修改您想爬取的數量
 
 # 3. Playwright Crawler Agent 的 API 端點
-#    請確保您的 docker-compose 正在運行，且端口號正確
+#    請確保您的 docker compose 正在運行，且端口號正確
 AGENT_URL = "http://localhost:8006/v1/playwright/crawl"
 
 # 4. 認證檔案的路徑 (由 save_auth.py 產生)

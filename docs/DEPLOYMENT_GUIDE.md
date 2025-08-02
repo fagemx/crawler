@@ -50,7 +50,7 @@
 ```bash
 # Docker
 sudo apt update
-sudo apt install docker.io docker-compose
+sudo apt install docker.io docker compose
 
 # 啟動 Docker 服務
 sudo systemctl start docker
@@ -78,26 +78,26 @@ nano .env
 ```bash
 # 檢查 Docker 環境
 docker --version
-docker-compose --version
+docker compose version
 
-# 如果沒有 docker-compose，安裝它
+# 如果沒有 docker compose，安裝它
 sudo apt update
-sudo apt install docker-compose
+sudo apt install docker compose-plugin
 ```
 
 ### 2. 啟動完整系統（超簡單）
 ```bash
 # 方法1: 只要本地訪問
-docker-compose up -d --build
+docker compose up -d --build
 
 # 方法2: 要外網訪問（推薦）
-docker-compose --profile tunnel up -d --build
+docker compose --profile tunnel up -d --build
 ```
 
 ### 3. 驗證部署
 ```bash
 # 檢查服務狀態
-docker-compose ps
+docker compose ps
 
 # 訪問服務
 # 本地: http://localhost:8501
@@ -116,7 +116,7 @@ curl http://localhost:8501/_stcore/health
 sudo systemctl stop nats-server
 
 # 重新啟動（安全操作，可重複執行）
-docker-compose --profile tunnel up -d --build
+docker compose --profile tunnel up -d --build
 ```
 
 ---
@@ -172,22 +172,22 @@ docker-compose --profile tunnel up -d --build
 #### 基本操作
 ```bash
 # 啟動所有服務（不含 Tunnel）
-docker-compose up -d --build
+docker compose up -d --build
 
 # 啟動所有服務 + Tunnel（推薦）
-docker-compose --profile tunnel up -d --build
+docker compose --profile tunnel up -d --build
 
 # 停止所有服務
-docker-compose down
+docker compose down
 
 # 停止所有服務 + Tunnel
-docker-compose --profile tunnel down
+docker compose --profile tunnel down
 ```
 
 #### 重複執行安全性
 ```bash
 # ✅ 可以重複執行，不會造成端口衝突
-docker-compose --profile tunnel up -d --build
+docker compose --profile tunnel up -d --build
 
 # Docker Compose 會智能處理：
 # - 已運行的服務顯示 "up-to-date"
@@ -198,34 +198,34 @@ docker-compose --profile tunnel up -d --build
 #### 分階段啟動
 ```bash
 # 1. 啟動基礎設施
-docker-compose up -d postgres redis rustfs nats
+docker compose up -d postgres redis rustfs nats
 
 # 2. 啟動 MCP Server
-docker-compose up -d mcp-server
+docker compose up -d mcp-server
 
 # 3. 啟動 Agent 服務
-docker-compose up -d orchestrator-agent clarification-agent content-writer-agent form-api vision-agent playwright-crawler-agent
+docker compose up -d orchestrator-agent clarification-agent content-writer-agent form-api vision-agent playwright-crawler-agent
 
 # 4. 啟動 UI
-docker-compose up -d streamlit-ui
+docker compose up -d streamlit-ui
 
 # 5. 啟動 Tunnel（可選）
-docker-compose --profile tunnel up -d pinggy-tunnel
+docker compose --profile tunnel up -d pinggy-tunnel
 ```
 
 #### 單獨服務管理
 ```bash
 # 重啟特定服務
-docker-compose restart streamlit-ui
-docker-compose restart pinggy-tunnel
+docker compose restart streamlit-ui
+docker compose restart pinggy-tunnel
 
 # 查看特定服務日誌
-docker-compose logs -f streamlit-ui
-docker-compose logs -f pinggy-tunnel
+docker compose logs -f streamlit-ui
+docker compose logs -f pinggy-tunnel
 
 # 停止特定服務
-docker-compose stop streamlit-ui
-docker-compose stop pinggy-tunnel
+docker compose stop streamlit-ui
+docker compose stop pinggy-tunnel
 ```
 
 ### 方式三：專用腳本
@@ -257,7 +257,7 @@ docker-compose stop pinggy-tunnel
 系統使用 Pinggy 提供外網訪問，配置如下：
 
 ```yaml
-# docker-compose.yml 中的配置
+# docker compose.yml 中的配置
 pinggy-tunnel:
   image: pinggy/pinggy:latest
   container_name: social-media-pinggy
@@ -282,13 +282,13 @@ pinggy-tunnel:
 ./manage_system.sh start-tunnel
 
 # 查看 Tunnel 狀態
-docker-compose logs pinggy-tunnel
+docker compose logs pinggy-tunnel
 
 # 重啟 Tunnel
 ./manage_system.sh restart-tunnel
 
 # 停止 Tunnel
-docker-compose stop pinggy-tunnel
+docker compose stop pinggy-tunnel
 ```
 
 ---
@@ -306,11 +306,11 @@ docker-compose stop pinggy-tunnel
 #### 使用 Docker 指令
 ```bash
 # 查看所有容器狀態
-docker-compose ps
+docker compose ps
 
 # 查看特定服務狀態
-docker-compose ps streamlit-ui
-docker-compose ps pinggy-tunnel
+docker compose ps streamlit-ui
+docker compose ps pinggy-tunnel
 ```
 
 #### 手動連線測試
@@ -333,21 +333,21 @@ curl http://localhost:10100/health
 #### 查看即時日誌
 ```bash
 # 所有服務日誌
-docker-compose logs -f
+docker compose logs -f
 
 # 特定服務日誌
-docker-compose logs -f streamlit-ui
-docker-compose logs -f pinggy-tunnel
-docker-compose logs -f orchestrator-agent
+docker compose logs -f streamlit-ui
+docker compose logs -f pinggy-tunnel
+docker compose logs -f orchestrator-agent
 ```
 
 #### 查看歷史日誌
 ```bash
 # 最後 100 行日誌
-docker-compose logs --tail=100
+docker compose logs --tail=100
 
 # 特定時間範圍日誌
-docker-compose logs --since="2024-01-01T00:00:00" --until="2024-01-02T00:00:00"
+docker compose logs --since="2024-01-01T00:00:00" --until="2024-01-02T00:00:00"
 ```
 
 ### 資源監控
@@ -382,16 +382,16 @@ top
 #### 1. 服務啟動失敗
 ```bash
 # 檢查服務狀態
-docker-compose ps
+docker compose ps
 
 # 查看錯誤日誌
-docker-compose logs [service-name]
+docker compose logs [service-name]
 
 # 重啟服務
-docker-compose restart [service-name]
+docker compose restart [service-name]
 
 # 重新執行啟動（安全操作）
-docker-compose --profile tunnel up -d --build
+docker compose --profile tunnel up -d --build
 ```
 
 #### 0. Docker Compose 版本問題
@@ -400,12 +400,12 @@ docker-compose --profile tunnel up -d --build
 ./fix_docker_issues.sh
 
 # 或手動修復
-docker-compose --profile tunnel down
+docker compose --profile tunnel down
 docker system prune -f
-docker-compose --profile tunnel up -d --build
+docker compose --profile tunnel up -d --build
 
-# 升級 docker-compose（如果需要）
-sudo apt install docker-compose-plugin
+# 升級 docker compose（如果需要）
+sudo apt install docker compose-plugin
 ```
 
 #### 1. 端口被佔用問題
@@ -421,25 +421,25 @@ sudo systemctl disable nats-server
 sudo kill [PID]
 
 # 然後重新啟動
-docker-compose --profile tunnel up -d --build
+docker compose --profile tunnel up -d --build
 ```
 
 #### 2. UI 無法訪問
 ```bash
 # 檢查 UI 服務狀態
-docker-compose ps streamlit-ui
+docker compose ps streamlit-ui
 
 # 查看 UI 日誌
-docker-compose logs streamlit-ui
+docker compose logs streamlit-ui
 
 # 修復 UI 問題
 ./fix_ui.sh
 
 # 或手動修復
-docker-compose stop streamlit-ui
-docker-compose rm -f streamlit-ui
-docker-compose build --no-cache streamlit-ui
-docker-compose up -d streamlit-ui
+docker compose stop streamlit-ui
+docker compose rm -f streamlit-ui
+docker compose build --no-cache streamlit-ui
+docker compose up -d streamlit-ui
 
 # 測試連線
 curl http://localhost:8501/_stcore/health
@@ -448,10 +448,10 @@ curl http://localhost:8501/_stcore/health
 #### 3. Tunnel 連線失敗
 ```bash
 # 檢查 Tunnel 狀態
-docker-compose ps pinggy-tunnel
+docker compose ps pinggy-tunnel
 
 # 查看 Tunnel 日誌
-docker-compose logs pinggy-tunnel
+docker compose logs pinggy-tunnel
 
 # 重啟 Tunnel
 ./manage_system.sh restart-tunnel
@@ -460,13 +460,13 @@ docker-compose logs pinggy-tunnel
 #### 4. 資料庫連線問題
 ```bash
 # 檢查 PostgreSQL 狀態
-docker-compose ps postgres
+docker compose ps postgres
 
 # 測試資料庫連線
-docker-compose exec postgres psql -U postgres -d social_media_db -c "SELECT 1;"
+docker compose exec postgres psql -U postgres -d social_media_db -c "SELECT 1;"
 
 # 重啟資料庫
-docker-compose restart postgres
+docker compose restart postgres
 ```
 
 #### 5. 記憶體不足
@@ -515,7 +515,7 @@ du -sh /var/lib/docker/containers/*/
 docker system prune -f
 
 # 備份重要數據
-docker-compose exec postgres pg_dump -U postgres social_media_db > backup_$(date +%Y%m%d).sql
+docker compose exec postgres pg_dump -U postgres social_media_db > backup_$(date +%Y%m%d).sql
 
 # 更新系統
 sudo apt update && sudo apt upgrade
@@ -527,7 +527,7 @@ sudo apt update && sudo apt upgrade
 ./manage_system.sh clean
 
 # 重建所有服務
-docker-compose --profile tunnel up -d --build --force-recreate
+docker compose --profile tunnel up -d --build --force-recreate
 ```
 
 ### 備份與恢復
@@ -535,27 +535,27 @@ docker-compose --profile tunnel up -d --build --force-recreate
 #### 資料備份
 ```bash
 # 資料庫備份
-docker-compose exec postgres pg_dump -U postgres social_media_db > db_backup.sql
+docker compose exec postgres pg_dump -U postgres social_media_db > db_backup.sql
 
 # 檔案備份
 tar -czf files_backup.tar.gz storage/
 
 # 配置備份
 cp .env .env.backup
-cp docker-compose.yml docker-compose.yml.backup
+cp docker compose.yml docker compose.yml.backup
 ```
 
 #### 資料恢復
 ```bash
 # 資料庫恢復
-docker-compose exec -T postgres psql -U postgres social_media_db < db_backup.sql
+docker compose exec -T postgres psql -U postgres social_media_db < db_backup.sql
 
 # 檔案恢復
 tar -xzf files_backup.tar.gz
 
 # 配置恢復
 cp .env.backup .env
-cp docker-compose.yml.backup docker-compose.yml
+cp docker compose.yml.backup docker compose.yml
 ```
 
 ### 系統升級
@@ -570,7 +570,7 @@ cp -r . ../backup_$(date +%Y%m%d)
 git pull origin main
 
 # 3. 重建服務
-docker-compose --profile tunnel build --no-cache
+docker compose --profile tunnel build --no-cache
 
 # 4. 啟動系統
 ./manage_system.sh start-tunnel
@@ -593,19 +593,19 @@ docker-compose --profile tunnel build --no-cache
 #### 簡化版（推薦）
 ```bash
 # 啟動系統 + 外網
-docker compose --profile tunnel up -d --build
+docker-compose --profile tunnel up -d --build
 
 # 檢查狀態
-docker compose ps
+docker-compose ps
 
 # 查看日誌
-docker compose logs streamlit-ui
+docker-compose logs streamlit-ui
 
 # 重啟服務
-docker compose restart streamlit-ui
+docker-compose restart streamlit-ui
 
 # 停止系統
-docker compose --profile tunnel down
+docker-compose --profile tunnel down
 ```
 
 #### 管理腳本版

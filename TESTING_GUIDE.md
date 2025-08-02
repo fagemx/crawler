@@ -23,7 +23,7 @@ DATABASE_URL=postgresql://postgres:password@localhost:5432/social_media_db
 2. **啟動基礎設施**：
 ```bash
 # 啟動 Redis 和 PostgreSQL
-docker-compose up -d postgres redis nats
+docker compose up -d postgres redis nats
 ```
 
 3. **初始化資料庫**：
@@ -90,8 +90,8 @@ python test_plan_e_stages.py
 1. **Redis 連接失敗**
 ```bash
 # 檢查 Redis 是否運行
-docker-compose ps redis
-docker-compose logs redis
+docker compose ps redis
+docker compose logs redis
 
 # 測試連接
 redis-cli ping
@@ -100,8 +100,8 @@ redis-cli ping
 2. **PostgreSQL 連接失敗**
 ```bash
 # 檢查 PostgreSQL 是否運行
-docker-compose ps postgres
-docker-compose logs postgres
+docker compose ps postgres
+docker compose logs postgres
 
 # 測試連接
 psql -h localhost -U postgres -d social_media_db -c "SELECT version();"
