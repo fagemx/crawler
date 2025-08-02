@@ -111,8 +111,8 @@ unknown_fields.log
 storage/rustfs-logs/
 storage/rustfs/.rustfs.sys/
 storage/crawler_results/
-agents/playwright_crawler/debug
-
+agents/playwright_crawler/debug/
+storage/rustfs/.rustfs.sys/buckets/
 
 # 臨時和快取文件
 temp/
