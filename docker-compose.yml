@@ -481,7 +481,6 @@ services:
     command: [
       "-p", "443",
       "-R0:localhost:8501",
-      "-t", "u:Host:localhost:8501",
       "-o", "StrictHostKeyChecking=no",
       "-o", "ServerAliveInterval=30",
       "RdUOEHSfE2u@pro.pinggy.io"
