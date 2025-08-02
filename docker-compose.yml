@@ -568,22 +568,22 @@ volumes:
 # =============================================================================
 
 # 基本啟動：
-# docker-compose up -d
+# docker compose up -d
 
 # 包含管理工具：
-# docker-compose --profile tools up -d
+# docker compose --profile tools up -d
 
 # 只啟動基礎設施：
-# docker-compose up -d postgres redis nats jaeger
+# docker compose up -d postgres redis nats jaeger
 
 # 查看日誌：
-# docker-compose logs -f [service-name]
+# docker compose logs -f [service-name]
 
 # 停止所有服務：
-# docker-compose down
+# docker compose down
 
 # 清理所有數據：
-# docker-compose down -v
+# docker compose down -v
 
 # 重建特定服務：
-# docker-compose up -d --build [service-name]
+# docker compose up -d --build [service-name]

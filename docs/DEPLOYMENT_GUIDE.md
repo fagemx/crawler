@@ -74,30 +74,49 @@ nano .env
 
 ## 🚀 快速開始
 
-### 1. 初始設置（只需執行一次）
+### 1. 檢查環境
 ```bash
-# 設置腳本執行權限
-bash setup_permissions.sh
-
 # 檢查 Docker 環境
 docker --version
 docker-compose --version
+
+# 如果沒有 docker-compose，安裝它
+sudo apt update
+sudo apt install docker-compose
 ```
 
-### 2. 啟動完整系統（推薦）
+### 2. 啟動完整系統（超簡單）
 ```bash
-# 啟動所有服務 + UI + 外網訪問
-./manage_system.sh start-tunnel
+# 方法1: 只要本地訪問
+docker-compose up -d --build
+
+# 方法2: 要外網訪問（推薦）
+docker-compose --profile tunnel up -d --build
 ```
 
 ### 3. 驗證部署
 ```bash
 # 檢查服務狀態
-./manage_system.sh status
+docker-compose ps
 
 # 訪問服務
 # 本地: http://localhost:8501
 # 外網: https://hlsbwbzaat.a.pinggy.link
+
+# 健康檢查
+curl http://localhost:8501/_stcore/health
+```
+
+### 4. 如果遇到問題
+```bash
+# UI 啟動失敗
+./fix_ui.sh
+
+# 端口被佔用
+sudo systemctl stop nats-server
+
+# 重新啟動（安全操作，可重複執行）
+docker-compose --profile tunnel up -d --build
 ```
 
 ---
@@ -148,14 +167,14 @@ docker-compose --version
 ./manage_system.sh restart-tunnel
 ```
 
-### 方式二：Docker Compose 原生指令
+### 方式二：Docker Compose 原生指令（推薦簡化方式）
 
 #### 基本操作
 ```bash
 # 啟動所有服務（不含 Tunnel）
 docker-compose up -d --build
 
-# 啟動所有服務 + Tunnel
+# 啟動所有服務 + Tunnel（推薦）
 docker-compose --profile tunnel up -d --build
 
 # 停止所有服務
@@ -163,6 +182,17 @@ docker-compose down
 
 # 停止所有服務 + Tunnel
 docker-compose --profile tunnel down
+```
+
+#### 重複執行安全性
+```bash
+# ✅ 可以重複執行，不會造成端口衝突
+docker-compose --profile tunnel up -d --build
+
+# Docker Compose 會智能處理：
+# - 已運行的服務顯示 "up-to-date"
+# - 有變更的服務會優雅地重新創建
+# - 不會重複佔用端口
 ```
 
 #### 分階段啟動
@@ -352,13 +382,46 @@ top
 #### 1. 服務啟動失敗
 ```bash
 # 檢查服務狀態
-./manage_system.sh status
+docker-compose ps
 
 # 查看錯誤日誌
 docker-compose logs [service-name]
 
 # 重啟服務
 docker-compose restart [service-name]
+
+# 重新執行啟動（安全操作）
+docker-compose --profile tunnel up -d --build
+```
+
+#### 0. Docker Compose 版本問題
+```bash
+# 如果出現 'ContainerConfig' KeyError
+./fix_docker_issues.sh
+
+# 或手動修復
+docker-compose --profile tunnel down
+docker system prune -f
+docker-compose --profile tunnel up -d --build
+
+# 升級 docker-compose（如果需要）
+sudo apt install docker-compose-plugin
+```
+
+#### 1. 端口被佔用問題
+```bash
+# 檢查端口佔用
+sudo netstat -tlnp | grep :4222
+
+# 停止佔用端口的服務
+sudo systemctl stop nats-server
+sudo systemctl disable nats-server
+
+# 或直接殺死進程
+sudo kill [PID]
+
+# 然後重新啟動
+docker-compose --profile tunnel up -d --build
 ```
 
 #### 2. UI 無法訪問
@@ -369,8 +432,14 @@ docker-compose ps streamlit-ui
 # 查看 UI 日誌
 docker-compose logs streamlit-ui
 
-# 重啟 UI
-./manage_system.sh restart-ui
+# 修復 UI 問題
+./fix_ui.sh
+
+# 或手動修復
+docker-compose stop streamlit-ui
+docker-compose rm -f streamlit-ui
+docker-compose build --no-cache streamlit-ui
+docker-compose up -d streamlit-ui
 
 # 測試連線
 curl http://localhost:8501/_stcore/health
@@ -521,6 +590,25 @@ docker-compose --profile tunnel build --no-cache
 
 ### 常用指令速查
 
+#### 簡化版（推薦）
+```bash
+# 啟動系統 + 外網
+docker compose --profile tunnel up -d --build
+
+# 檢查狀態
+docker compose ps
+
+# 查看日誌
+docker compose logs streamlit-ui
+
+# 重啟服務
+docker compose restart streamlit-ui
+
+# 停止系統
+docker compose --profile tunnel down
+```
+
+#### 管理腳本版
 ```bash
 # 快速啟動
 ./manage_system.sh start-tunnel
