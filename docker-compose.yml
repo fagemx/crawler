@@ -477,8 +477,7 @@ services:
     network_mode: host
     tty: true                    # ★ 關鍵：等同 -t
     stdin_open: true             # ★ 關鍵：等同 -i
-    environment:
-      - PINGGY_TOKEN=RdUOEHSfE2u@pro.pinggy.io
+
     command: [
       "-p", "443",
       "-R0:localhost:8501",
