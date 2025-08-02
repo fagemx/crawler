@@ -5,19 +5,11 @@
 
 ### 方法1: 只要本地訪問
 ```bash
-# 新版本語法（推薦）
-docker compose up -d --build
-
-# 或舊版本語法
 docker compose up -d --build
 ```
 
 ### 方法2: 要外網訪問（推薦）
 ```bash
-# 新版本語法（推薦）
-docker compose --profile tunnel up -d --build
-
-# 或舊版本語法
 docker compose --profile tunnel up -d --build
 ```
 
@@ -27,26 +19,37 @@ docker compose --profile tunnel up -d --build
 
 ## 🛑 停止系統
 ```bash
-# 停止所有服務（新版本語法）
+# 停止所有服務
 docker compose down
 
-# 停止包含外網訪問（新版本語法）
-docker compose --profile tunnel down
-
-# 舊版本語法
+# 停止包含外網訪問
 docker compose --profile tunnel down
 ```
 
-## 🔧 常用指令
+## � h常用指令
 
-| 需求 | 新版本指令 | 舊版本指令 |
-|------|------------|------------|
-| 啟動系統 | `docker compose up -d --build` | `docker compose up -d --build` |
-| 啟動+外網 | `docker compose --profile tunnel up -d --build` | `docker compose --profile tunnel up -d --build` |
-| 停止服務 | `docker compose down` | `docker compose down` |
-| 查看狀態 | `docker compose ps` | `docker compose ps` |
-| 查看日誌 | `docker compose logs` | `docker compose logs` |
-| 重啟 UI | `docker compose restart streamlit-ui` | `docker compose restart streamlit-ui` |
+| 需求 | 指令 |
+|------|------|
+| 啟動系統 | `docker compose up -d --build` |
+| 啟動+外網 | `docker compose --profile tunnel up -d --build` |
+| 停止服務 | `docker compose down` |
+| 查看狀態 | `docker compose ps` |
+| 查看日誌 | `docker compose logs` |
+| 重啟 UI | `docker compose restart streamlit-ui` |
+| 重啟 Tunnel | `docker compose restart pinggy-tunnel` |
+
+## 🔄 重複執行安全性
+```bash
+# 可以重複執行，不會造成端口衝突
+docker compose --profile tunnel up -d --build
+
+# 強制重新創建所有容器
+docker compose --profile tunnel up -d --build --force-recreate
+
+# 清理後重新開始
+docker compose --profile tunnel down
+docker compose --profile tunnel up -d --build
+```
 
 ## 🆘 問題解決
 
@@ -82,22 +85,10 @@ docker compose logs streamlit-ui
 
 ## 📝 重要檔案
 
-- `docker compose.yml` - 所有服務配置
+- `docker-compose.yml` - 所有服務配置
 - `.env` - 環境變數設定
 - `fix_ui.sh` - 修復 UI 問題
 
 ---
 
 **就這麼簡單！有問題就重啟：`docker compose restart [service-name]`**
-
-
-
-# 日常使用 - 直接執行，不用先停止
-docker compose --profile tunnel up -d --build
-
-# 如果想強制重新創建所有容器
-docker compose --profile tunnel up -d --build --force-recreate
-
-# 如果想清理後重新開始
-docker compose --profile tunnel down
-docker compose --profile tunnel up -d --build
