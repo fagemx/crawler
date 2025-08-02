@@ -445,15 +445,14 @@ services:
       context: .
       dockerfile: ui/Dockerfile
     container_name: social-media-ui
-    ports:
-      - "8501:8501"
+    network_mode: host
     environment:
       - PYTHONPATH=/app
       - STREAMLIT_SERVER_PORT=8501
-      - ORCHESTRATOR_URL=http://orchestrator-agent:8000
-      - FORM_API_URL=http://form-api:8010
-      - DATABASE_URL=postgresql://postgres:password@postgres:5432/social_media_db
-      - REDIS_URL=redis://redis:6379/0
+      - ORCHESTRATOR_URL=http://localhost:8000
+      - FORM_API_URL=http://localhost:8010
+      - DATABASE_URL=postgresql://localhost:5432/social_media_db
+      - REDIS_URL=redis://localhost:6379/0
     env_file:
       - .env
     volumes:
@@ -470,21 +469,20 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    networks:
-      - social-media-network
 
   # Pinggy Tunnel - 外網訪問
   pinggy-tunnel:
     image: pinggy/pinggy:latest
     container_name: social-media-pinggy
     network_mode: host
+    tty: true                    # ★ 關鍵：等同 -t
+    stdin_open: true             # ★ 關鍵：等同 -i
     environment:
       - PINGGY_TOKEN=RdUOEHSfE2u@pro.pinggy.io
     command: [
       "-p", "443",
       "-R0:localhost:8501",
       "-t", "u:Host:localhost:8501",
-      "-L4300:localhost:4300",
       "-o", "StrictHostKeyChecking=no",
       "-o", "ServerAliveInterval=30",
       "RdUOEHSfE2u@pro.pinggy.io"
