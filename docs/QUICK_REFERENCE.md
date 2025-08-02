@@ -1,3 +1,51 @@
+
+簡單解決方案
+先解決你現在的問題：
+
+1. 安裝 docker-compose
+sudo apt update
+sudo apt install docker-compose
+2. 停止佔用端口的 NATS 服務
+# 停止系統的 NATS 服務
+sudo systemctl stop nats-server
+sudo systemctl disable nats-server
+
+# 或者直接殺死進程
+sudo kill 6958
+3. 創建一個超簡單的啟動腳本
+Created
+
+start.sh
+
+
+Created
+
+start_with_pinggy.sh
+
+
+Created
+
+stop.sh
+
+
+4. 設置權限並使用
+
+
+# 設置權限
+chmod +x start.sh start_with_pinggy.sh stop.sh
+
+# 使用方式（選一個）：
+
+# 方式1: 只啟動系統（本地訪問）
+./start.sh
+
+# 方式2: 啟動系統 + 外網訪問（推薦）
+./start_with_pinggy.sh
+
+# 停止服務
+./stop.sh
+
+
 # 快速參考卡
 
 ## 🚀 一鍵啟動

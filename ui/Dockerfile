@@ -7,9 +7,12 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# 複製 requirements.txt 先安裝依賴（利用 Docker 快取）
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# 複製 pyproject.toml 和相關檔案
+COPY pyproject.toml .
+COPY README.md .
+
+# 安裝專案依賴（包含 UI 相關依賴）
+RUN pip install --no-cache-dir -e ".[ui,ai,database,data]"
 
 # 複製專案檔案
 COPY . .
