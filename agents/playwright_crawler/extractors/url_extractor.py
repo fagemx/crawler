@@ -34,20 +34,33 @@ class URLExtractor:
             await page.mouse.wheel(0, 1000)
             await asyncio.sleep(2)
         
-        # 提取貼文 URLs，保持原始順序
+        # 提取貼文 URLs，保持原始順序並標準化
         post_urls = await page.evaluate("""
             () => {
+                // 標準化 URL 函數 - 移除 /media, /reply 等後綴
+                function normalizePostUrl(url) {
+                    const match = url.match(/https:\/\/www\.threads\.com\/@([^\/]+)\/post\/([^\/\?]+)/);
+                    if (match) {
+                        const username = match[1];
+                        const postId = match[2];
+                        return `https://www.threads.com/@${username}/post/${postId}`;
+                    }
+                    return url;
+                }
+                
                 // 獲取所有貼文連結，保持DOM中的原始順序
                 const links = Array.from(document.querySelectorAll('a[href*="/post/"]'));
                 const urls = [];
                 const seen = new Set();
                 
-                // 遍歷時保持順序，只去重但不重排
+                // 遍歷時保持順序，標準化URL並去重
                 for (const link of links) {
-                    const url = link.href;
-                    if (url.includes('/post/') && !seen.has(url)) {
-                        seen.add(url);
-                        urls.push(url);
+                    const originalUrl = link.href;
+                    const normalizedUrl = normalizePostUrl(originalUrl);
+                    
+                    if (originalUrl.includes('/post/') && !seen.has(normalizedUrl)) {
+                        seen.add(normalizedUrl);
+                        urls.push(normalizedUrl);
                     }
                 }
                 

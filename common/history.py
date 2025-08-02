@@ -8,6 +8,7 @@
 """
 
 import asyncio
+import json
 import logging
 from datetime import datetime
 from typing import Set, List, Optional, Dict, Any
@@ -115,7 +116,9 @@ class CrawlHistoryDAO:
                         post.post_id, post.username, post.url, post.content,
                         post.likes_count, post.comments_count, post.reposts_count,
                         post.shares_count, post.views_count, post.calculate_score(),
-                        post.images, post.videos, post.created_at, post.fetched_at, post.views_fetched_at,
+                        json.dumps(post.images) if post.images else '[]', 
+                        json.dumps(post.videos) if post.videos else '[]', 
+                        post.created_at, post.fetched_at, post.views_fetched_at,
                         post.source, post.processing_stage, post.is_complete
                         )
                         success_count += 1

@@ -24,17 +24,17 @@ class DetailsExtractor:
     詳細數據提取器 - 使用混合策略提取完整的貼文數據
     """
     
-    def __init__(self, context: BrowserContext):
-        self.context = context
+    def __init__(self):
+        pass
     
-    async def fill_post_details_from_page(self, posts_to_fill: List[PostMetrics], task_id: str = None, username: str = None) -> List[PostMetrics]:
+    async def fill_post_details_from_page(self, posts_to_fill: List[PostMetrics], context: BrowserContext, task_id: str = None, username: str = None) -> List[PostMetrics]:
         """
         使用混合策略補齊貼文詳細數據：
         1. GraphQL 計數查詢獲取準確的數字數據 (likes, comments等)
         2. DOM 解析獲取完整的內容和媒體 (content, images, videos)
         這種方法結合了兩種技術的優勢，提供最穩定可靠的數據提取。
         """
-        if not self.context:
+        if not context:
             logging.error("❌ Browser context 未初始化，無法執行 fill_post_details_from_page。")
             return posts_to_fill
 
@@ -45,7 +45,7 @@ class DetailsExtractor:
             async with semaphore:
                 page = None
                 try:
-                    page = await self.context.new_page()
+                    page = await context.new_page()
                     
                     logging.debug(f"📄 使用混合策略補齊詳細數據: {post.url}")
                     
@@ -176,7 +176,7 @@ class DetailsExtractor:
             payload = captured_graphql_request["payload"]
             
             # 從頁面context獲取cookies
-            cookies_list = await self.context.cookies()
+            cookies_list = await context.cookies()
             cookies = {cookie['name']: cookie['value'] for cookie in cookies_list}
             
             # 確保有認證

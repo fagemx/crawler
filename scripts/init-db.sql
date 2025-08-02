@@ -470,5 +470,47 @@ VALUES
      '[{"name": "browser_crawling", "description": "瀏覽器自動化爬取"}]')
 ON CONFLICT (name) DO NOTHING;
 
+-- ============================================================================
+-- 增量爬取支持表 (新增)
+-- ============================================================================
+
+-- 爬取狀態跟踪表
+CREATE TABLE IF NOT EXISTS crawl_state (
+    username        TEXT PRIMARY KEY,
+    latest_post_id  TEXT,                    -- 最新post_id，避免全表掃描
+    total_crawled   INTEGER DEFAULT 0,       -- 總爬取數量
+    last_crawl_at   TIMESTAMPTZ DEFAULT NOW(), -- 最後爬取時間
+    created_at      TIMESTAMPTZ DEFAULT NOW()  -- 創建時間
+);
+
+-- 增量爬取專用貼文表 (與原有 posts/post_metrics 並行)
+CREATE TABLE IF NOT EXISTS post_metrics_sql (
+    id              SERIAL PRIMARY KEY,
+    post_id         TEXT UNIQUE NOT NULL,     -- 關鍵：唯一約束 (natgeo_DM2oBhXqFcx)
+    username        TEXT NOT NULL,
+    url             TEXT NOT NULL,
+    content         TEXT,
+    likes_count     INTEGER DEFAULT 0,
+    comments_count  INTEGER DEFAULT 0,
+    reposts_count   INTEGER DEFAULT 0,
+    shares_count    INTEGER DEFAULT 0,
+    views_count     BIGINT DEFAULT 0,
+    calculated_score DOUBLE PRECISION,
+    images          JSONB DEFAULT '[]',
+    videos          JSONB DEFAULT '[]',
+    created_at      TIMESTAMPTZ NOT NULL,
+    fetched_at      TIMESTAMPTZ DEFAULT NOW(),
+    views_fetched_at TIMESTAMPTZ,
+    source          TEXT DEFAULT 'unknown',   -- 數據來源
+    processing_stage TEXT DEFAULT 'initial',  -- 處理階段  
+    is_complete     BOOLEAN DEFAULT FALSE     -- 數據是否完整
+);
+
+-- 性能優化索引
+CREATE INDEX IF NOT EXISTS idx_crawl_state_latest_post_id ON crawl_state(latest_post_id);
+CREATE INDEX IF NOT EXISTS idx_post_metrics_sql_username ON post_metrics_sql(username);
+CREATE INDEX IF NOT EXISTS idx_post_metrics_sql_created_at ON post_metrics_sql(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_post_metrics_sql_score ON post_metrics_sql(calculated_score DESC);
+
 -- 完成初始化
 SELECT 'Database initialization completed successfully!' as status;

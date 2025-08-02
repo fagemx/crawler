@@ -23,15 +23,15 @@ class ViewsExtractor:
     瀏覽數提取器
     """
     
-    def __init__(self, context: BrowserContext):
-        self.context = context
+    def __init__(self):
+        pass
     
-    async def fill_views_from_page(self, posts_to_fill: List[PostMetrics], task_id: str = None, username: str = None) -> List[PostMetrics]:
+    async def fill_views_from_page(self, posts_to_fill: List[PostMetrics], context: BrowserContext, task_id: str = None, username: str = None) -> List[PostMetrics]:
         """
         遍歷貼文列表，導航到每個貼文的頁面以補齊 views_count。
         整合了成功的 Gate 頁面處理和雙策略提取方法。
         """
-        if not self.context:
+        if not context:
             logging.error("❌ Browser context 未初始化，無法執行 fill_views_from_page。")
             return posts_to_fill
 
@@ -42,7 +42,7 @@ class ViewsExtractor:
             async with semaphore:
                 page = None
                 try:
-                    page = await self.context.new_page()
+                    page = await context.new_page()
                     # 禁用圖片和影片載入以加速
                     await page.route("**/*.{png,jpg,jpeg,gif,mp4,webp}", lambda r: r.abort())
                     
