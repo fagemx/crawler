@@ -482,7 +482,7 @@ services:
       - PINGGY_TOKEN=RdUOEHSfE2u@pro.pinggy.io
     command: [
       "-p", "443",
-      "-R0:streamlit-ui:8501",
+      "-R0:localhost:8501",
       "-L4300:localhost:4300",
       "-o", "StrictHostKeyChecking=no",
       "-o", "ServerAliveInterval=30",
@@ -494,8 +494,6 @@ services:
     restart: unless-stopped
     profiles:
       - tunnel
-    networks:
-      - social-media-network
 
   # =============================================================================
   # 工具和維護服務
