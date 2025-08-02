@@ -22,6 +22,7 @@ services:
       retries: 5
     networks:
       - social-media-network
+    restart: unless-stopped
 
   # Redis 快取和會話管理
   redis:
@@ -39,6 +40,7 @@ services:
       retries: 5
     networks:
       - social-media-network
+    restart: unless-stopped
 
   # RustFS 對象存儲
   rustfs:
@@ -67,8 +69,8 @@ services:
     image: nats:2.10-alpine
     container_name: social-media-nats
     ports:
-      - "4222:4222"
-      - "8222:8222"  # HTTP monitoring
+      - "4223:4222"  # 改用 4223 避免衝突
+      - "8223:8222"  # HTTP monitoring 改用 8223
     command: 
       - "--jetstream"
       - "--store_dir=/data"
@@ -86,6 +88,7 @@ services:
       retries: 5
     networks:
       - social-media-network
+    restart: unless-stopped
 
   # =============================================================================
   # 監控和追蹤服務

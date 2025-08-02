@@ -40,26 +40,49 @@ show_help() {
     echo -e "  ./manage_system.sh ui-logs       # 查看 UI 日誌"
 }
 
+# 檢查 docker-compose 指令
+get_docker_compose_cmd() {
+    if command -v docker-compose &> /dev/null; then
+        echo "docker-compose"
+    elif command -v docker &> /dev/null && docker compose version &> /dev/null 2>&1; then
+        echo "docker compose"
+    else
+        echo ""
+    fi
+}
+
 # 啟動完整系統（不含 Tunnel）
 start_system() {
     echo -e "${BLUE}🚀 啟動完整系統...${NC}"
     
-    docker-compose down --remove-orphans
+    # 檢查 docker-compose
+    DOCKER_COMPOSE_CMD=$(get_docker_compose_cmd)
+    if [ -z "$DOCKER_COMPOSE_CMD" ]; then
+        echo -e "${RED}❌ docker-compose 未安裝${NC}"
+        echo -e "${YELLOW}💡 請執行: sudo apt install docker-compose${NC}"
+        return 1
+    fi
+    
+    # 檢查端口衝突
+    check_ports
+    
+    # 停止現有服務
+    $DOCKER_COMPOSE_CMD down --remove-orphans 2>/dev/null || true
     
     echo -e "${BLUE}📊 啟動基礎設施...${NC}"
-    docker-compose up -d postgres redis rustfs nats
+    $DOCKER_COMPOSE_CMD up -d postgres redis rustfs nats
     sleep 10
     
     echo -e "${BLUE}🤖 啟動 MCP Server...${NC}"
-    docker-compose up -d mcp-server
+    $DOCKER_COMPOSE_CMD up -d mcp-server
     sleep 5
     
     echo -e "${BLUE}🎯 啟動 Agent 服務...${NC}"
-    docker-compose up -d orchestrator-agent clarification-agent content-writer-agent form-api vision-agent playwright-crawler-agent
+    $DOCKER_COMPOSE_CMD up -d orchestrator-agent clarification-agent content-writer-agent form-api vision-agent playwright-crawler-agent
     sleep 10
     
     echo -e "${BLUE}🎨 啟動 UI...${NC}"
-    docker-compose up -d streamlit-ui
+    $DOCKER_COMPOSE_CMD up -d streamlit-ui
     
     echo -e "${GREEN}✅ 系統啟動完成！${NC}"
     echo -e "${GREEN}🌐 本地訪問: http://localhost:8501${NC}"
@@ -69,21 +92,65 @@ start_system() {
 start_with_tunnel() {
     echo -e "${BLUE}🚀 啟動完整系統 + Tunnel...${NC}"
     
+    # 檢查 docker-compose
+    DOCKER_COMPOSE_CMD=$(get_docker_compose_cmd)
+    if [ -z "$DOCKER_COMPOSE_CMD" ]; then
+        echo -e "${RED}❌ docker-compose 未安裝${NC}"
+        echo -e "${YELLOW}💡 請執行: sudo apt install docker-compose${NC}"
+        return 1
+    fi
+    
     start_system
     sleep 5
     
     echo -e "${BLUE}🌐 啟動 Pinggy Tunnel...${NC}"
-    docker-compose --profile tunnel up -d pinggy-tunnel
+    $DOCKER_COMPOSE_CMD --profile tunnel up -d pinggy-tunnel
     
     echo -e "${GREEN}✅ 系統 + Tunnel 啟動完成！${NC}"
     echo -e "${GREEN}🌐 本地訪問: http://localhost:8501${NC}"
     echo -e "${GREEN}🌍 外網訪問: https://hlsbwbzaat.a.pinggy.link${NC}"
 }
 
+# 檢查端口衝突
+check_ports() {
+    echo -e "${BLUE}� 檢查端口所衝突...${NC}"
+    
+    # 檢查關鍵端口
+    ports=("4222:NATS" "5432:PostgreSQL" "6379:Redis" "8501:UI" "9000:RustFS")
+    
+    for port_info in "${ports[@]}"; do
+        port=$(echo $port_info | cut -d: -f1)
+        service=$(echo $port_info | cut -d: -f2)
+        
+        if netstat -tlnp 2>/dev/null | grep -q ":$port "; then
+            echo -e "${YELLOW}⚠️  端口 $port ($service) 被佔用${NC}"
+            
+            # 嘗試停止可能的 Docker 容器
+            if docker ps --format "table {{.Names}}\t{{.Ports}}" | grep -q ":$port->"; then
+                echo -e "${YELLOW}🛑 停止佔用端口 $port 的容器...${NC}"
+                docker ps --format "{{.Names}}" | xargs -I {} sh -c 'docker port {} 2>/dev/null | grep -q ":'$port'->" && docker stop {}'
+            fi
+        else
+            echo -e "${GREEN}✅ 端口 $port ($service) 可用${NC}"
+        fi
+    done
+}
+
 # 停止所有服務
 stop_system() {
     echo -e "${YELLOW}🛑 停止所有服務...${NC}"
-    docker-compose --profile tunnel down --remove-orphans
+    
+    # 檢查 docker-compose 指令
+    if command -v docker-compose &> /dev/null; then
+        docker-compose --profile tunnel down --remove-orphans
+    elif command -v docker &> /dev/null && docker compose version &> /dev/null; then
+        docker compose --profile tunnel down --remove-orphans
+    else
+        echo -e "${RED}❌ docker-compose 未安裝${NC}"
+        echo -e "${YELLOW}💡 請執行: sudo apt install docker-compose${NC}"
+        return 1
+    fi
+    
     echo -e "${GREEN}✅ 所有服務已停止${NC}"
 }
 
