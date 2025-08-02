@@ -193,3 +193,12 @@ class A2APostMetricsResponse(BaseModel):
     posts: Optional[List[PostMetrics]] = None
     message: Optional[str] = None
     progress: Optional[float] = None
+
+
+class CrawlState(BaseModel):
+    """爬取狀態模型 - 用於增量爬取優化"""
+    username: str = Field(..., description="用戶名（主鍵）")
+    latest_post_id: Optional[str] = Field(None, description="最新抓取的貼文ID（優化查詢）")
+    total_crawled: int = Field(default=0, description="總抓取數量")
+    last_crawl_at: Optional[datetime] = Field(None, description="最後抓取時間")
+    created_at: datetime = Field(default_factory=datetime.utcnow, description="記錄創建時間")
