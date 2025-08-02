@@ -436,30 +436,61 @@ services:
   # 用戶介面
   # =============================================================================
 
-  # Streamlit UI (暫時停用 - 使用本地啟動)
-  # streamlit-ui:
-  #   build:
-  #     context: .
-  #     dockerfile: ui/Dockerfile
-  #   container_name: social-media-ui
-  #   ports:
-  #     - "8501:8501"
-  #   environment:
-  #     - PYTHONPATH=/app
-  #     - STREAMLIT_SERVER_PORT=8501
-  #     - ORCHESTRATOR_URL=http://orchestrator-agent:8000
-  #     - FORM_API_URL=http://form-api:8010
-  #   env_file:
-  #     - .env
-  #   volumes:
-  #     - .:/app
-  #   depends_on:
-  #     orchestrator-agent:
-  #       condition: service_healthy
-  #     form-api:
-  #       condition: service_healthy
-  #   networks:
-  #     - social-media-network
+  # Streamlit UI - 用戶介面
+  streamlit-ui:
+    build:
+      context: .
+      dockerfile: ui/Dockerfile
+    container_name: social-media-ui
+    ports:
+      - "8501:8501"
+    environment:
+      - PYTHONPATH=/app
+      - STREAMLIT_SERVER_PORT=8501
+      - ORCHESTRATOR_URL=http://orchestrator-agent:8000
+      - FORM_API_URL=http://form-api:8010
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/social_media_db
+      - REDIS_URL=redis://redis:6379/0
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    depends_on:
+      orchestrator-agent:
+        condition: service_healthy
+      form-api:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - social-media-network
+
+  # Pinggy Tunnel - 外網訪問
+  pinggy-tunnel:
+    image: pinggy/pinggy:latest
+    container_name: social-media-pinggy
+    network_mode: host
+    environment:
+      - PINGGY_TOKEN=RdUOEHSfE2u@pro.pinggy.io
+    command: [
+      "-p", "443",
+      "-R0:localhost:8501",
+      "-L4300:localhost:4300",
+      "-o", "StrictHostKeyChecking=no",
+      "-o", "ServerAliveInterval=30",
+      "RdUOEHSfE2u@pro.pinggy.io"
+    ]
+    depends_on:
+      streamlit-ui:
+        condition: service_healthy
+    restart: unless-stopped
+    profiles:
+      - tunnel
 
   # =============================================================================
   # 工具和維護服務
