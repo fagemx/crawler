@@ -53,13 +53,12 @@ docker compose --profile tunnel up -d --build
 
 ## 🆘 問題解決
 
-| 問題 | 解決方案 |
-|------|----------|
-| UI 啟動失敗 | `./fix_ui.sh` |
-| Docker 版本問題 | `./fix_docker_issues.sh` |
-| 端口被佔用 | `sudo systemctl stop nats-server` |
-| 記憶體不足 | `docker system prune -f` |
-| 重新構建 | `docker compose build --no-cache` |
+| 問題 | Linux 解決方案 | Windows 解決方案 |
+|------|----------------|------------------|
+| UI 啟動失敗 | `./fix_ui.sh` | 手動執行修復指令 |
+| 端口被佔用 | `sudo systemctl stop nats-server` | `netstat -an \| findstr :4222` |
+| 記憶體不足 | `docker system prune -f` | `docker system prune -f` |
+| 重新構建 | `docker compose build --no-cache` | `docker compose build --no-cache` |
 
 ## 📋 服務端口
 
@@ -73,14 +72,21 @@ docker compose --profile tunnel up -d --build
 ## 🔍 快速檢查
 
 ```bash
-# 檢查 UI 是否正常
-curl http://localhost:8501/_stcore/health
-
-# 檢查服務狀態
+# 檢查服務狀態（Windows/Linux 相同）
 docker compose ps
 
-# 查看 UI 日誌
+# 查看 UI 日誌（Windows/Linux 相同）
 docker compose logs streamlit-ui
+
+# 檢查 UI 是否正常
+# Linux:
+curl http://localhost:8501/_stcore/health
+
+# Windows (PowerShell):
+Invoke-WebRequest http://localhost:8501/_stcore/health
+
+# 或直接瀏覽器訪問:
+# http://localhost:8501
 ```
 
 ## 📝 重要檔案
