@@ -507,7 +507,13 @@ CREATE TABLE IF NOT EXISTS post_metrics_sql (
     processing_stage TEXT DEFAULT 'initial',  -- 處理階段  
     is_complete     BOOLEAN DEFAULT FALSE,    -- 數據是否完整
     post_published_at TIMESTAMPTZ,            -- 真實貼文發布時間 (從DOM提取)
-    tags            JSONB DEFAULT '[]'        -- 主題標籤列表 (從標籤連結提取)
+    tags            JSONB DEFAULT '[]',       -- 主題標籤列表 (從標籤連結提取)
+    
+    -- 新增：雙軌處理狀態追蹤
+    reader_status   TEXT DEFAULT 'pending',   -- Reader處理狀態: pending/success/failed
+    dom_status      TEXT DEFAULT 'pending',   -- DOM爬取狀態: pending/success/failed
+    reader_processed_at TIMESTAMPTZ,          -- Reader處理完成時間
+    dom_processed_at TIMESTAMPTZ              -- DOM處理完成時間
 );
 
 -- 性能優化索引

@@ -274,7 +274,19 @@ class PlaywrightLogic:
             await self._save_debug_data(task_id, username, len(collected_urls), final_posts)
             await publish_progress(task_id, "completed", username=username, posts_count=len(final_posts))
 
-            # 步驟9: 保存到數據庫並更新狀態
+            # 步驟9: 標記DOM處理狀態並保存到數據庫
+            # 為所有完整處理的貼文標記DOM狀態為success
+            for post in final_posts:
+                if post.is_complete:
+                    post.dom_status = "success"
+                    post.dom_processed_at = datetime.utcnow()
+                    # 如果有內容但Reader狀態未設定，推斷為DOM提取的內容
+                    if post.content and post.reader_status == "pending":
+                        post.reader_status = "success"
+                        post.reader_processed_at = datetime.utcnow()
+                else:
+                    post.dom_status = "failed"
+            
             saved_count = await crawl_history.upsert_posts(final_posts)
             logging.info(f"✅ 成功處理 {saved_count}/{len(final_posts)} 篇貼文")
             

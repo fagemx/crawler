@@ -94,9 +94,10 @@ class CrawlHistoryDAO:
                                 shares_count, views_count, calculated_score,
                                 images, videos, created_at, fetched_at, views_fetched_at,
                                 source, processing_stage, is_complete,
-                                post_published_at, tags
+                                post_published_at, tags,
+                                reader_status, dom_status, reader_processed_at, dom_processed_at
                             ) VALUES (
-                                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20
+                                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24
                             )
                             ON CONFLICT (post_id) DO UPDATE SET
                                 likes_count = EXCLUDED.likes_count,
@@ -114,7 +115,27 @@ class CrawlHistoryDAO:
                                 processing_stage = EXCLUDED.processing_stage,
                                 is_complete = EXCLUDED.is_complete,
                                 post_published_at = EXCLUDED.post_published_at,
-                                tags = EXCLUDED.tags
+                                tags = EXCLUDED.tags,
+                                reader_status = CASE 
+                                    WHEN EXCLUDED.reader_status = 'success' AND post_metrics_sql.reader_status != 'success' 
+                                    THEN EXCLUDED.reader_status 
+                                    ELSE post_metrics_sql.reader_status 
+                                END,
+                                dom_status = CASE 
+                                    WHEN EXCLUDED.dom_status = 'success' AND post_metrics_sql.dom_status != 'success' 
+                                    THEN EXCLUDED.dom_status 
+                                    ELSE post_metrics_sql.dom_status 
+                                END,
+                                reader_processed_at = CASE 
+                                    WHEN EXCLUDED.reader_status = 'success' AND post_metrics_sql.reader_status != 'success' 
+                                    THEN COALESCE(EXCLUDED.reader_processed_at, NOW()) 
+                                    ELSE post_metrics_sql.reader_processed_at 
+                                END,
+                                dom_processed_at = CASE 
+                                    WHEN EXCLUDED.dom_status = 'success' AND post_metrics_sql.dom_status != 'success' 
+                                    THEN COALESCE(EXCLUDED.dom_processed_at, NOW()) 
+                                    ELSE post_metrics_sql.dom_processed_at 
+                                END
                         """, 
                         post.post_id, post.username, post.url, post.content,
                         post.likes_count, post.comments_count, post.reposts_count,
@@ -123,7 +144,8 @@ class CrawlHistoryDAO:
                         json.dumps(post.videos) if post.videos else '[]', 
                         post.created_at, post.fetched_at, post.views_fetched_at,
                         post.source, post.processing_stage, post.is_complete,
-                        post.post_published_at, json.dumps(post.tags) if post.tags else '[]'
+                        post.post_published_at, json.dumps(post.tags) if post.tags else '[]',
+                        post.reader_status, post.dom_status, post.reader_processed_at, post.dom_processed_at
                         )
                         success_count += 1
                         
@@ -137,6 +159,52 @@ class CrawlHistoryDAO:
         except Exception as e:
             logging.error(f"❌ 批次處理貼文失敗: {e}")
             return 0
+    
+    async def get_posts_status(self, username: str) -> List[Dict]:
+        """獲取用戶所有貼文的狀態摘要"""
+        try:
+            async with self.db_client.get_connection() as conn:
+                result = await conn.fetch("""
+                    SELECT 
+                        post_id, url, 
+                        reader_status, dom_status,
+                        reader_processed_at, dom_processed_at,
+                        content IS NOT NULL AND content != '' as has_content,
+                        views_count IS NOT NULL as has_metrics,
+                        (images != '[]' OR videos != '[]') as has_media,
+                        created_at, fetched_at
+                    FROM post_metrics_sql 
+                    WHERE username = $1
+                    ORDER BY created_at DESC
+                """, username)
+                return [dict(row) for row in result]
+        except Exception as e:
+            logging.warning(f"⚠️ 獲取 {username} 貼文狀態失敗: {e}")
+            return []
+    
+    async def get_processing_needs(self, username: str) -> Dict:
+        """分析用戶的處理需求統計"""
+        try:
+            async with self.db_client.get_connection() as conn:
+                result = await conn.fetchrow("""
+                    SELECT 
+                        COUNT(*) as total_posts,
+                        COUNT(CASE WHEN reader_status = 'success' THEN 1 END) as reader_complete,
+                        COUNT(CASE WHEN dom_status = 'success' THEN 1 END) as dom_complete,
+                        COUNT(CASE WHEN reader_status = 'pending' THEN 1 END) as needs_reader,
+                        COUNT(CASE WHEN dom_status = 'pending' THEN 1 END) as needs_dom,
+                        COUNT(CASE WHEN reader_status = 'failed' THEN 1 END) as reader_failed,
+                        COUNT(CASE WHEN dom_status = 'failed' THEN 1 END) as dom_failed
+                    FROM post_metrics_sql 
+                    WHERE username = $1
+                """, username)
+                return dict(result) if result else {
+                    "total_posts": 0, "reader_complete": 0, "dom_complete": 0,
+                    "needs_reader": 0, "needs_dom": 0, "reader_failed": 0, "dom_failed": 0
+                }
+        except Exception as e:
+            logging.warning(f"⚠️ 分析 {username} 處理需求失敗: {e}")
+            return {"error": str(e)}
     
     async def update_crawl_state(
         self, 

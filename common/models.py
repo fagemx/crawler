@@ -72,11 +72,29 @@ class PostMetrics(BaseModel):
             return datetime.fromisoformat(v)
         return v
     
+    @validator('reader_processed_at', pre=True, allow_reuse=True)
+    def parse_reader_processed_at(cls, v):
+        if isinstance(v, str):
+            return datetime.fromisoformat(v)
+        return v
+    
+    @validator('dom_processed_at', pre=True, allow_reuse=True)  
+    def parse_dom_processed_at(cls, v):
+        if isinstance(v, str):
+            return datetime.fromisoformat(v)
+        return v
+    
     # 處理元數據
     source: str = Field(default="unknown", description="數據來源: apify, jina, vision")
     processing_stage: str = Field(default="initial", description="處理階段")
     is_complete: bool = Field(default=False, description="數據是否完整")
     last_updated: datetime = Field(default_factory=datetime.utcnow)
+    
+    # 雙軌處理狀態追蹤
+    reader_status: str = Field(default="pending", description="Reader處理狀態: pending/success/failed")
+    dom_status: str = Field(default="pending", description="DOM爬取狀態: pending/success/failed")
+    reader_processed_at: Optional[datetime] = Field(None, description="Reader處理完成時間")
+    dom_processed_at: Optional[datetime] = Field(None, description="DOM處理完成時間")
     
     def calculate_score(self) -> float:
         """
@@ -147,10 +165,47 @@ class PostMetrics(BaseModel):
         if other.post_published_at and not self.post_published_at:
             self.post_published_at = other.post_published_at
         
+        # 特殊處理：雙軌狀態欄位 (只有在對方成功且自己未成功時才更新)
+        if other.reader_status == "success" and self.reader_status != "success":
+            self.reader_status = other.reader_status
+            self.reader_processed_at = other.reader_processed_at or datetime.utcnow()
+        
+        if other.dom_status == "success" and self.dom_status != "success":
+            self.dom_status = other.dom_status
+            self.dom_processed_at = other.dom_processed_at or datetime.utcnow()
+        
         # 更新處理階段和時間
         if other.processing_stage and other.processing_stage != "initial":
             self.processing_stage = other.processing_stage
         self.last_updated = datetime.utcnow()
+    
+    # 雙軌狀態輔助方法
+    def is_reader_complete(self) -> bool:
+        """檢查Reader處理是否完成"""
+        return self.reader_status == "success" and bool(self.content)
+    
+    def is_dom_complete(self) -> bool:
+        """檢查DOM爬取是否完成"""
+        return self.dom_status == "success" and self.is_complete
+        
+    def needs_processing(self) -> dict:
+        """分析需要的處理類型"""
+        return {
+            "needs_reader": not self.is_reader_complete(),
+            "needs_dom": not self.is_dom_complete(),
+            "has_content": bool(self.content),
+            "has_metrics": any([self.likes_count, self.views_count, self.comments_count])
+        }
+    
+    def get_status_summary(self) -> dict:
+        """獲取狀態摘要，用於UI顯示"""
+        return {
+            "reader_status": self.reader_status,
+            "dom_status": self.dom_status,
+            "reader_processed_at": self.reader_processed_at,
+            "dom_processed_at": self.dom_processed_at,
+            **self.needs_processing()
+        }
 
 
 class PostMetricsBatch(BaseModel):
