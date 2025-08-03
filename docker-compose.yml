@@ -356,13 +356,11 @@ services:
     command: uvicorn agents.vision.main:app --host 0.0.0.0 --port 8005 --reload
 
   # =============================================================================
-  # Reader 服務集群 - 快速內容提取
+  # Reader 服務集群 - 快速內容提取 (使用社群GHCR映像)
   # =============================================================================
-  
+
   reader-1:
-    build:
-      context: ./reader-src
-      dockerfile: ../config/reader.Dockerfile
+    image: ghcr.io/intergalacticalvariable/reader:latest
     container_name: social-media-reader-1
     environment:
       - NODE_ENV=production
@@ -388,9 +386,7 @@ services:
       start_period: 60s
 
   reader-2:
-    build:
-      context: ./reader-src
-      dockerfile: ../config/reader.Dockerfile
+    image: ghcr.io/intergalacticalvariable/reader:latest
     container_name: social-media-reader-2
     environment:
       - NODE_ENV=production
@@ -508,72 +504,6 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8007/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - social-media-network
-
-  # Reader Processor - Reader批量處理協調器
-  reader-processor:
-    build:
-      context: .
-      dockerfile: services/reader_processor/Dockerfile
-    container_name: social-media-reader-processor
-    ports:
-      - "8009:8009"
-    environment:
-      - PYTHONPATH=/app
-      - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql://postgres:password@postgres:5432/social_media_db
-      - REDIS_URL=redis://redis:6379/0
-    env_file:
-      - .env
-    volumes:
-      - .:/app
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      reader-lb:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8009/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - social-media-network
-
-  # Crawl Coordinator - 統一爬蟲協調器
-  crawl-coordinator:
-    build:
-      context: .
-      dockerfile: services/crawl_coordinator/Dockerfile
-    container_name: social-media-crawl-coordinator
-    ports:
-      - "8008:8008"
-    environment:
-      - PYTHONPATH=/app
-      - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql://postgres:password@postgres:5432/social_media_db
-      - REDIS_URL=redis://redis:6379/0
-    env_file:
-      - .env
-    volumes:
-      - .:/app
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      reader-processor:
-        condition: service_healthy
-      playwright-crawler-agent:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
       interval: 30s
       timeout: 10s
       retries: 3
