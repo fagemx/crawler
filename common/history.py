@@ -93,9 +93,10 @@ class CrawlHistoryDAO:
                                 likes_count, comments_count, reposts_count, 
                                 shares_count, views_count, calculated_score,
                                 images, videos, created_at, fetched_at, views_fetched_at,
-                                source, processing_stage, is_complete
+                                source, processing_stage, is_complete,
+                                post_published_at, tags
                             ) VALUES (
-                                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18
+                                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20
                             )
                             ON CONFLICT (post_id) DO UPDATE SET
                                 likes_count = EXCLUDED.likes_count,
@@ -111,7 +112,9 @@ class CrawlHistoryDAO:
                                 views_fetched_at = EXCLUDED.views_fetched_at,
                                 source = EXCLUDED.source,
                                 processing_stage = EXCLUDED.processing_stage,
-                                is_complete = EXCLUDED.is_complete
+                                is_complete = EXCLUDED.is_complete,
+                                post_published_at = EXCLUDED.post_published_at,
+                                tags = EXCLUDED.tags
                         """, 
                         post.post_id, post.username, post.url, post.content,
                         post.likes_count, post.comments_count, post.reposts_count,
@@ -119,7 +122,8 @@ class CrawlHistoryDAO:
                         json.dumps(post.images) if post.images else '[]', 
                         json.dumps(post.videos) if post.videos else '[]', 
                         post.created_at, post.fetched_at, post.views_fetched_at,
-                        post.source, post.processing_stage, post.is_complete
+                        post.source, post.processing_stage, post.is_complete,
+                        post.post_published_at, json.dumps(post.tags) if post.tags else '[]'
                         )
                         success_count += 1
                         

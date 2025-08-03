@@ -122,6 +122,11 @@ class PlaywrightLogic:
             # 步驟5: 轉換URLs為PostMetrics
             ordered_posts = []
             for url in collected_urls:
+                # 驗證URL是否確實屬於目標用戶
+                if f"@{username}/post/" not in url:
+                    logging.warning(f"⚠️ 跳過非目標用戶的URL: {url}")
+                    continue
+                    
                 post_id = url.split('/')[-1]
                 post_metrics = PostMetrics(
                     post_id=f"{username}_{post_id}",
@@ -206,6 +211,11 @@ class PlaywrightLogic:
                         logging.info(f"🔍 [Task: {task_id}] 補足過濾：找到 {len(supplement_urls)} 個URLs，已有 {len(existing_post_ids_expanded)} 個ID")
                         
                         for url in supplement_urls:
+                            # 驗證URL是否確實屬於目標用戶
+                            if f"@{username}/post/" not in url:
+                                logging.warning(f"⚠️ 補足階段跳過非目標用戶的URL: {url}")
+                                continue
+                                
                             post_id = url.split('/')[-1]
                             full_post_id = f"{username}_{post_id}"
                             

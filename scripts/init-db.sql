@@ -500,12 +500,14 @@ CREATE TABLE IF NOT EXISTS post_metrics_sql (
     calculated_score DOUBLE PRECISION,
     images          JSONB DEFAULT '[]',
     videos          JSONB DEFAULT '[]',
-    created_at      TIMESTAMPTZ NOT NULL,
+    created_at      TIMESTAMPTZ NOT NULL,     -- 爬蟲處理時間
     fetched_at      TIMESTAMPTZ DEFAULT NOW(),
     views_fetched_at TIMESTAMPTZ,
     source          TEXT DEFAULT 'unknown',   -- 數據來源
     processing_stage TEXT DEFAULT 'initial',  -- 處理階段  
-    is_complete     BOOLEAN DEFAULT FALSE     -- 數據是否完整
+    is_complete     BOOLEAN DEFAULT FALSE,    -- 數據是否完整
+    post_published_at TIMESTAMPTZ,            -- 真實貼文發布時間 (從DOM提取)
+    tags            JSONB DEFAULT '[]'        -- 主題標籤列表 (從標籤連結提取)
 );
 
 -- 性能優化索引
