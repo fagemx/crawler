@@ -1,0 +1,231 @@
+{
+  "timestamp": "2025-08-04T00:46:58.846486",
+  "target_username": "ttshow.tw",
+  "max_posts": 20,
+  "total_processed": 20,
+  "api_success_count": 19,
+  "api_failure_count": 1,
+  "success_rate": 95.0,
+  "results": [
+    {
+      "post_id": "DIfkbgLSjO3",
+      "url": "https://www.threads.com/@ttshow.tw/post/DIfkbgLSjO3",
+      "views": "21.8K",
+      "content": null,
+      "source": "jina_api",
+      "has_views": true,
+      "has_content": false,
+      "content_length": 39746,
+      "extracted_at": "2025-08-04T00:45:02.446197"
+    },
+    {
+      "post_id": "media",
+      "url": "https://www.threads.com/@ttshow.tw/post/DIfkbgLSjO3/media",
+      "views": "21.8K",
+      "content": null,
+      "source": "jina_api",
+      "has_views": true,
+      "has_content": false,
+      "content_length": 42469,
+      "extracted_at": "2025-08-04T00:45:11.388101"
+    },
+    {
+      "post_id": "DIfk0RVyRao",
+      "url": "https://www.threads.com/@ttshow.tw/post/DIfk0RVyRao",
+      "views": "7K",
+      "content": null,
+      "source": "jina_api",
+      "has_views": true,
+      "has_content": false,
+      "content_length": 4955,
+      "extracted_at": "2025-08-04T00:45:16.639062"
+    },
+    {
+      "post_id": "DMpiLnASe_4",
+      "url": "https://www.threads.com/@ttshow.tw/post/DMpiLnASe_4",
+      "views": "13.9K",
+      "content": null,
+      "source": "jina_api",
+      "has_views": true,
+      "has_content": false,
+      "content_length": 12990,
+      "extracted_at": "2025-08-04T00:45:18.173051"
+    },
+    {
+      "post_id": "DMfOVeqSkM5",
+      "url": "https://www.threads.com/@ttshow.tw/post/DMfOVeqSkM5",
+      "views": "313K",
+      "content": null,
+      "source": "jina_api",
+      "has_views": true,
+      "has_content": false,
+      "content_length": 27389,
+      "extracted_at": "2025-08-04T00:45:19.717650"
+    },
+    {
+      "post_id": "DMfOwUbSMtb",
+      "url": "https://www.threads.com/@ttshow.tw/post/DMfOwUbSMtb",
+      "views": "44.5K",
+      "content": null,
+      "source": "jina_api",
+      "has_views": true,
+      "has_content": false,
+      "content_length": 20356,
+      "extracted_at": "2025-08-04T00:45:45.988346"
+    },
+    {
+      "post_id": "DMegHD-S3xR",
+      "url": "https://www.threads.com/@ttshow.tw/post/DMegHD-S3xR",
+      "views": "6K",
+      "content": null,
+      "source": "jina_api",
+      "has_views": true,
+      "has_content": false,
+      "content_length": 6391,
+      "extracted_at": "2025-08-04T00:45:47.480798"
+    },
+    {
+      "post_id": "media",
+      "url": "https://www.threads.com/@ttshow.tw/post/DMegHD-S3xR/media",
+      "views": "6K",
+      "content": null,
+      "source": "jina_api",
+      "has_views": true,
+      "has_content": false,
+      "content_length": 11786,
+      "extracted_at": "2025-08-04T00:45:58.208240"
+    },
+    {
+      "post_id": "DMZVCFzSpIX",
+      "url": "https://www.threads.com/@ttshow.tw/post/DMZVCFzSpIX",
+      "views": "10.7K",
+      "content": null,
+      "source": "jina_api",
+      "has_views": true,
+      "has_content": false,
+      "content_length": 18365,
+      "extracted_at": "2025-08-04T00:45:59.660500"
+    },
+    {
+      "post_id": "DMPsmcCSkeY",
+      "url": "https://www.threads.com/@ttshow.tw/post/DMPsmcCSkeY",
+      "views": "5.7K",
+      "content": null,
+      "source": "jina_api",
+      "has_views": true,
+      "has_content": false,
+      "content_length": 11305,
+      "extracted_at": "2025-08-04T00:46:01.446302"
+    },
+    {
+      "post_id": "DMMcDz9ywWT",
+      "url": "https://www.threads.com/@ttshow.tw/post/DMMcDz9ywWT",
+      "views": "21.6K",
+      "content": null,
+      "source": "jina_api",
+      "has_views": true,
+      "has_content": false,
+      "content_length": 15777,
+      "extracted_at": "2025-08-04T00:46:05.195625"
+    },
+    {
+      "post_id": "media",
+      "url": "https://www.threads.com/@ttshow.tw/post/DMMcDz9ywWT/media",
+      "views": "21.6K",
+      "content": null,
+      "source": "jina_api",
+      "has_views": true,
+      "has_content": false,
+      "content_length": 23217,
+      "extracted_at": "2025-08-04T00:46:09.572900"
+    },
+    {
+      "post_id": "DL_vyT-RZQ6",
+      "url": "https://www.threads.com/@ttshow.tw/post/DL_vyT-RZQ6",
+      "views": null,
+      "content": null,
+      "source": "jina_api",
+      "has_views": false,
+      "has_content": false,
+      "content_length": 10801,
+      "extracted_at": "2025-08-04T00:46:16.210720"
+    },
+    {
+      "post_id": "DL7K-nfSwBi",
+      "url": "https://www.threads.com/@ttshow.tw/post/DL7K-nfSwBi",
+      "views": "27.7K",
+      "content": null,
+      "source": "jina_api",
+      "has_views": true,
+      "has_content": false,
+      "content_length": 10958,
+      "extracted_at": "2025-08-04T00:46:17.678926"
+    },
+    {
+      "post_id": "DL7LHAVyv0O",
+      "url": "https://www.threads.com/@ttshow.tw/post/DL7LHAVyv0O",
+      "views": "17.6K",
+      "content": null,
+      "source": "jina_api",
+      "has_views": true,
+      "has_content": false,
+      "content_length": 3959,
+      "extracted_at": "2025-08-04T00:46:25.684112"
+    },
+    {
+      "post_id": "DL4jVz2SBJg",
+      "url": "https://www.threads.com/@ttshow.tw/post/DL4jVz2SBJg",
+      "views": "21.9K",
+      "content": null,
+      "source": "jina_api",
+      "has_views": true,
+      "has_content": false,
+      "content_length": 10769,
+      "extracted_at": "2025-08-04T00:46:27.552159"
+    },
+    {
+      "post_id": "DL4j8Ptybdr",
+      "url": "https://www.threads.com/@ttshow.tw/post/DL4j8Ptybdr",
+      "views": "10.8K",
+      "content": null,
+      "source": "jina_api",
+      "has_views": true,
+      "has_content": false,
+      "content_length": 3973,
+      "extracted_at": "2025-08-04T00:46:34.503971"
+    },
+    {
+      "post_id": "DL4iiogS9Vo",
+      "url": "https://www.threads.com/@ttshow.tw/post/DL4iiogS9Vo",
+      "views": "8.2K",
+      "content": null,
+      "source": "jina_api",
+      "has_views": true,
+      "has_content": false,
+      "content_length": 11761,
+      "extracted_at": "2025-08-04T00:46:35.990516"
+    },
+    {
+      "post_id": "media",
+      "url": "https://www.threads.com/@ttshow.tw/post/DL4iiogS9Vo/media",
+      "views": "8.2K",
+      "content": null,
+      "source": "jina_api",
+      "has_views": true,
+      "has_content": false,
+      "content_length": 15832,
+      "extracted_at": "2025-08-04T00:46:43.925840"
+    },
+    {
+      "post_id": "DLsFMo6SyF3",
+      "url": "https://www.threads.com/@ttshow.tw/post/DLsFMo6SyF3",
+      "views": "51.8K",
+      "content": null,
+      "source": "jina_api",
+      "has_views": true,
+      "has_content": false,
+      "content_length": 10627,
+      "extracted_at": "2025-08-04T00:46:58.839924"
+    }
+  ]
+}

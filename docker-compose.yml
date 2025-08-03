@@ -411,12 +411,54 @@ services:
     #   retries: 3
     #   start_period: 60s
 
+  reader-3:
+    image: ghcr.io/intergalacticalvariable/reader:latest
+    container_name: social-media-reader-3
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    volumes:
+      - reader_cache_3:/tmp
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    restart: unless-stopped
+    networks:
+      - social-media-network
+
+  reader-4:
+    image: ghcr.io/intergalacticalvariable/reader:latest
+    container_name: social-media-reader-4
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    volumes:
+      - reader_cache_4:/tmp
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    restart: unless-stopped
+    networks:
+      - social-media-network
+
   reader-lb:
     image: nginx:alpine
     container_name: social-media-reader-lb
     depends_on:
       - reader-1
       - reader-2
+      - reader-3
+      - reader-4
     volumes:
       - ./config/reader-nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
@@ -635,6 +677,10 @@ volumes:
   reader_cache_1:
     driver: local
   reader_cache_2:
+    driver: local
+  reader_cache_3:
+    driver: local
+  reader_cache_4:
     driver: local
 
 # =============================================================================

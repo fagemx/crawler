@@ -16,6 +16,7 @@ sys.path.append(str(project_root))
 # 導入組件
 # from ui.components.crawler_component import ThreadsCrawlerComponent  # 舊版本
 from ui.components.crawler_component_refactored import ThreadsCrawlerComponent  # 重構版本
+from ui.components.realtime_crawler_component import RealtimeCrawlerComponent  # 實時爬蟲
 from ui.components.monitoring_component import SystemMonitoringComponent
 from ui.components.content_generator_component import ContentGeneratorComponent
 from ui.components.analyzer_component import AnalyzerComponent
@@ -32,6 +33,7 @@ st.set_page_config(
 class SocialMediaGeneratorApp:
     def __init__(self):
         self.crawler_component = ThreadsCrawlerComponent()
+        self.realtime_crawler_component = RealtimeCrawlerComponent()
         self.monitoring_component = SystemMonitoringComponent()
         self.content_generator_component = ContentGeneratorComponent()
         self.analyzer_component = AnalyzerComponent()
@@ -191,8 +193,9 @@ class SocialMediaGeneratorApp:
     def render_main_content(self):
         """渲染主要內容"""
         # 標籤頁
-        tab1, tab2, tab3, tab4 = st.tabs([
+        tab1, tab2, tab3, tab4, tab5 = st.tabs([
             "🕷️ Threads 爬蟲", 
+            "🚀 實時智能爬蟲",
             "📊 內容分析",
             "📝 內容生成", 
             "🔧 系統監控"
@@ -202,12 +205,15 @@ class SocialMediaGeneratorApp:
             self.crawler_component.render()
         
         with tab2:
-            self.analyzer_component.render()
+            self.realtime_crawler_component.render()
         
         with tab3:
-            self.content_generator_component.render()
+            self.analyzer_component.render()
         
         with tab4:
+            self.content_generator_component.render()
+        
+        with tab5:
             self.monitoring_component.render()
     
     def _reset_all_states(self):

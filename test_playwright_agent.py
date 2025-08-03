@@ -5,10 +5,10 @@ from pathlib import Path
 
 # --- 測試設定 ---
 # 1. 要爬取的目標使用者名稱 (不含 @)
-TARGET_USERNAME = "natgeo"  # <--- 在這裡修改您想爬取的帳號
+TARGET_USERNAME = "ttshow.tw"  # <--- 在這裡修改您想爬取的帳號
 
 # 2. 要爬取的最大貼文數量
-MAX_POSTS_TO_FETCH = 5  # <--- 在這裡修改您想爬取的數量
+MAX_POSTS_TO_FETCH = 20  # <--- 在這裡修改您想爬取的數量
 
 # 3. Playwright Crawler Agent 的 API 端點
 #    請確保您的 docker compose 正在運行，且端口號正確

@@ -1,0 +1,1595 @@
+[
+  {
+    "post_id": "DIfkbgLSjO3",
+    "content_length": 1108,
+    "current_patterns_found": [
+      {
+        "pattern_index": 0,
+        "pattern": "\\[Thread\\s*={2,}\\s*(\\d+(?:\\.\\d+)?[KMB]?)\\s*views\\]",
+        "matches": [
+          "21.8K"
+        ]
+      },
+      {
+        "pattern_index": 1,
+        "pattern": "Thread.*?(\\d+(?:\\.\\d+)?[KMB]?)\\s*views",
+        "matches": [
+          "21.8K"
+        ]
+      },
+      {
+        "pattern_index": 2,
+        "pattern": "(\\d+(?:\\.\\d+)?[KMB]?)\\s*views",
+        "matches": [
+          "21.8K"
+        ]
+      }
+    ],
+    "extended_patterns_found": [
+      {
+        "pattern_index": 4,
+        "pattern": "(\\d+(?:\\.\\d+)?[KMB]?)\\s*view(?:s|ing)",
+        "matches": [
+          "21.8K"
+        ]
+      }
+    ],
+    "all_numbers_found": [],
+    "lines_with_view": [
+      {
+        "line_number": 17,
+        "content": "[Thread ====== 21.8K views](https://www.threads.net/@ttshow.tw/post/DIfkbgLSjO3)"
+      }
+    ],
+    "lines_with_numbers": [
+      {
+        "line_number": 17,
+        "content": "[Thread ====== 21.8K views](https://www.threads.net/@ttshow.tw/post/DIfkbgLSjO3)",
+        "numbers": [
+          "21.8K"
+        ]
+      },
+      {
+        "line_number": 20,
+        "content": "*   [Threads Terms](https://l.threads.com/?u=https%3A%2F%2Fhelp.instagram.com%2F769983657850450&e=AT1eUAKgEdL0TLePLWQ-DHveqELqv7h9Dp5mb5kchXqVTg3rgFdc4wV-QSXuy8B1Nxl2puBUojyV3jmwu3Hnvv4gDjNiELf7MEWZnMdw1VLM_7G3iAG1jX_pk0U)",
+        "numbers": [
+          "5m",
+          "5k",
+          "8B",
+          "7M"
+        ]
+      },
+      {
+        "line_number": 21,
+        "content": "*   [Privacy Policy](https://l.threads.com/?u=https%3A%2F%2Fhelp.instagram.com%2F515230437301944&e=AT1eUAKgEdL0TLePLWQ-DHveqELqv7h9Dp5mb5kchXqVTg3rgFdc4wV-QSXuy8B1Nxl2puBUojyV3jmwu3Hnvv4gDjNiELf7MEWZnMdw1VLM_7G3iAG1jX_pk0U)",
+        "numbers": [
+          "5m",
+          "5k",
+          "8B",
+          "7M"
+        ]
+      },
+      {
+        "line_number": 22,
+        "content": "*   [Cookies Policy](https://l.threads.com/?u=https%3A%2F%2Fhelp.instagram.com%2F1896641480634370%2F&e=AT1eUAKgEdL0TLePLWQ-DHveqELqv7h9Dp5mb5kchXqVTg3rgFdc4wV-QSXuy8B1Nxl2puBUojyV3jmwu3Hnvv4gDjNiELf7MEWZnMdw1VLM_7G3iAG1jX_pk0U)",
+        "numbers": [
+          "5m",
+          "5k",
+          "8B",
+          "7M"
+        ]
+      }
+    ]
+  },
+  {
+    "post_id": "DMpiLnASe_4",
+    "content_length": 11873,
+    "current_patterns_found": [
+      {
+        "pattern_index": 0,
+        "pattern": "\\[Thread\\s*={2,}\\s*(\\d+(?:\\.\\d+)?[KMB]?)\\s*views\\]",
+        "matches": [
+          "13.9K"
+        ]
+      },
+      {
+        "pattern_index": 1,
+        "pattern": "Thread.*?(\\d+(?:\\.\\d+)?[KMB]?)\\s*views",
+        "matches": [
+          "13.9K"
+        ]
+      },
+      {
+        "pattern_index": 2,
+        "pattern": "(\\d+(?:\\.\\d+)?[KMB]?)\\s*views",
+        "matches": [
+          "13.9K"
+        ]
+      }
+    ],
+    "extended_patterns_found": [
+      {
+        "pattern_index": 4,
+        "pattern": "(\\d+(?:\\.\\d+)?[KMB]?)\\s*view(?:s|ing)",
+        "matches": [
+          "13.9K"
+        ]
+      }
+    ],
+    "all_numbers_found": [],
+    "lines_with_view": [
+      {
+        "line_number": 17,
+        "content": "[Thread ====== 13.9K views](https://www.threads.net/@ttshow.tw/post/DMpiLnASe_4)"
+      },
+      {
+        "line_number": 67,
+        "content": "[![Image 11: 可能是計時器和顯示的文字是「 CMBC Recommendations Customize Timestamp filters)... Thu Symbol 31, 2025 Analyst LRCX Thu Jul 31, 2025 Jim Cramer CRWV 31, 2025 Rank FICO Jim Cramer Thu Jul 31, 2025 Buy on a Pullback WEN Jim Cramer Thu Jul 31, 2025 Bullish FIG Jim Cramer Thu Jul 31, 2025 Interview SPOT Jim Cramer Thu Jul 31, 2025 Bearish Jim Cramer AEM Thu Jul 31, 2025 Bearish CORZ Jim Cramer Thu Jul 31, 2025 Not Recommending Jim Cramer BMNR Thu Jul 31, 2025 Thu Interview CVNA Jim Cramer 31, 2025 Not Recommending Jim Cramer WULF Jim Cramer Not Recommending Interview Not Recommending 」的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527156740_17925021882098922_289413686971253296_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uMTQ0MHg4MDcuc2RyLmY4Mjc4Ny5kZWZhdWx0X2ltYWdlLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=106&_nc_oc=Q6cZ2QEdorxHfGELMpUhESCSpkIKlmVGXDL87cF02qDjX2lhsT8f6uSfb2U84X5KeHeeQ54&_nc_ohc=JWBp_1DXU_UQ7kNvwHTpJ76&_nc_gid=O87zrR10LJxh2H8Q5Aj58w&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDQ5NDE5OTA4NjY5MDc5MA%3D%3D.3-ccb7-5&oh=00_AfRkMFPC5WCQf4OzLq7Ow5FEgV3lIyPLuhEBVAakrErPbw&oe=6895332A&_nc_sid=10d13b)](https://www.threads.net/@trendspider/post/DM3ROvGM7Hm/media)"
+      }
+    ],
+    "lines_with_numbers": [
+      {
+        "line_number": 17,
+        "content": "[Thread ====== 13.9K views](https://www.threads.net/@ttshow.tw/post/DMpiLnASe_4)",
+        "numbers": [
+          "13.9K"
+        ]
+      },
+      {
+        "line_number": 19,
+        "content": "[![Image 1: ttshow.tw's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/357840283_169933572747348_7166870351561103713_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=100&_nc_oc=Q6cZ2QGwuR3gMkVcZmlPybvnHUsXGXBJTiHXOHbnAe9Lh_yWWbi2cu6LeF2lvRQ5artSrww&_nc_ohc=erKsr3WG9sgQ7kNvwHSsgu1&_nc_gid=O87zrR10LJxh2H8Q5Aj58w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfRpsmyQvaVKnmJQOAlTBg3g7z6xCLhQ3POhFUeG9z5aRQ&oe=68954914&_nc_sid=10d13b)](https://www.threads.net/@ttshow.tw)",
+        "numbers": [
+          "7k",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 29,
+        "content": "![Image 2](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/524646126_1114659530537013_4282829526101458712_n.jpg?stp=dst-jpg_e15_tt6&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=109&_nc_oc=Q6cZ2QGwuR3gMkVcZmlPybvnHUsXGXBJTiHXOHbnAe9Lh_yWWbi2cu6LeF2lvRQ5artSrww&_nc_ohc=W7h14_OnfEkQ7kNvwFQPwS3&_nc_gid=O87zrR10LJxh2H8Q5Aj58w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfTsu5jmHDKyogDNaawF2TrUdglvnGye8WWEBeRPvxG1Kg&oe=689544D1&_nc_sid=10d13b)",
+        "numbers": [
+          "7k",
+          "1K",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 31,
+        "content": "![Image 3](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/525663455_1392988079187886_4161678207338065054_n.jpg?stp=dst-jpg_e15_tt6&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=110&_nc_oc=Q6cZ2QGwuR3gMkVcZmlPybvnHUsXGXBJTiHXOHbnAe9Lh_yWWbi2cu6LeF2lvRQ5artSrww&_nc_ohc=MAOhJQGpmVUQ7kNvwEVh6Uc&_nc_gid=O87zrR10LJxh2H8Q5Aj58w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfR-NSOV8Fk-w6Q_IaN5MAtm9cxkNJSEDeHhrXtA-wwwhw&oe=68953744&_nc_sid=10d13b)",
+        "numbers": [
+          "7k",
+          "5M",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 33,
+        "content": "![Image 4](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/523387919_664007786704228_534398952131879850_n.jpg?stp=dst-jpg_e15_tt6&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=104&_nc_oc=Q6cZ2QGwuR3gMkVcZmlPybvnHUsXGXBJTiHXOHbnAe9Lh_yWWbi2cu6LeF2lvRQ5artSrww&_nc_ohc=YjnHW_Od8hYQ7kNvwHAeq-p&_nc_gid=O87zrR10LJxh2H8Q5Aj58w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfQsBdUpTTZDBGbgcxWM4DlTAluM2rK5ZLyCsJtkCa-VLw&oe=6895537E&_nc_sid=10d13b)",
+        "numbers": [
+          "7k",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 41,
+        "content": "[![Image 5: hayatohuseman's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/503838378_17909731107116351_6087463495858293019_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=111&_nc_oc=Q6cZ2QEdorxHfGELMpUhESCSpkIKlmVGXDL87cF02qDjX2lhsT8f6uSfb2U84X5KeHeeQ54&_nc_ohc=v_XqNKqX9wQQ7kNvwH1LCJ9&_nc_gid=O87zrR10LJxh2H8Q5Aj58w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfTRh6JDCuX8yXN1K2boLd0vL4VXigHqp7e0GDFRPJvYyg&oe=6895442E&_nc_sid=10d13b)](https://www.threads.net/@hayatohuseman)",
+        "numbers": [
+          "5K",
+          "7k",
+          "1K",
+          "2b",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 49,
+        "content": "![Image 6: 可能是 1 人、無袖背心、鏡子、骷髏頭和文字的自拍照](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/526039999_17916613935116351_87199335127291399_n.jpg?stp=dst-jpegr_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMTQ0MHgxOTIwLmhkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=111&_nc_oc=Q6cZ2QEdorxHfGELMpUhESCSpkIKlmVGXDL87cF02qDjX2lhsT8f6uSfb2U84X5KeHeeQ54&_nc_ohc=gErJa-e-UmQQ7kNvwFcWIS9&_nc_gid=O87zrR10LJxh2H8Q5Aj58w&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDY0MjMzNjMxNjk3NzM0NA%3D%3D.3-ccb7-5&oh=00_AfTwcia9YdShB-B5JQp9XXxQF-cTF7qrw4PvJ9HH38pn1g&oe=68953275&_nc_sid=10d13b&se=-1)",
+        "numbers": [
+          "0M",
+          "5m",
+          "5K",
+          "7k",
+          "5M",
+          "0M",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 51,
+        "content": "![Image 7: 可能是 1 人、肱二頭肌、啞鈴、跑步機和文字的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527354707_17916613944116351_331209036304917581_n.jpg?stp=dst-jpegr_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMTQ0MHgxOTIwLmhkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=111&_nc_oc=Q6cZ2QEdorxHfGELMpUhESCSpkIKlmVGXDL87cF02qDjX2lhsT8f6uSfb2U84X5KeHeeQ54&_nc_ohc=Ku92ynfhRKQQ7kNvwGkelHP&_nc_gid=O87zrR10LJxh2H8Q5Aj58w&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDY0MjMzNjIzMzIzMjEwNQ%3D%3D.3-ccb7-5&oh=00_AfTToHh0QiXucRBi-xnvZFMLhFCThF6Rgr62Lb1aRZ-D5g&oe=6895448D&_nc_sid=10d13b&se=-1)",
+        "numbers": [
+          "0M",
+          "5m",
+          "5K",
+          "7k",
+          "5M",
+          "0M",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 53,
+        "content": "![Image 8: 可能是 4 個人、草、公園、野餐和文字的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527920439_17916613953116351_5077729680502923488_n.jpg?stp=dst-jpegr_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMTQ0MHgxOTIwLmhkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=111&_nc_oc=Q6cZ2QEdorxHfGELMpUhESCSpkIKlmVGXDL87cF02qDjX2lhsT8f6uSfb2U84X5KeHeeQ54&_nc_ohc=pgsP_S746asQ7kNvwHFRtGz&_nc_gid=O87zrR10LJxh2H8Q5Aj58w&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDY0MjMzNjIzMzA0NTAzOA%3D%3D.3-ccb7-5&oh=00_AfR-eE0fqse8TldpzNdDAtk4re0Ui3VxHKpBXRum_habzQ&oe=68953C5F&_nc_sid=10d13b&se=-1)",
+        "numbers": [
+          "0M",
+          "5m",
+          "5K",
+          "7k",
+          "5M",
+          "0M",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 55,
+        "content": "![Image 9: 可能是天使橡木樹和文字的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527217530_17916613962116351_5919988976322689676_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMTQ0MHgxOTIwLnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=111&_nc_oc=Q6cZ2QEdorxHfGELMpUhESCSpkIKlmVGXDL87cF02qDjX2lhsT8f6uSfb2U84X5KeHeeQ54&_nc_ohc=mwqTjUKnV-8Q7kNvwHPGF2U&_nc_gid=O87zrR10LJxh2H8Q5Aj58w&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDY0MjMzNjIzMzI3ODgxMg%3D%3D.3-ccb7-5&oh=00_AfRI99zWcG4g4gUh2mlYt4W0KnhVIjMAPipfp8iaeNdO2Q&oe=6895553E&_nc_sid=10d13b)",
+        "numbers": [
+          "0M",
+          "5m",
+          "5K",
+          "7k",
+          "5M",
+          "0M",
+          "2m",
+          "0K",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 59,
+        "content": "[![Image 10: trendspider's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/358000025_988841669212235_3183384987691331022_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby40MDAuYzIifQ&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=1&_nc_oc=Q6cZ2QEdorxHfGELMpUhESCSpkIKlmVGXDL87cF02qDjX2lhsT8f6uSfb2U84X5KeHeeQ54&_nc_ohc=H4YatLxFJ_IQ7kNvwGGjv24&_nc_gid=O87zrR10LJxh2H8Q5Aj58w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfQXDlqaj3_oOHtMZ0g0HM3YryBh7whV9zNh3fJaHiXX_g&oe=68952955&_nc_sid=10d13b)](https://www.threads.net/@trendspider)",
+        "numbers": [
+          "40M",
+          "5K",
+          "7k",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 67,
+        "content": "[![Image 11: 可能是計時器和顯示的文字是「 CMBC Recommendations Customize Timestamp filters)... Thu Symbol 31, 2025 Analyst LRCX Thu Jul 31, 2025 Jim Cramer CRWV 31, 2025 Rank FICO Jim Cramer Thu Jul 31, 2025 Buy on a Pullback WEN Jim Cramer Thu Jul 31, 2025 Bullish FIG Jim Cramer Thu Jul 31, 2025 Interview SPOT Jim Cramer Thu Jul 31, 2025 Bearish Jim Cramer AEM Thu Jul 31, 2025 Bearish CORZ Jim Cramer Thu Jul 31, 2025 Not Recommending Jim Cramer BMNR Thu Jul 31, 2025 Thu Interview CVNA Jim Cramer 31, 2025 Not Recommending Jim Cramer WULF Jim Cramer Not Recommending Interview Not Recommending 」的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527156740_17925021882098922_289413686971253296_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uMTQ0MHg4MDcuc2RyLmY4Mjc4Ny5kZWZhdWx0X2ltYWdlLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=106&_nc_oc=Q6cZ2QEdorxHfGELMpUhESCSpkIKlmVGXDL87cF02qDjX2lhsT8f6uSfb2U84X5KeHeeQ54&_nc_ohc=JWBp_1DXU_UQ7kNvwHTpJ76&_nc_gid=O87zrR10LJxh2H8Q5Aj58w&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDQ5NDE5OTA4NjY5MDc5MA%3D%3D.3-ccb7-5&oh=00_AfRkMFPC5WCQf4OzLq7Ow5FEgV3lIyPLuhEBVAakrErPbw&oe=6895332A&_nc_sid=10d13b)](https://www.threads.net/@trendspider/post/DM3ROvGM7Hm/media)",
+        "numbers": [
+          "0M",
+          "4M",
+          "4M",
+          "5k",
+          "5K",
+          "7k",
+          "5M",
+          "5M",
+          "5M",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 73,
+        "content": "[![Image 12: codepinkalert's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/358022222_824159318996195_7042761911072686821_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=111&_nc_oc=Q6cZ2QEdorxHfGELMpUhESCSpkIKlmVGXDL87cF02qDjX2lhsT8f6uSfb2U84X5KeHeeQ54&_nc_ohc=yJW-YCodPmcQ7kNvwH9FLNj&_nc_gid=O87zrR10LJxh2H8Q5Aj58w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfRySmv6PgpRBYuE8dbDMwNV9upfOjv2COf3ESlBV0HLEQ&oe=68953840&_nc_sid=10d13b)](https://www.threads.net/@codepinkalert)",
+        "numbers": [
+          "5K",
+          "7k",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 89,
+        "content": "[![Image 13: aiirbearmusic's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/454846234_1011360717307271_5761568074344560994_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=111&_nc_oc=Q6cZ2QEdorxHfGELMpUhESCSpkIKlmVGXDL87cF02qDjX2lhsT8f6uSfb2U84X5KeHeeQ54&_nc_ohc=EnSyzrUtgWkQ7kNvwHqF_0B&_nc_gid=O87zrR10LJxh2H8Q5Aj58w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfQFlIx8Ntjxit-r_FyPk1HW5VE-BdkzLOPnVRv39fQ3gQ&oe=689547DA&_nc_sid=10d13b)](https://www.threads.net/@aiirbearmusic)",
+        "numbers": [
+          "5K",
+          "7k",
+          "0B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 103,
+        "content": "[![Image 14: billiecanwrite's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/411866517_368722415688419_7719853502354538680_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby45NjAuYzIifQ&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=111&_nc_oc=Q6cZ2QEdorxHfGELMpUhESCSpkIKlmVGXDL87cF02qDjX2lhsT8f6uSfb2U84X5KeHeeQ54&_nc_ohc=3_NNEVqWg4wQ7kNvwF5tmPt&_nc_gid=O87zrR10LJxh2H8Q5Aj58w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfSdmZoCUwGPLpdoq9qNbTW5PyQpvHt_GWNPrGA_azTR-g&oe=68953EEF&_nc_sid=10d13b)](https://www.threads.net/@billiecanwrite)",
+        "numbers": [
+          "5K",
+          "7k",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 111,
+        "content": "![Image 15](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/526999096_1055264139720871_7609073199681332835_n.jpg?stp=dst-jpg_e15_tt6&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=107&_nc_oc=Q6cZ2QEdorxHfGELMpUhESCSpkIKlmVGXDL87cF02qDjX2lhsT8f6uSfb2U84X5KeHeeQ54&_nc_ohc=U7DA7mkGoYQQ7kNvwGxTScy&_nc_gid=O87zrR10LJxh2H8Q5Aj58w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfR5CwA3y28bmbN2Xbf8qyB9atkR02dGor-tb0s4BoUsmA&oe=689536BB&_nc_sid=10d13b)",
+        "numbers": [
+          "5K",
+          "7m",
+          "7k",
+          "28b",
+          "4B",
+          "689536B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 120,
+        "content": "*   [Threads Terms](https://l.threads.com/?u=https%3A%2F%2Fhelp.instagram.com%2F769983657850450&e=AT0hugpfPyowtiiHfKzXfbg8Wsv7_c-FRUJsxot5JFAE7CH9c0b7sddMaEZIusmaRcQiebYvF550cocUPxOzzbgAUQQq-Utr21Uud6Y7jRpadc__25zhzUT5_3o)",
+        "numbers": [
+          "0b"
+        ]
+      },
+      {
+        "line_number": 121,
+        "content": "*   [Privacy Policy](https://l.threads.com/?u=https%3A%2F%2Fhelp.instagram.com%2F515230437301944&e=AT0hugpfPyowtiiHfKzXfbg8Wsv7_c-FRUJsxot5JFAE7CH9c0b7sddMaEZIusmaRcQiebYvF550cocUPxOzzbgAUQQq-Utr21Uud6Y7jRpadc__25zhzUT5_3o)",
+        "numbers": [
+          "0b"
+        ]
+      },
+      {
+        "line_number": 122,
+        "content": "*   [Cookies Policy](https://l.threads.com/?u=https%3A%2F%2Fhelp.instagram.com%2F1896641480634370%2F&e=AT0hugpfPyowtiiHfKzXfbg8Wsv7_c-FRUJsxot5JFAE7CH9c0b7sddMaEZIusmaRcQiebYvF550cocUPxOzzbgAUQQq-Utr21Uud6Y7jRpadc__25zhzUT5_3o)",
+        "numbers": [
+          "0b"
+        ]
+      }
+    ]
+  },
+  {
+    "post_id": "DMfOVeqSkM5",
+    "content_length": 28619,
+    "current_patterns_found": [],
+    "extended_patterns_found": [],
+    "all_numbers_found": [],
+    "lines_with_view": [],
+    "lines_with_numbers": [
+      {
+        "line_number": 6,
+        "content": "[![Image 1: ttshow.tw's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/357840283_169933572747348_7166870351561103713_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=100&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=erKsr3WG9sgQ7kNvwHSsgu1&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfTuHjF0qx7nlmkFKMBvauokJnui6nJ8C1ilAIMtD7ZD4w&oe=68954914&_nc_sid=10d13b)](https://www.threads.com/@ttshow.tw)",
+        "numbers": [
+          "7k",
+          "2B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 20,
+        "content": "![Image 2](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/522984783_23993360636980785_5275009543218393253_n.jpg?stp=dst-jpg_e15_tt6&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=109&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=aqXURrw2RpAQ7kNvwHU_hv9&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfQDyUAQMf33Dwib7w9qbgKq1YXXnm8jjKJXZcdgTDhwxA&oe=689541B1&_nc_sid=10d13b)",
+        "numbers": [
+          "7k",
+          "2B",
+          "689541B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 24,
+        "content": "18K",
+        "numbers": [
+          "18K"
+        ]
+      },
+      {
+        "line_number": 36,
+        "content": "1.3K",
+        "numbers": [
+          "1.3K"
+        ]
+      },
+      {
+        "line_number": 42,
+        "content": "[![Image 3: ttshow.tw's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/357840283_169933572747348_7166870351561103713_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=100&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=erKsr3WG9sgQ7kNvwHSsgu1&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfTuHjF0qx7nlmkFKMBvauokJnui6nJ8C1ilAIMtD7ZD4w&oe=68954914&_nc_sid=10d13b)](https://www.threads.com/@ttshow.tw)",
+        "numbers": [
+          "7k",
+          "2B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 54,
+        "content": "這裡進城啊 老鄉們😎👇🏻 [youtu.be/alqvh…](https://l.threads.com/?u=https%3A%2F%2Fyoutu.be%2FalqvhzZSTyk%3Fsi%3Dd61vE0KjfMv_yCU1&e=AT1FRAv189Um6EvHdQAL-Ij3b5BUUoRxAEnXOOKoO71OifW2rnSF5IO50NUExk0v_CoU7a0_mjXCvYxWThqtz04yIMGfHQ_NxrBTmJT3FOZs1nna43RhKygqtOc)",
+        "numbers": [
+          "0K",
+          "3b",
+          "5B"
+        ]
+      },
+      {
+        "line_number": 58,
+        "content": "[![Image 4: 頑童MJ116 降落育達開唱！堪比演唱會等級 同學們進城了！](https://external.fkhh5-1.fna.fbcdn.net/emg1/v/t13/15725087680947954677?stp=dst-src&url=https%3A%2F%2Fi.ytimg.com%2Fvi%2FalqvhzZSTyk%2Fmaxresdefault.jpg&utld=ytimg.com&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&_nc_oc=AdlobK0yiCfub6mXPAEdGNVu7sZiAhl3Prs3tvnn59Ky4TA4tCgc2JOq3uH_I3mNlIk&ccb=13-1&oh=06_Q3-1AYiCN9DNFAVuFINK1fN0nvXxnowpWe_gY-aG_M8kdr83&oe=68913591&_nc_sid=1d65fc) ![Image 5](https://external.fkhh5-1.fna.fbcdn.net/emg1/v/t13/2379420591312355698?url=https%3A%2F%2Fwww.youtube.com%2Fs%2Fdesktop%2F7b155292%2Fimg%2Flogos%2Ffavicon_144x144.png&utld=youtube.com&stp=dst-png_s42x42&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&_nc_oc=AdnDlZia7NAPr1bcKZ7Gnfk1vpMmWaNr9A2EC1Gh16Vwpi75amUzd3C4Yztm_71G-DU&ccb=13-1&oh=06_Q3-1ASAbUUtN1A29Giw-R9m6US-2xXegE_u_eBZeN_bR5Zpn&oe=68915511&_nc_sid=1d65fc) youtube.com 頑童MJ116 降落育達開唱！堪比演唱會等級 同學們進城了！](https://l.threads.com/?u=https%3A%2F%2Fyoutu.be%2FalqvhzZSTyk%3Fsi%3Dd61vE0KjfMv_yCU1&e=AT00jILed_2tYSDyZlSEmrFMgNC1TrlNF8bIojaqJuWPRyVKLsVr6MVm2dmOWrnCyMzsukd8z2_oGwj7Q8LBfsRaYEbL1rV9dfV3Vnex9yc-92LRb9DLSYFx9NU)",
+        "numbers": [
+          "2B",
+          "6m",
+          "59K",
+          "3m",
+          "8k",
+          "7b",
+          "2B",
+          "1b",
+          "9m",
+          "0K",
+          "8b",
+          "6M"
+        ]
+      },
+      {
+        "line_number": 72,
+        "content": "[![Image 6: shaoanzha0210's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/449685792_1549679415970321_488987782841362112_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=101&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=4HNpuf9_MHcQ7kNvwEpaaJL&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfSxMROGA5zN0zLAf5BfS4SplBdURyabprgNKLsGaFeZ-w&oe=6895216A&_nc_sid=10d13b)](https://www.threads.com/@shaoanzha0210)",
+        "numbers": [
+          "7k",
+          "2B",
+          "5B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 98,
+        "content": "[![Image 7: anniu_02441's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/471708346_447144758458686_7850585252099221452_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=106&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=aTIQFp8loDEQ7kNvwHBS1LF&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfQuHzUJxW4xM-mQxFXe5wfkyJrj1QyzIb0LTtgmyLAjuw&oe=68953137&_nc_sid=10d13b)](https://www.threads.com/@anniu_02441)",
+        "numbers": [
+          "7k",
+          "2B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 116,
+        "content": "[![Image 8: imchiao930's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/521323722_17918739219106951_4256809561769099850_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby44MTAuYzIifQ&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=107&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=DiUT2K9jO2kQ7kNvwHvd9GI&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfQYh_JMV6_6xjFj8lXgR48gBAwQLvVtQXtjN8tR7oI69A&oe=68952E41&_nc_sid=10d13b)](https://www.threads.com/@imchiao930)",
+        "numbers": [
+          "44M",
+          "2K",
+          "2k",
+          "7k",
+          "2B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 136,
+        "content": "[![Image 9: huiyi28_'s profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/525013942_17921807667104553_8491003512903506386_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=109&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=VBzghx5-vw8Q7kNvwGmKvbl&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfSniQnqAilDbrP532XIDcXA1ff-9V6RQzawJEGeibgk4w&oe=68953400&_nc_sid=10d13b)](https://www.threads.com/@huiyi28_)",
+        "numbers": [
+          "7k",
+          "2B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 156,
+        "content": "[![Image 10: 409.jz's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/523974664_17914424913118565_6472662512394226972_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=105&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=jgMxV3wEicwQ7kNvwGc44CQ&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfQFYVkhpX-KBgMRTKg4KMP3z_Mh1s3TWwchAXjAeuYtpg&oe=689547D7&_nc_sid=10d13b)](https://www.threads.com/@409.jz)",
+        "numbers": [
+          "7k",
+          "2B",
+          "4K",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 174,
+        "content": "[![Image 11: jayshe7776's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/504151384_18067791455064828_4521715481960406214_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=100&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=rHB2_qWcwNcQ7kNvwEFPyjE&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfR3_tMoM5LjFG25mRctEMIRYcV9aXbKNOnarNx1ptbCGQ&oe=6895203A&_nc_sid=10d13b)](https://www.threads.com/@jayshe7776)",
+        "numbers": [
+          "7k",
+          "2B",
+          "25m",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 192,
+        "content": "[![Image 12: pinxudn3469's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/491428302_17845550076467768_4793056431811508967_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4zMzguYzIifQ&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=108&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=CyebLHsM58sQ7kNvwGXRzSR&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfROOa9DdrzZl3DifqCAbedOHk037Hoxz0HuyY2gT2-PGw&oe=68953832&_nc_sid=10d13b)](https://www.threads.com/@pinxudn3469)",
+        "numbers": [
+          "7k",
+          "2B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 210,
+        "content": "[![Image 13: zog_onlyff's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/430090986_1095994284934665_3003254518259465591_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=109&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=VR0kFs4nvZEQ7kNvwGJnu4f&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfRCuxKRM_l-bs3_Pc2Q1oiBHXASkRC-En93SdaAqlKBYQ&oe=68954248&_nc_sid=10d13b)](https://www.threads.com/@zog_onlyff)",
+        "numbers": [
+          "0k",
+          "7k",
+          "2B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 214,
+        "content": "[07/24/25](https://www.threads.com/@zog_onlyff/post/DMfp43IRU4B)",
+        "numbers": [
+          "4B"
+        ]
+      },
+      {
+        "line_number": 234,
+        "content": "[![Image 14: liu.___.kobe's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/465985529_1566896847526376_349405713412369690_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby44MjguYzIifQ&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=108&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=kyPn-nagkmcQ7kNvwFsA0FY&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfS0tuvb0MxDcPclUawGNZsA_hcEc1wdboXxzZIlI_hxbA&oe=689544CC&_nc_sid=10d13b)](https://www.threads.com/@liu.___.kobe)",
+        "numbers": [
+          "44M",
+          "7k",
+          "2B",
+          "0M",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 254,
+        "content": "[![Image 15: tokojonccc's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/461255500_1064955641733591_2579841049864697030_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=103&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=B3n3O5BMfnQQ7kNvwHHy1KG&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfRCOU3aV_5TE7FRttU2OMOiSlaR4qP7v5ZBR7Vs1epdxw&oe=68952E41&_nc_sid=10d13b)](https://www.threads.com/@tokojonccc)",
+        "numbers": [
+          "5B",
+          "7k",
+          "1K",
+          "2B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 272,
+        "content": "[![Image 16: ava130703's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/452609191_451643824357957_953640901657801903_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=101&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=wWXhHJmtPjcQ7kNvwFsqsj7&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfT_jiv33LiywEy9yxdRidsiqz3PiF9L-BOH1bgYyYu7RA&oe=68954F99&_nc_sid=10d13b)](https://www.threads.com/@ava130703)",
+        "numbers": [
+          "7k",
+          "2B",
+          "1b",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 276,
+        "content": "[07/25/25](https://www.threads.com/@ava130703/post/DMg3m-zTdyV)",
+        "numbers": [
+          "3m"
+        ]
+      },
+      {
+        "line_number": 292,
+        "content": "[![Image 17: s5k9z's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/528297692_17914448475174183_106258852230409789_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=103&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=eIosL7v-Ea8Q7kNvwG-nIXr&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfT2fOblHwDc7PzBumaUrM6EVMnWe64jlsEONAJBcYvB7Q&oe=68952189&_nc_sid=10d13b)](https://www.threads.com/@s5k9z)",
+        "numbers": [
+          "5k",
+          "7k",
+          "2B",
+          "13b",
+          "5k"
+        ]
+      },
+      {
+        "line_number": 294,
+        "content": "[s5k9z](https://www.threads.com/@s5k9z)",
+        "numbers": [
+          "5k",
+          "5k"
+        ]
+      },
+      {
+        "line_number": 296,
+        "content": "[07/25/25](https://www.threads.com/@s5k9z/post/DMg2mtrSTtI)",
+        "numbers": [
+          "5k",
+          "2m"
+        ]
+      },
+      {
+        "line_number": 314,
+        "content": "[![Image 18: dustinlu_1202's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/502415416_17907710040119719_3464333004602131135_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=107&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=j3ngxdEvaBkQ7kNvwHB6VP1&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfRWSnuIORrYLGJ3Tfy4MdwUIDvYWyZ8A1K7Q_77r2bJ7Q&oe=6895378F&_nc_sid=10d13b)](https://www.threads.com/@dustinlu_1202)",
+        "numbers": [
+          "7k",
+          "2B",
+          "4M",
+          "1K",
+          "2b",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 334,
+        "content": "[![Image 19: xin____712's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/511237828_17997723761797229_5345283889159929678_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=105&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=e5IEE4WbTgEQ7kNvwFddqpw&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfQWVvkHBwjU9H1eKmQS-Rd7dfd4KE7_ZaBBl3OjSAvuZQ&oe=68954EE6&_nc_sid=10d13b)](https://www.threads.com/@xin____712)",
+        "numbers": [
+          "7k",
+          "2B",
+          "4K",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 352,
+        "content": "[![Image 20: marie08_31's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/487504693_1894354544694584_3189160034322170833_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=108&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=u78766FLLOwQ7kNvwHu1YwI&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfTfjPcNqFZaQCWlFHVyz7PBvoYOlx4cLtlgmkAJ4_oAEg&oe=68953806&_nc_sid=10d13b)](https://www.threads.com/@marie08_31)",
+        "numbers": [
+          "7k",
+          "2B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 372,
+        "content": "[![Image 21: tingting0406_'s profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/518840288_17896291416253955_706863318978480347_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby45OTIuYzIifQ&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=111&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=B67eB8bieLsQ7kNvwFqi4Pj&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfRqV344vZO-lJtUzqz562qnvOQMPOcFMIuw4DKSg8Bn6g&oe=6895337C&_nc_sid=10d13b)](https://www.threads.com/@tingting0406_)",
+        "numbers": [
+          "8b",
+          "7k",
+          "2B",
+          "8B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 396,
+        "content": "[![Image 22: super.milk.tea's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/291776617_564000301924498_4511357880609034680_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=110&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=5_oic14BbVUQ7kNvwEJ4gYu&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfSQ0EWNf3rhaVRYh8byNGHX8rOD6TUIGrpcJA20SW1uwA&oe=68955307&_nc_sid=10d13b)](https://www.threads.com/@super.milk.tea)",
+        "numbers": [
+          "14B",
+          "7k",
+          "2B",
+          "8b",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 418,
+        "content": "[![Image 23: pinjia._.0331's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/504338500_17912751459114832_4370768180858566657_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=104&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=xMtaxM2hn64Q7kNvwEduKY_&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfQuq3goh4acRfbHXaMOX0_E29UBmpKa9Xox9fuV58Nuiw&oe=68954DB9&_nc_sid=10d13b)](https://www.threads.com/@pinjia._.0331)",
+        "numbers": [
+          "7k",
+          "2B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 422,
+        "content": "[07/24/25](https://www.threads.com/@pinjia._.0331/post/DMfhhixvH1K)",
+        "numbers": [
+          "1K"
+        ]
+      },
+      {
+        "line_number": 440,
+        "content": "[![Image 24: asd5689957's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/431535234_293898276811696_1320332854221887105_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDE3LmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=104&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=fadrhZR1CogQ7kNvwFJebTT&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfQQLCgS_DGs9YA3eHgjk1OVhL8YZ2l9r8tHRcQl5QuVwQ&oe=68953FB0&_nc_sid=10d13b)](https://www.threads.com/@asd5689957)",
+        "numbers": [
+          "7k",
+          "2B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 462,
+        "content": "[![Image 25: eason.__.1022's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/460931728_513700301294999_2703833081640701877_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=111&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=uopyhBQ164EQ7kNvwHsG63M&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfTu2G_BrXRKrsMsDTBjwjWYzUPX_kLlRzBYjvW1Dt7sRA&oe=6895349B&_nc_sid=10d13b)](https://www.threads.com/@eason.__.1022)",
+        "numbers": [
+          "7k",
+          "63M",
+          "2B",
+          "6895349B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 486,
+        "content": "[![Image 26: laolaosuancaiyu's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/441766839_286629191085072_8699086779240816405_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=100&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=5aiL6qj5wWsQ7kNvwHWnboy&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfQuZUMx6ibZZ38K4Cq4PCxVJF6IOjNx6dB16JB4TU1iUA&oe=68953D2D&_nc_sid=10d13b)](https://www.threads.com/@laolaosuancaiyu)",
+        "numbers": [
+          "7k",
+          "2B",
+          "38K",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 508,
+        "content": "[![Image 27: r1se.0303.ashley's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/358524126_293013703181001_4211713704362009926_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=109&_nc_oc=Q6cZ2QFp77hQeP9c2_Ty2Jrjh3SV_Sr7w5TpIYBZry-N997eSbljb27E3hlEL4ymcpf7ER0&_nc_ohc=9T2taYOXEIsQ7kNvwEB-3mG&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfStZ9Y8BLT8YXUwhqN5aAzdeAnkn6JUhGuB5Obn1aIHnQ&oe=68953F81&_nc_sid=10d13b)](https://www.threads.com/@r1se.0303.ashley)",
+        "numbers": [
+          "7k",
+          "3m",
+          "2B",
+          "8B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 530,
+        "content": "[![Image 28: indianafever's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/527390734_17922390201101135_6059152904961156281_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=1&_nc_oc=Q6cZ2QEpnboOdwJ--C2yMhr6SoHPv_phOBhgZ-FvZW5z5Vg0y47mhFHh4wUFQ7YNv4K6kQ4&_nc_ohc=CaszvobrFmwQ7kNvwEzsLnM&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfRJ3ptwYc9PYeTYIaAs_DXiGVXUgetXIhoo3EuJBiPUaw&oe=6895371C&_nc_sid=10d13b)](https://www.threads.com/@indianafever)",
+        "numbers": [
+          "47m",
+          "4K",
+          "6k",
+          "7k",
+          "2B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 550,
+        "content": "![Image 29: 可能是 ‎5 個人、大家在打籃球和‎顯示的文字是「 ‎ॐ্ S0z4 FEVER 2 salesforce מערקלי \"\" This is a big position to fill and she's doing it unbelievably well. KELSEY MITCHELL ON AARI MCDONALD‎ 」‎‎ 的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/509647301_18519126127046071_1787523023059920866_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMTA4MHgxMzQ2LnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=107&_nc_oc=Q6cZ2QEpnboOdwJ--C2yMhr6SoHPv_phOBhgZ-FvZW5z5Vg0y47mhFHh4wUFQ7YNv4K6kQ4&_nc_ohc=qfVbJ8Bs2XUQ7kNvwGUkYmL&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDMzOTAxMDMwODkzMzY2NA%3D%3D.3-ccb7-5&oh=00_AfTEK6dSJD6EVHrriWOrhFhIc_BNFER-X7nbw55thqajlQ&oe=68952B6E&_nc_sid=10d13b)",
+        "numbers": [
+          "4M",
+          "5m",
+          "47m",
+          "4K",
+          "6k",
+          "8B",
+          "7k",
+          "2B",
+          "5M",
+          "68952B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 552,
+        "content": "![Image 30](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527484892_18519126427046071_1289002955798474934_n.jpg?stp=dst-jpg_e15_p640x640_tt6&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=107&_nc_oc=Q6cZ2QEpnboOdwJ--C2yMhr6SoHPv_phOBhgZ-FvZW5z5Vg0y47mhFHh4wUFQ7YNv4K6kQ4&_nc_ohc=sJ2cHDemXKIQ7kNvwFxjfuw&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfQCUrHur-R9VV07-vjmuj9OYNraHU3yUlx33ZSDIFQZQw&oe=68952B08&_nc_sid=10d13b)",
+        "numbers": [
+          "47m",
+          "4K",
+          "6k",
+          "7k",
+          "2B",
+          "68952B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 570,
+        "content": "[![Image 31: n1ckwilkins's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/462668791_1944675539358944_1588179426007314627_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby45NzkuYzIifQ&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=1&_nc_oc=Q6cZ2QEpnboOdwJ--C2yMhr6SoHPv_phOBhgZ-FvZW5z5Vg0y47mhFHh4wUFQ7YNv4K6kQ4&_nc_ohc=eNNr0LvTae0Q7kNvwHz6_ZH&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfTgMc897ktIFVk9k7XSwMMt5y3Wq8dhHrSQIT9YuCnFsA&oe=68953432&_nc_sid=10d13b)](https://www.threads.com/@n1ckwilkins)",
+        "numbers": [
+          "47m",
+          "4K",
+          "6k",
+          "7k",
+          "2B",
+          "897k",
+          "9k",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 582,
+        "content": "![Image 32](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527308397_1241753724299368_1698890923973192269_n.jpg?stp=dst-jpg_e15_tt6&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=104&_nc_oc=Q6cZ2QEpnboOdwJ--C2yMhr6SoHPv_phOBhgZ-FvZW5z5Vg0y47mhFHh4wUFQ7YNv4K6kQ4&_nc_ohc=ct9cyFNl8OUQ7kNvwEJYGca&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfSO83fHU3iCHTCuZXyipkShuVZl0Ub9E0x2jqzIlxvPlw&oe=68954BD7&_nc_sid=10d13b)",
+        "numbers": [
+          "47m",
+          "4K",
+          "6k",
+          "7k",
+          "2B",
+          "68954B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 596,
+        "content": "[![Image 33: hayatohuseman's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/503838378_17909731107116351_6087463495858293019_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=111&_nc_oc=Q6cZ2QEpnboOdwJ--C2yMhr6SoHPv_phOBhgZ-FvZW5z5Vg0y47mhFHh4wUFQ7YNv4K6kQ4&_nc_ohc=v_XqNKqX9wQQ7kNvwH1LCJ9&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfQzr_DcjQaZaOXlGWSNhqfgzdpLOAz__mgXmpOEk0v7fw&oe=6895442E&_nc_sid=10d13b)](https://www.threads.com/@hayatohuseman)",
+        "numbers": [
+          "47m",
+          "4K",
+          "6k",
+          "7k",
+          "2B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 606,
+        "content": "![Image 34: 可能是 1 人、無袖背心、鏡子、骷髏頭和文字的自拍照](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/526039999_17916613935116351_87199335127291399_n.jpg?stp=dst-jpegr_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMTQ0MHgxOTIwLmhkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=111&_nc_oc=Q6cZ2QEpnboOdwJ--C2yMhr6SoHPv_phOBhgZ-FvZW5z5Vg0y47mhFHh4wUFQ7YNv4K6kQ4&_nc_ohc=gErJa-e-UmQQ7kNvwFcWIS9&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDY0MjMzNjMxNjk3NzM0NA%3D%3D.3-ccb7-5&oh=00_AfS1kgqiIRfXTVdWEm2e31FsFdmdbqP2zxWg_nEEvcU2Mg&oe=68953275&_nc_sid=10d13b&se=-1)",
+        "numbers": [
+          "0M",
+          "5m",
+          "47m",
+          "4K",
+          "6k",
+          "7k",
+          "2B",
+          "5M",
+          "0M",
+          "1k",
+          "2M",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 608,
+        "content": "![Image 35: 可能是 1 人、肱二頭肌、啞鈴、跑步機和文字的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527354707_17916613944116351_331209036304917581_n.jpg?stp=dst-jpegr_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMTQ0MHgxOTIwLmhkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=111&_nc_oc=Q6cZ2QEpnboOdwJ--C2yMhr6SoHPv_phOBhgZ-FvZW5z5Vg0y47mhFHh4wUFQ7YNv4K6kQ4&_nc_ohc=Ku92ynfhRKQQ7kNvwGkelHP&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDY0MjMzNjIzMzIzMjEwNQ%3D%3D.3-ccb7-5&oh=00_AfTMnIePwho8gqwyPH7-VryLDW9-AIDiayy8N9P35iqdsA&oe=6895448D&_nc_sid=10d13b&se=-1)",
+        "numbers": [
+          "0M",
+          "5m",
+          "47m",
+          "4K",
+          "6k",
+          "7k",
+          "2B",
+          "5M",
+          "0M",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 610,
+        "content": "![Image 36: 可能是 4 個人、草、公園、野餐和文字的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527920439_17916613953116351_5077729680502923488_n.jpg?stp=dst-jpegr_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMTQ0MHgxOTIwLmhkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=111&_nc_oc=Q6cZ2QEpnboOdwJ--C2yMhr6SoHPv_phOBhgZ-FvZW5z5Vg0y47mhFHh4wUFQ7YNv4K6kQ4&_nc_ohc=pgsP_S746asQ7kNvwHFRtGz&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDY0MjMzNjIzMzA0NTAzOA%3D%3D.3-ccb7-5&oh=00_AfQd7G6THtylLsiExFmqznKVs-RE4OCAoEV-1AhbiF6HRw&oe=68953C5F&_nc_sid=10d13b&se=-1)",
+        "numbers": [
+          "0M",
+          "5m",
+          "47m",
+          "4K",
+          "6k",
+          "7k",
+          "2B",
+          "5M",
+          "0M",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 612,
+        "content": "![Image 37: 可能是天使橡木樹和文字的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527217530_17916613962116351_5919988976322689676_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMTQ0MHgxOTIwLnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=111&_nc_oc=Q6cZ2QEpnboOdwJ--C2yMhr6SoHPv_phOBhgZ-FvZW5z5Vg0y47mhFHh4wUFQ7YNv4K6kQ4&_nc_ohc=mwqTjUKnV-8Q7kNvwHPGF2U&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDY0MjMzNjIzMzI3ODgxMg%3D%3D.3-ccb7-5&oh=00_AfSbZYgQaG-q-G-Lf7W76wTv5pVkoRwCgQJcsonCWrP25A&oe=6895553E&_nc_sid=10d13b)",
+        "numbers": [
+          "0M",
+          "5m",
+          "47m",
+          "4K",
+          "6k",
+          "7k",
+          "2B",
+          "5M",
+          "0M",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 624,
+        "content": "[![Image 38: wednesdaypull's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/469044190_3747463558899690_7608563304645932495_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby45OTkuYzIifQ&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=1&_nc_oc=Q6cZ2QEpnboOdwJ--C2yMhr6SoHPv_phOBhgZ-FvZW5z5Vg0y47mhFHh4wUFQ7YNv4K6kQ4&_nc_ohc=AGDnlhei9P8Q7kNvwG6GjJW&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfQXT_AC7FLeNfKEewpGPKBNEquknjlZg2yS9LGdrr1Yyw&oe=6895406D&_nc_sid=10d13b)](https://www.threads.com/@wednesdaypull)",
+        "numbers": [
+          "47m",
+          "4K",
+          "6k",
+          "7k",
+          "2B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 634,
+        "content": "[![Image 39: 可能是 2 個人、禿鷹和文字的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527349399_17921338455108690_3028219481243147777_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uMTAyNHg1MTcuc2RyLmY4Mjc4Ny5kZWZhdWx0X2ltYWdlLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=1&_nc_oc=Q6cZ2QEpnboOdwJ--C2yMhr6SoHPv_phOBhgZ-FvZW5z5Vg0y47mhFHh4wUFQ7YNv4K6kQ4&_nc_ohc=G0SRCXpko_oQ7kNvwGPmXpI&_nc_gid=a_RF2NccaNr6EqDYD2Br0w&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDQ4MDYyMDk5OTc0MjMxNQ%3D%3D.3-ccb7-5&oh=00_AfQsvQo8zhA8-REn9kTDr5cGCveKWyaEonUOl5a7ZHKjiQ&oe=68951FA3&_nc_sid=10d13b)](https://www.threads.com/@wednesdaypull/post/DM3OJJhJxNr/media)",
+        "numbers": [
+          "1M",
+          "4M",
+          "5k",
+          "47m",
+          "4K",
+          "6k",
+          "7k",
+          "2B",
+          "5M",
+          "4M",
+          "0M",
+          "9k",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 638,
+        "content": "8.6K",
+        "numbers": [
+          "8.6K"
+        ]
+      }
+    ]
+  },
+  {
+    "post_id": "DMegHD-S3xR",
+    "content_length": 10471,
+    "current_patterns_found": [
+      {
+        "pattern_index": 0,
+        "pattern": "\\[Thread\\s*={2,}\\s*(\\d+(?:\\.\\d+)?[KMB]?)\\s*views\\]",
+        "matches": [
+          "6K"
+        ]
+      },
+      {
+        "pattern_index": 1,
+        "pattern": "Thread.*?(\\d+(?:\\.\\d+)?[KMB]?)\\s*views",
+        "matches": [
+          "6K"
+        ]
+      },
+      {
+        "pattern_index": 2,
+        "pattern": "(\\d+(?:\\.\\d+)?[KMB]?)\\s*views",
+        "matches": [
+          "6K"
+        ]
+      }
+    ],
+    "extended_patterns_found": [
+      {
+        "pattern_index": 4,
+        "pattern": "(\\d+(?:\\.\\d+)?[KMB]?)\\s*view(?:s|ing)",
+        "matches": [
+          "6K"
+        ]
+      }
+    ],
+    "all_numbers_found": [],
+    "lines_with_view": [
+      {
+        "line_number": 17,
+        "content": "[Thread ====== 6K views](https://www.threads.net/@ttshow.tw/post/DMegHD-S3xR)"
+      }
+    ],
+    "lines_with_numbers": [
+      {
+        "line_number": 17,
+        "content": "[Thread ====== 6K views](https://www.threads.net/@ttshow.tw/post/DMegHD-S3xR)",
+        "numbers": [
+          "6K"
+        ]
+      },
+      {
+        "line_number": 19,
+        "content": "[![Image 1: ttshow.tw's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/357840283_169933572747348_7166870351561103713_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=100&_nc_oc=Q6cZ2QHuhjnHITBr5rZ6VxNPC-fUJxgU85IgO3FrXHO1d13JGBAeJKJ95TA30t1MVHdF52o&_nc_ohc=erKsr3WG9sgQ7kNvwHSsgu1&_nc_gid=2n_0AF_I_j0PSfLXzzhSqw&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfQShS16tp9ujsT_BtkqU5nWtREyyRh7URSitQ31hdZJBw&oe=68954914&_nc_sid=10d13b)](https://www.threads.net/@ttshow.tw)",
+        "numbers": [
+          "1M",
+          "7k",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 29,
+        "content": "[![Image 2: 可能是顯示的文字是「 S 聽説今天是 國際冷笑話日 底下開放留言」的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/522665551_17917217262109703_910268629970664388_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uMTA4MHgxMDgwLnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=111&_nc_oc=Q6cZ2QHuhjnHITBr5rZ6VxNPC-fUJxgU85IgO3FrXHO1d13JGBAeJKJ95TA30t1MVHdF52o&_nc_ohc=hI0Y1jyB1dsQ7kNvwF534xE&_nc_gid=2n_0AF_I_j0PSfLXzzhSqw&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY4MzUyMjc2ODAyNjY5Njc4NQ%3D%3D.3-ccb7-5&oh=00_AfQMzL63DRNrHt0vhTrSuNOzhHK39bTO9lb3YxXZTVS3Pw&oe=68954AF7&_nc_sid=10d13b)](https://www.threads.net/@ttshow.tw/post/DMegHD-S3xR/media)",
+        "numbers": [
+          "4M",
+          "5m",
+          "1M",
+          "7k",
+          "4M",
+          "39b",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 39,
+        "content": "[![Image 3: wilsworld54's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/357832738_1238716586811489_2692305900289996059_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby40MDAuYzIifQ&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=1&_nc_oc=Q6cZ2QHMUchqL3lBojVaNYxMiyvoKLvKyOzhe3Dp-vi_4GG-Yh1xRzRyF_sAIXMJtNs0JMI&_nc_ohc=ZpzBXbMSb2sQ7kNvwHrgZ4-&_nc_gid=2n_0AF_I_j0PSfLXzzhSqw&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfRQQkJKr9P0mNnosBKy7cTzPSjW5bR7g6pqE0GhKEvk9A&oe=6895358C&_nc_sid=10d13b)](https://www.threads.net/@wilsworld54)",
+        "numbers": [
+          "40M",
+          "7k",
+          "0m",
+          "5b",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 43,
+        "content": "[17h](https://www.threads.net/@wilsworld54/post/DM3b0QnynMQ)",
+        "numbers": [
+          "3b"
+        ]
+      },
+      {
+        "line_number": 51,
+        "content": "[![Image 4: mariners's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/527131007_17919328818109210_4108348499510738293_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDc4LmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=1&_nc_oc=Q6cZ2QHMUchqL3lBojVaNYxMiyvoKLvKyOzhe3Dp-vi_4GG-Yh1xRzRyF_sAIXMJtNs0JMI&_nc_ohc=m4bxTS40YMMQ7kNvwGutJX7&_nc_gid=2n_0AF_I_j0PSfLXzzhSqw&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfRY7VezDypX8EJTIrjAABk44Nv11fBLPUoDPXubsxYCNg&oe=689549D0&_nc_sid=10d13b)](https://www.threads.net/@mariners)",
+        "numbers": [
+          "4b",
+          "7k",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 59,
+        "content": "[![Image 5: 可能是 1 人和文字的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/526496205_17919314868109210_3257674884451943298_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uMTQ0MHgxODAwLnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=110&_nc_oc=Q6cZ2QHMUchqL3lBojVaNYxMiyvoKLvKyOzhe3Dp-vi_4GG-Yh1xRzRyF_sAIXMJtNs0JMI&_nc_ohc=sHJ0Hz-s7dQQ7kNvwE-VUm_&_nc_gid=2n_0AF_I_j0PSfLXzzhSqw&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDM4MTE5OTA2NDE3MzA5OQ%3D%3D.3-ccb7-5&oh=00_AfStCusjrDTuH8VAEtC7a-i2ozRtooGMY2EcaulucX9TUw&oe=68953AF8&_nc_sid=10d13b)](https://www.threads.net/@mariners/post/DM23iXoAAor/media)",
+        "numbers": [
+          "0M",
+          "5m",
+          "7k",
+          "5M",
+          "4M",
+          "3M",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 69,
+        "content": "[![Image 6: khanastasiawrites's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/519616644_17864170956428207_3025639360684265217_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=111&_nc_oc=Q6cZ2QHMUchqL3lBojVaNYxMiyvoKLvKyOzhe3Dp-vi_4GG-Yh1xRzRyF_sAIXMJtNs0JMI&_nc_ohc=BzT1UvSeJKkQ7kNvwEA2tK4&_nc_gid=2n_0AF_I_j0PSfLXzzhSqw&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfRxhQXICBh189xLXNSpFf-rRsftr5t-2XkzJt9FgOjgPg&oe=68953BAA&_nc_sid=10d13b)](https://www.threads.net/@khanastasiawrites)",
+        "numbers": [
+          "7k",
+          "68953B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 73,
+        "content": "[14h](https://www.threads.net/@khanastasiawrites/post/DM3v7Rzi5md)",
+        "numbers": [
+          "5m"
+        ]
+      },
+      {
+        "line_number": 81,
+        "content": "[![Image 7: candidlykind's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/438786247_7184099968367364_1493409940500190761_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=100&_nc_oc=Q6cZ2QHMUchqL3lBojVaNYxMiyvoKLvKyOzhe3Dp-vi_4GG-Yh1xRzRyF_sAIXMJtNs0JMI&_nc_ohc=Mr7zoQsYHrAQ7kNvwEmKx4_&_nc_gid=2n_0AF_I_j0PSfLXzzhSqw&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfQG0aJUsp6J1paIkA-pSDtfE_02kvi-OovlWwyoRKot_A&oe=68953616&_nc_sid=10d13b)](https://www.threads.net/@candidlykind)",
+        "numbers": [
+          "7k",
+          "02k",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 89,
+        "content": "![Image 8: 可能是 1 人和顯示的文字是「 Cha Chattanooga has our and... Hele. thesun 」的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527346641_18315287962213706_3401781840926634387_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMTQ0MHgxOTIwLnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=102&_nc_oc=Q6cZ2QHMUchqL3lBojVaNYxMiyvoKLvKyOzhe3Dp-vi_4GG-Yh1xRzRyF_sAIXMJtNs0JMI&_nc_ohc=5CzZcJAHoPwQ7kNvwH88NhS&_nc_gid=2n_0AF_I_j0PSfLXzzhSqw&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDQzMjIwNDE5NTQwMjM2NQ%3D%3D.3-ccb7-5&oh=00_AfQtbht4MUPsDRoHKHRbmUJiCMRqer9tgtq3gyHTYlLzLw&oe=68954934&_nc_sid=10d13b)",
+        "numbers": [
+          "0M",
+          "5m",
+          "7k",
+          "5M",
+          "4M",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 91,
+        "content": "![Image 9: 可能是 1 人和顯示的文字是「 beautiful iful sunsets and Holeres イパ thesin 監」的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/526633560_18315287971213706_4722191801317592746_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMTQ0MHgxOTIwLnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=102&_nc_oc=Q6cZ2QHMUchqL3lBojVaNYxMiyvoKLvKyOzhe3Dp-vi_4GG-Yh1xRzRyF_sAIXMJtNs0JMI&_nc_ohc=s7-sgeFVMZ4Q7kNvwF0D8yC&_nc_gid=2n_0AF_I_j0PSfLXzzhSqw&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDQzMjIwNDQ4MDYxNjcwMw%3D%3D.3-ccb7-5&oh=00_AfRZ8QzKr5Iq3KOM8VUcX-GyEX9SxN4C_F9l4oGdx3_6og&oe=68954B1D&_nc_sid=10d13b)",
+        "numbers": [
+          "0M",
+          "5m",
+          "7k",
+          "5M",
+          "4M",
+          "3K",
+          "68954B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 93,
+        "content": "![Image 10: 可能是 1 人和顯示的文字是「 cool elevators 」的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/526134994_18315287980213706_520145563798279794_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMTQ0MHgxOTIwLnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=102&_nc_oc=Q6cZ2QHMUchqL3lBojVaNYxMiyvoKLvKyOzhe3Dp-vi_4GG-Yh1xRzRyF_sAIXMJtNs0JMI&_nc_ohc=hIg4H_kuPzQQ7kNvwH_874x&_nc_gid=2n_0AF_I_j0PSfLXzzhSqw&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDQzMjIwNTI2OTE4NjcxNg%3D%3D.3-ccb7-5&oh=00_AfSvxtfOTMGmT1bNLL1hHkhMRTPCQAe3nRzyD-SD9ohiMQ&oe=68953D26&_nc_sid=10d13b)",
+        "numbers": [
+          "0M",
+          "5m",
+          "7k",
+          "5M",
+          "1b",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 99,
+        "content": "[![Image 11: coryvarzari's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/357814033_577208851158732_8931848831147016431_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=100&_nc_oc=Q6cZ2QHMUchqL3lBojVaNYxMiyvoKLvKyOzhe3Dp-vi_4GG-Yh1xRzRyF_sAIXMJtNs0JMI&_nc_ohc=Ldrsj1UOOr0Q7kNvwGKGS5c&_nc_gid=2n_0AF_I_j0PSfLXzzhSqw&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfRr27Lk5G1k03FA8RI70H5SHRMHyKg3e1HLMXlTosG7VA&oe=68954852&_nc_sid=10d13b)](https://www.threads.net/@coryvarzari)",
+        "numbers": [
+          "7k",
+          "1k",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 107,
+        "content": "[![Image 12: 可能是文字的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527460273_17916812469118734_5137731642818612091_n.jpg?stp=dst-jpegr_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uMTQ0MHgxOTIwLmhkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=106&_nc_oc=Q6cZ2QHMUchqL3lBojVaNYxMiyvoKLvKyOzhe3Dp-vi_4GG-Yh1xRzRyF_sAIXMJtNs0JMI&_nc_ohc=6HgzHcE4PaQQ7kNvwGSNas1&_nc_gid=2n_0AF_I_j0PSfLXzzhSqw&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDU3MjQxMzUwMDA5MzYwOQ%3D%3D.3-ccb7-5&oh=00_AfQ113y__Wp4YZZ1Zw6JDnxOOoMYuplGSnQNe9brnchj8g&oe=68953DBF&_nc_sid=10d13b&se=-1)](https://www.threads.net/@coryvarzari/post/DM3jA58h3Sp/media)",
+        "numbers": [
+          "0M",
+          "5m",
+          "7k",
+          "5M",
+          "3M",
+          "5M",
+          "9b",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 112,
+        "content": "*   [Threads Terms](https://l.threads.com/?u=https%3A%2F%2Fhelp.instagram.com%2F769983657850450&e=AT3tHxRZQfvYZYfmGXG15OwO1KzhcUn0us18PSIOFTrFvXWlE1Xrr4B_IEKtGvPn3sLWMdcY2GG47CcPaU_ATBkN7SRQLuYUvPvB64EzrgZCEpvX5VcGMuJfHSg)",
+        "numbers": [
+          "1K",
+          "4B"
+        ]
+      },
+      {
+        "line_number": 113,
+        "content": "*   [Privacy Policy](https://l.threads.com/?u=https%3A%2F%2Fhelp.instagram.com%2F515230437301944&e=AT3tHxRZQfvYZYfmGXG15OwO1KzhcUn0us18PSIOFTrFvXWlE1Xrr4B_IEKtGvPn3sLWMdcY2GG47CcPaU_ATBkN7SRQLuYUvPvB64EzrgZCEpvX5VcGMuJfHSg)",
+        "numbers": [
+          "1K",
+          "4B"
+        ]
+      },
+      {
+        "line_number": 114,
+        "content": "*   [Cookies Policy](https://l.threads.com/?u=https%3A%2F%2Fhelp.instagram.com%2F1896641480634370%2F&e=AT3tHxRZQfvYZYfmGXG15OwO1KzhcUn0us18PSIOFTrFvXWlE1Xrr4B_IEKtGvPn3sLWMdcY2GG47CcPaU_ATBkN7SRQLuYUvPvB64EzrgZCEpvX5VcGMuJfHSg)",
+        "numbers": [
+          "1K",
+          "4B"
+        ]
+      }
+    ]
+  },
+  {
+    "post_id": "DMZVCFzSpIX",
+    "content_length": 21404,
+    "current_patterns_found": [
+      {
+        "pattern_index": 0,
+        "pattern": "\\[Thread\\s*={2,}\\s*(\\d+(?:\\.\\d+)?[KMB]?)\\s*views\\]",
+        "matches": [
+          "10.7K"
+        ]
+      },
+      {
+        "pattern_index": 1,
+        "pattern": "Thread.*?(\\d+(?:\\.\\d+)?[KMB]?)\\s*views",
+        "matches": [
+          "10.7K"
+        ]
+      },
+      {
+        "pattern_index": 2,
+        "pattern": "(\\d+(?:\\.\\d+)?[KMB]?)\\s*views",
+        "matches": [
+          "10.7K"
+        ]
+      }
+    ],
+    "extended_patterns_found": [
+      {
+        "pattern_index": 4,
+        "pattern": "(\\d+(?:\\.\\d+)?[KMB]?)\\s*view(?:s|ing)",
+        "matches": [
+          "10.7K"
+        ]
+      }
+    ],
+    "all_numbers_found": [],
+    "lines_with_view": [
+      {
+        "line_number": 17,
+        "content": "[Thread ====== 10.7K views](https://www.threads.net/@ttshow.tw/post/DMZVCFzSpIX)"
+      },
+      {
+        "line_number": 165,
+        "content": "woke up before 4am for these views today"
+      }
+    ],
+    "lines_with_numbers": [
+      {
+        "line_number": 17,
+        "content": "[Thread ====== 10.7K views](https://www.threads.net/@ttshow.tw/post/DMZVCFzSpIX)",
+        "numbers": [
+          "10.7K"
+        ]
+      },
+      {
+        "line_number": 19,
+        "content": "[![Image 1: ttshow.tw's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/357840283_169933572747348_7166870351561103713_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=100&_nc_oc=Q6cZ2QHTI6dIRX01-ZiHnn3m02n1mW72gy3bOkzjBcmYzHyb3TFCI7Y-SIZAGGEz5XR0hCU&_nc_ohc=erKsr3WG9sgQ7kNvwHSsgu1&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfTtVsAkjRNhxdnNVgD6uqS7S31Jll_JSBkSigRbjf3IuA&oe=68954914&_nc_sid=10d13b)](https://www.threads.net/@ttshow.tw)",
+        "numbers": [
+          "3m",
+          "1m",
+          "3b",
+          "7k",
+          "0k",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 29,
+        "content": "![Image 2: 可能是睡覺、布偶貓、小貓、玳瑁貓和文字的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/523020567_17916976374109703_3458377626624441115_n.jpg?stp=dst-jpegr_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMTQ0MHgxOTIwLmhkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=111&_nc_oc=Q6cZ2QHTI6dIRX01-ZiHnn3m02n1mW72gy3bOkzjBcmYzHyb3TFCI7Y-SIZAGGEz5XR0hCU&_nc_ohc=a73ECCDB71MQ7kNvwENHVTI&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY4MjA2NjY2NjU4ODA0NTE0MA%3D%3D.3-ccb7-5&oh=00_AfSf9PZnk709W2LiTAn3x9Q2VGYMoCzUJSW3vbpBCuCuOA&oe=68952A31&_nc_sid=10d13b&se=-1)",
+        "numbers": [
+          "0M",
+          "5m",
+          "3m",
+          "1m",
+          "3b",
+          "71M",
+          "7k",
+          "0k",
+          "4M",
+          "0M",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 31,
+        "content": "![Image 3: 可能是小貓和文字的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/521476890_17916976383109703_6980595128712731289_n.jpg?stp=dst-jpegr_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMTQ0MHgxOTIwLmhkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=111&_nc_oc=Q6cZ2QHTI6dIRX01-ZiHnn3m02n1mW72gy3bOkzjBcmYzHyb3TFCI7Y-SIZAGGEz5XR0hCU&_nc_ohc=5neVGORmfoEQ7kNvwEffikq&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY4MjA2NjY2NjM1MzEyNjE0Ng%3D%3D.3-ccb7-5&oh=00_AfT8oLMjIyyETUvHkGAQQzOZFWEJef952NpMx2zkXHvrxg&oe=6895253B&_nc_sid=10d13b&se=-1)",
+        "numbers": [
+          "0M",
+          "5m",
+          "3m",
+          "1m",
+          "3b",
+          "7k",
+          "0k",
+          "4M",
+          "1M",
+          "6895253B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 41,
+        "content": "[![Image 4: quotation_0503meow's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/476663489_977975647099952_2035412810850690205_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby45MDIuYzIifQ&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=108&_nc_oc=Q6cZ2QHTI6dIRX01-ZiHnn3m02n1mW72gy3bOkzjBcmYzHyb3TFCI7Y-SIZAGGEz5XR0hCU&_nc_ohc=GID8bTsNXAMQ7kNvwFNK8eE&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfT_tnNttSTiSeH0vrsA4LzkRxa-pQcsJRuFGMPKA4UVBQ&oe=689528FB&_nc_sid=10d13b)](https://www.threads.net/@quotation_0503meow)",
+        "numbers": [
+          "0503m",
+          "45M",
+          "3m",
+          "1m",
+          "3b",
+          "8b",
+          "7k",
+          "0k",
+          "13b",
+          "0503m"
+        ]
+      },
+      {
+        "line_number": 43,
+        "content": "[quotation\\_0503meow](https://www.threads.net/@quotation_0503meow)",
+        "numbers": [
+          "0503m",
+          "0503m"
+        ]
+      },
+      {
+        "line_number": 45,
+        "content": "[07/23/25](https://www.threads.net/@quotation_0503meow/post/DMcxCbVvXYC)",
+        "numbers": [
+          "0503m"
+        ]
+      },
+      {
+        "line_number": 49,
+        "content": "[![Image 5: 可能是玳瑁貓、小貓、箱子、紙箱和文字的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/521532266_17867627712421376_2604278365158110031_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uMTQ0MHgxOTIwLnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=108&_nc_oc=Q6cZ2QHTI6dIRX01-ZiHnn3m02n1mW72gy3bOkzjBcmYzHyb3TFCI7Y-SIZAGGEz5XR0hCU&_nc_ohc=swvfPW3rFY0Q7kNvwHHNQpM&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY4MzAzNDI2NjM1NTk4Nzk3MA%3D%3D.3-ccb7-5&oh=00_AfRFQuyEX64YzydLn3bgX1AwyAVYZRzWiAnagNNneHtpuA&oe=68953F1A&_nc_sid=10d13b)](https://www.threads.net/@quotation_0503meow/post/DMcxCbVvXYC/media)",
+        "numbers": [
+          "0M",
+          "5m",
+          "3m",
+          "1m",
+          "3b",
+          "7k",
+          "0k",
+          "4M",
+          "3M",
+          "3b",
+          "13b",
+          "0503m"
+        ]
+      },
+      {
+        "line_number": 55,
+        "content": "[![Image 6: the3shades_meow's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/474547161_1008740057746166_7747935226147318320_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=102&_nc_oc=Q6cZ2QHTI6dIRX01-ZiHnn3m02n1mW72gy3bOkzjBcmYzHyb3TFCI7Y-SIZAGGEz5XR0hCU&_nc_ohc=2Mz3MflEtD0Q7kNvwFfpbYR&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfQt_fZiUZ1_SaMs8J0uA_skC0h9qkKFREByUSaktYFwmA&oe=689551BD&_nc_sid=10d13b)](https://www.threads.net/@the3shades_meow)",
+        "numbers": [
+          "3m",
+          "1m",
+          "3b",
+          "2M",
+          "3M",
+          "7k",
+          "0k",
+          "689551B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 61,
+        "content": "![Image 7: A Threads user's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/357840283_169933572747348_7166870351561103713_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=100&_nc_oc=Q6cZ2QHTI6dIRX01-ZiHnn3m02n1mW72gy3bOkzjBcmYzHyb3TFCI7Y-SIZAGGEz5XR0hCU&_nc_ohc=erKsr3WG9sgQ7kNvwHSsgu1&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfTtVsAkjRNhxdnNVgD6uqS7S31Jll_JSBkSigRbjf3IuA&oe=68954914&_nc_sid=10d13b)",
+        "numbers": [
+          "3m",
+          "1m",
+          "3b",
+          "7k",
+          "0k",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 67,
+        "content": "[![Image 8: 可能是睡覺、小貓、玳瑁貓、筆記型電腦和文字的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/522194171_17902056429232636_2639083051375720958_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uMTIwNXgyMTQ0LnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=104&_nc_oc=Q6cZ2QHTI6dIRX01-ZiHnn3m02n1mW72gy3bOkzjBcmYzHyb3TFCI7Y-SIZAGGEz5XR0hCU&_nc_ohc=dPazKS1qQA4Q7kNvwEDgtiZ&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY4MzQ5Nzk4ODI1Mzk4OTMwMw%3D%3D.3-ccb7-5&oh=00_AfTaJMQWrjOWby0Ar5t_9g5WBY2-JzywmMrxiQW9SS6sww&oe=68954601&_nc_sid=10d13b)](https://www.threads.net/@the3shades_meow/post/DMeaeeAvrm3/media)",
+        "numbers": [
+          "5m",
+          "3m",
+          "1m",
+          "3b",
+          "7k",
+          "0k",
+          "4M",
+          "1M",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 71,
+        "content": "[![Image 9: beanmilk0503's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/452747968_1240465223789633_7604800094890794429_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=105&_nc_oc=Q6cZ2QHTI6dIRX01-ZiHnn3m02n1mW72gy3bOkzjBcmYzHyb3TFCI7Y-SIZAGGEz5XR0hCU&_nc_ohc=ir4ALfUH2u0Q7kNvwHWOPDn&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfRx5glsbLLwT2RKciCOi_gMCokd3sy5NQ0hGYC9S1vEOw&oe=68955365&_nc_sid=10d13b)](https://www.threads.net/@beanmilk0503)",
+        "numbers": [
+          "3m",
+          "1m",
+          "3b",
+          "7k",
+          "0k",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 77,
+        "content": "![Image 10: A Threads user's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/357840283_169933572747348_7166870351561103713_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=100&_nc_oc=Q6cZ2QHTI6dIRX01-ZiHnn3m02n1mW72gy3bOkzjBcmYzHyb3TFCI7Y-SIZAGGEz5XR0hCU&_nc_ohc=erKsr3WG9sgQ7kNvwHSsgu1&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfTtVsAkjRNhxdnNVgD6uqS7S31Jll_JSBkSigRbjf3IuA&oe=68954914&_nc_sid=10d13b)",
+        "numbers": [
+          "3m",
+          "1m",
+          "3b",
+          "7k",
+          "0k",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 83,
+        "content": "[![Image 11: yoistw_8's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/480987936_1583710095669338_6025963579617663372_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=102&_nc_oc=Q6cZ2QHTI6dIRX01-ZiHnn3m02n1mW72gy3bOkzjBcmYzHyb3TFCI7Y-SIZAGGEz5XR0hCU&_nc_ohc=FifQKS-Z3YEQ7kNvwHVmA94&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfQ2vVBSfwVTeQ7loHSQyR0_r6J0z5Ld02f_q8RkZZrp2Q&oe=689538CF&_nc_sid=10d13b)](https://www.threads.net/@yoistw_8)",
+        "numbers": [
+          "3m",
+          "1m",
+          "3b",
+          "7k",
+          "0k",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 89,
+        "content": "![Image 12: A Threads user's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/357840283_169933572747348_7166870351561103713_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=100&_nc_oc=Q6cZ2QHTI6dIRX01-ZiHnn3m02n1mW72gy3bOkzjBcmYzHyb3TFCI7Y-SIZAGGEz5XR0hCU&_nc_ohc=erKsr3WG9sgQ7kNvwHSsgu1&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfTtVsAkjRNhxdnNVgD6uqS7S31Jll_JSBkSigRbjf3IuA&oe=68954914&_nc_sid=10d13b)",
+        "numbers": [
+          "3m",
+          "1m",
+          "3b",
+          "7k",
+          "0k",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 93,
+        "content": "![Image 13: 可能是貓的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/522068901_17867789496417324_4640363533993041714_n.jpg?stp=dst-jpegr_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMTQ0MHgyNTYwLmhkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=100&_nc_oc=Q6cZ2QHTI6dIRX01-ZiHnn3m02n1mW72gy3bOkzjBcmYzHyb3TFCI7Y-SIZAGGEz5XR0hCU&_nc_ohc=dXkSH9e5u2cQ7kNvwEDpeSL&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY4Mjc3OTU5MDcwMTAzNjIwMg%3D%3D.3-ccb7-5&oh=00_AfTNFSZ_WL9uvau-56w_UAtwgip-WdPqqEy6pqt0R8RhIw&oe=6895284F&_nc_sid=10d13b&se=-1)",
+        "numbers": [
+          "0M",
+          "5m",
+          "3m",
+          "1m",
+          "3b",
+          "7k",
+          "0k",
+          "4M",
+          "5M",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 95,
+        "content": "![Image 14: 可能是貓的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/521628182_17867789505417324_5248656176319197795_n.jpg?stp=dst-jpegr_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMTQ0MHgyNTYwLmhkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=100&_nc_oc=Q6cZ2QHTI6dIRX01-ZiHnn3m02n1mW72gy3bOkzjBcmYzHyb3TFCI7Y-SIZAGGEz5XR0hCU&_nc_ohc=2SaLDza_ZBUQ7kNvwFUlIPM&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY4Mjc3OTU5MDQzMjU2NzY3NQ%3D%3D.3-ccb7-5&oh=00_AfS8upCQuMJL007COcX-Y5PACl8LF-gsR2Lkd4FOkGCZeA&oe=68953BDE&_nc_sid=10d13b&se=-1)",
+        "numbers": [
+          "0M",
+          "5m",
+          "3m",
+          "1m",
+          "3b",
+          "7k",
+          "0k",
+          "4M",
+          "5M",
+          "68953B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 101,
+        "content": "[![Image 15: rangerboard's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/481940119_645268701193110_3070286023796039301_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=106&_nc_oc=Q6cZ2QGEjy3QNdO-HoEAbNw5ozkYAR-XowGxQBlKTwYktMMo9dNnnY5cMvRmVYEKEuI4wTk&_nc_ohc=43jBEmXBYnYQ7kNvwFBgGSd&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfRFo7hlvFVi9btdYS7G7L-uib5GoIZuKsli5OpUj2tCMA&oe=68952ADE&_nc_sid=10d13b)](https://www.threads.net/@rangerboard)",
+        "numbers": [
+          "7k",
+          "0k",
+          "9b",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 105,
+        "content": "[10h](https://www.threads.net/@rangerboard/post/DM4KpQFqP1R)",
+        "numbers": [
+          "4K"
+        ]
+      },
+      {
+        "line_number": 109,
+        "content": "[![Image 16: 可能是海報和文字的動畫風格圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527171853_17916216984116826_6285124717128458060_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uMjE2MHgxMjE1LnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=106&_nc_oc=Q6cZ2QGEjy3QNdO-HoEAbNw5ozkYAR-XowGxQBlKTwYktMMo9dNnnY5cMvRmVYEKEuI4wTk&_nc_ohc=k18kpAfZhCgQ7kNvwEHO93Z&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDc0NjcwOTg2ODYwODg0OQ%3D%3D.3-ccb7-5&oh=00_AfSaC_pwMjyrlWzKy7Mf39n4fWegJI8B8T_dhwJ479uS7w&oe=68953CA2&_nc_sid=10d13b)](https://www.threads.net/@rangerboard/post/DM4KpQFqP1R/media)",
+        "numbers": [
+          "2M",
+          "5m",
+          "18k",
+          "7k",
+          "0k",
+          "5M",
+          "7M",
+          "8B",
+          "13b",
+          "4K"
+        ]
+      },
+      {
+        "line_number": 115,
+        "content": "[![Image 17: therealdemps93's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/376842270_836366548024161_5157809320930751666_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=109&_nc_oc=Q6cZ2QGEjy3QNdO-HoEAbNw5ozkYAR-XowGxQBlKTwYktMMo9dNnnY5cMvRmVYEKEuI4wTk&_nc_ohc=emhfMRmbUbcQ7kNvwEDhiLd&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfQpx7ol2jPhhBA0NE9VaAII0fknQsNhkTFZynvGe1YvDA&oe=6895440C&_nc_sid=10d13b)](https://www.threads.net/@therealdemps93)",
+        "numbers": [
+          "7k",
+          "0k",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 123,
+        "content": "![Image 18](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527043409_1418718876053443_8128518872433269519_n.jpg?stp=dst-jpg_e15_tt6&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=107&_nc_oc=Q6cZ2QGEjy3QNdO-HoEAbNw5ozkYAR-XowGxQBlKTwYktMMo9dNnnY5cMvRmVYEKEuI4wTk&_nc_ohc=nF0-utXwuOwQ7kNvwGMo-7p&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfTiXgEDCuHWZj7JDEGV1nDY5mMO9N1NEvK4mI_s0vIDhw&oe=68954633&_nc_sid=10d13b)",
+        "numbers": [
+          "7k",
+          "0k",
+          "5m",
+          "4m",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 129,
+        "content": "[![Image 19: thesojournies's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/435590556_426359546655495_666451124203057197_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=1&_nc_oc=Q6cZ2QGEjy3QNdO-HoEAbNw5ozkYAR-XowGxQBlKTwYktMMo9dNnnY5cMvRmVYEKEuI4wTk&_nc_ohc=m6Lbbsl3XM8Q7kNvwHX4hA1&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfRWKUzePcDulpLpBkSmB7Xb15uWm02qmh_AgZ-B3BmB9Q&oe=6895481A&_nc_sid=10d13b)](https://www.threads.net/@thesojournies)",
+        "numbers": [
+          "7k",
+          "0k",
+          "3B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 137,
+        "content": "1K",
+        "numbers": [
+          "1K"
+        ]
+      },
+      {
+        "line_number": 145,
+        "content": "[![Image 20: most_mojo's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/358191545_573747424705000_1578794905857459380_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby40MDAuYzIifQ&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=104&_nc_oc=Q6cZ2QGEjy3QNdO-HoEAbNw5ozkYAR-XowGxQBlKTwYktMMo9dNnnY5cMvRmVYEKEuI4wTk&_nc_ohc=hAJNJ2Q-wTIQ7kNvwHcrm-f&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfQYb6k_eVT1iaTnMXPNOM9OHU6B1cwWwecAAP99zXWW5Q&oe=68953F8E&_nc_sid=10d13b)](https://www.threads.net/@most_mojo)",
+        "numbers": [
+          "40M",
+          "7k",
+          "0k",
+          "6k",
+          "6B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 159,
+        "content": "[![Image 21: jofo_photo's profile picture](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-19/459108495_7762524100520170_7373615121275007845_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=110&_nc_oc=Q6cZ2QGEjy3QNdO-HoEAbNw5ozkYAR-XowGxQBlKTwYktMMo9dNnnY5cMvRmVYEKEuI4wTk&_nc_ohc=SZ-Ul8kvDgwQ7kNvwHAxB2D&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&oh=00_AfSbDlwdZU6C5irfYXkEnBpYqcO0cynk2hlJyLzo7N-b3A&oe=6895359B&_nc_sid=10d13b)](https://www.threads.net/@jofo_photo)",
+        "numbers": [
+          "8k",
+          "7k",
+          "0k",
+          "6895359B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 167,
+        "content": "![Image 22: 可能是 1 人、山和文字的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527468981_17920225866102949_3395972788379407924_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMTQ0MHgyMTYwLnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=101&_nc_oc=Q6cZ2QGEjy3QNdO-HoEAbNw5ozkYAR-XowGxQBlKTwYktMMo9dNnnY5cMvRmVYEKEuI4wTk&_nc_ohc=VjnQ0zggoQIQ7kNvwGXe0T2&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDU3NTY5OTE0MTU4MTQ5Mw%3D%3D.3-ccb7-5&oh=00_AfT20O8qNMqez_qcK9EksV8bx0KViHmowJo89lOf2J8Qtw&oe=68954E44&_nc_sid=10d13b)",
+        "numbers": [
+          "0M",
+          "5m",
+          "7k",
+          "0k",
+          "5M",
+          "0M",
+          "4M",
+          "5M",
+          "8b",
+          "0K",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 169,
+        "content": "![Image 23: 可能是文字的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/526280446_17920225875102949_2092788464526162189_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMjE2MHgxNDQwLnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=101&_nc_oc=Q6cZ2QGEjy3QNdO-HoEAbNw5ozkYAR-XowGxQBlKTwYktMMo9dNnnY5cMvRmVYEKEuI4wTk&_nc_ohc=333tKjy6shIQ7kNvwEvSI2r&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDU3NTY5OTEzMzIyNTkyNA%3D%3D.3-ccb7-5&oh=00_AfRw07geXI21iVtMs2MvTMI79ph1w5tIm2r9f9t8-Qlv7w&oe=689526FA&_nc_sid=10d13b)",
+        "numbers": [
+          "2M",
+          "5m",
+          "7k",
+          "0k",
+          "5M",
+          "2M",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 171,
+        "content": "![Image 24: 可能是大自然、樹和文字的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/525847672_17920225884102949_1749014548558947470_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMTQ0MHgyMTYwLnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=101&_nc_oc=Q6cZ2QGEjy3QNdO-HoEAbNw5ozkYAR-XowGxQBlKTwYktMMo9dNnnY5cMvRmVYEKEuI4wTk&_nc_ohc=jOfMImTiaqgQ7kNvwHaVXnL&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDU3NTY5OTE0MTU0OTkzMA%3D%3D.3-ccb7-5&oh=00_AfSv2IbUgAUSUKnLUq5SkAOhyZDszNrF9BDUBSeiYVR7JQ&oe=68952BF3&_nc_sid=10d13b)",
+        "numbers": [
+          "0M",
+          "5m",
+          "7k",
+          "0k",
+          "5M",
+          "0M",
+          "9B",
+          "68952B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 173,
+        "content": "![Image 25: 可能是火山口和文字的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/526594632_17920225896102949_5163968144373121284_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMTQ0MHgyMTYwLnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=101&_nc_oc=Q6cZ2QGEjy3QNdO-HoEAbNw5ozkYAR-XowGxQBlKTwYktMMo9dNnnY5cMvRmVYEKEuI4wTk&_nc_ohc=kfEjWqyAJ8YQ7kNvwFu5vjp&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDU3NTY5OTI2NzUyNzgyMw%3D%3D.3-ccb7-5&oh=00_AfQe-sIb5Zt0gk3dzsmmNhPwi3-tnlq7MWO9vstva1s8PA&oe=689521A7&_nc_sid=10d13b)",
+        "numbers": [
+          "0M",
+          "5m",
+          "7k",
+          "0k",
+          "5M",
+          "7M",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 175,
+        "content": "![Image 26: 可能是 1 人和文字的黑白圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527471048_17920225905102949_6980599770082568506_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMTQ0MHgyMTYwLnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=101&_nc_oc=Q6cZ2QGEjy3QNdO-HoEAbNw5ozkYAR-XowGxQBlKTwYktMMo9dNnnY5cMvRmVYEKEuI4wTk&_nc_ohc=gFOQ9EmpkbkQ7kNvwHZULRT&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDU3NTY5OTM0Mjk1NDQxMg%3D%3D.3-ccb7-5&oh=00_AfS0mxERzF6woVDSmQlP8kKQ_1zsczawfrjQMMXA21Qvdg&oe=689552F7&_nc_sid=10d13b)",
+        "numbers": [
+          "0M",
+          "5m",
+          "7k",
+          "0k",
+          "5M",
+          "0M",
+          "0m",
+          "8k",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 177,
+        "content": "![Image 27: 可能是大自然、山、霧和文字的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527482575_17920225914102949_3742946983398876079_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMjE2MHgxNDQwLnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=101&_nc_oc=Q6cZ2QGEjy3QNdO-HoEAbNw5ozkYAR-XowGxQBlKTwYktMMo9dNnnY5cMvRmVYEKEuI4wTk&_nc_ohc=LnKh_bO9sZYQ7kNvwEjTCNB&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDU3NTY5OTUyNzM5MjMwNg%3D%3D.3-ccb7-5&oh=00_AfTB48PQL3vI3_PDlCRiz-MKnMhIfgE8pyFJA-dggqCpZw&oe=68952B0B&_nc_sid=10d13b)",
+        "numbers": [
+          "2M",
+          "5m",
+          "7k",
+          "0k",
+          "5M",
+          "5M",
+          "68952B",
+          "0B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 179,
+        "content": "![Image 28: 可能是山和文字的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527169697_17920225923102949_3186833646331888595_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMjE2MHgxNDQwLnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=101&_nc_oc=Q6cZ2QGEjy3QNdO-HoEAbNw5ozkYAR-XowGxQBlKTwYktMMo9dNnnY5cMvRmVYEKEuI4wTk&_nc_ohc=VjfcLCy0xsgQ7kNvwH7wrDq&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDU3NTY5OTE0MTYyMjk3NQ%3D%3D.3-ccb7-5&oh=00_AfTfZJwW_-cuGbEqmtiWIVckSxwBamO6JzxuvI9mXiK2og&oe=689550BA&_nc_sid=10d13b)",
+        "numbers": [
+          "2M",
+          "5m",
+          "7k",
+          "0k",
+          "5M",
+          "0M",
+          "9m",
+          "689550B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 181,
+        "content": "![Image 29: 可能是 1 人、大自然和文字的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/526601116_17920225932102949_1605346450613525741_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMTQ0MHgyMTYwLnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=101&_nc_oc=Q6cZ2QGEjy3QNdO-HoEAbNw5ozkYAR-XowGxQBlKTwYktMMo9dNnnY5cMvRmVYEKEuI4wTk&_nc_ohc=cJvRrLbz28cQ7kNvwH_VHSR&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDU3NTY5OTI2NzM1NzE2Nw%3D%3D.3-ccb7-5&oh=00_AfT5XJxljypRzcB3yqqlzBLwfNvxZ64z8BGOnfZyYI3PXQ&oe=68954E79&_nc_sid=10d13b)",
+        "numbers": [
+          "0M",
+          "5m",
+          "7k",
+          "0k",
+          "5M",
+          "8B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 183,
+        "content": "![Image 30: 可能是霧和文字的圖像](https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527444197_17920225941102949_8057178703476684216_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuQ0FST1VTRUxfSVRFTS5pbWFnZV91cmxnZW4uMTQ0MHgyMTYwLnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=101&_nc_oc=Q6cZ2QGEjy3QNdO-HoEAbNw5ozkYAR-XowGxQBlKTwYktMMo9dNnnY5cMvRmVYEKEuI4wTk&_nc_ohc=dQL4icm6I98Q7kNvwF0U4ps&_nc_gid=-IasZyD2UxSu6C9vt0kjkg&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MDU3NTY5OTI2NzQ2MTgyNw%3D%3D.3-ccb7-5&oh=00_AfRES-LuxGhuf1B6Skc8fMJjBNl0xIsfrBfGZiRPYpIV9w&oe=68954EE3&_nc_sid=10d13b)",
+        "numbers": [
+          "0M",
+          "5m",
+          "7k",
+          "0k",
+          "5M",
+          "2M",
+          "1B",
+          "13b"
+        ]
+      },
+      {
+        "line_number": 196,
+        "content": "*   [Threads Terms](https://l.threads.com/?u=https%3A%2F%2Fhelp.instagram.com%2F769983657850450&e=AT0aNvc6Tx-5YFAtzIQOho4LtkbVOBwj9K4Xm2C73is8VkazoTn-URbrvrQ4ahKy3dqHTsOGQlHx1eh4YyxIgvja4wlO208sCKW4TrgoFX0DtRWX8ivO81wLduw)",
+        "numbers": [
+          "9K"
+        ]
+      },
+      {
+        "line_number": 197,
+        "content": "*   [Privacy Policy](https://l.threads.com/?u=https%3A%2F%2Fhelp.instagram.com%2F515230437301944&e=AT0aNvc6Tx-5YFAtzIQOho4LtkbVOBwj9K4Xm2C73is8VkazoTn-URbrvrQ4ahKy3dqHTsOGQlHx1eh4YyxIgvja4wlO208sCKW4TrgoFX0DtRWX8ivO81wLduw)",
+        "numbers": [
+          "9K"
+        ]
+      },
+      {
+        "line_number": 198,
+        "content": "*   [Cookies Policy](https://l.threads.com/?u=https%3A%2F%2Fhelp.instagram.com%2F1896641480634370%2F&e=AT0aNvc6Tx-5YFAtzIQOho4LtkbVOBwj9K4Xm2C73is8VkazoTn-URbrvrQ4ahKy3dqHTsOGQlHx1eh4YyxIgvja4wlO208sCKW4TrgoFX0DtRWX8ivO81wLduw)",
+        "numbers": [
+          "9K"
+        ]
+      }
+    ]
+  }
+]
