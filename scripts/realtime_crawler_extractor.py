@@ -136,15 +136,21 @@ class RealtimeCrawlerExtractor:
         return self._extract_content_fallback(lines)
     
     def _extract_main_post_from_structure(self, lines: List[str]) -> Optional[str]:
-        """從結構化內容中提取主貼文"""
+        """從結構化內容中提取主貼文 - 優先提取當前頁面的主要內容"""
         # 查找模式：用戶名 → 時間 → 主貼文內容 → Translate → 數字（互動數據）
         main_content_candidates = []
+        
+        # 策略1: 如果第一行就是回覆內容，優先使用它
+        if lines and lines[0].strip().startswith('>>>'):
+            reply_content = lines[0].strip()
+            if len(reply_content) > 10:  # 確保有實質內容
+                return reply_content
         
         for i, line in enumerate(lines):
             stripped = line.strip()
             
-            # 跳過明顯的回覆標識
-            if stripped.startswith('>>>') or stripped.startswith('回覆') or stripped.startswith('·Author'):
+            # 跳過明顯的回覆標識（但如果是第一行已經處理過了）
+            if i > 0 and (stripped.startswith('>>>') or stripped.startswith('回覆') or stripped.startswith('·Author')):
                 continue
             
             # 尋找主貼文內容的模式
@@ -701,10 +707,23 @@ class RealtimeCrawlerExtractor:
                 return {
                     'post_id': post_id,
                     'url': url,
+                    'views': None,
+                    'content': None,
+                    'likes': None,
+                    'comments': None,
+                    'reposts': None,
+                    'shares': None,
                     'api_error': content,
                     'local_error': local_content,
                     'source': 'both_failed',
+                    'success': False,
                     'has_views': False,
+                    'has_content': False,
+                    'has_likes': False,
+                    'has_comments': False,
+                    'has_reposts': False,
+                    'has_shares': False,
+                    'content_length': 0,
                     'extracted_at': datetime.now().isoformat()
                 }
 
@@ -739,7 +758,7 @@ class RealtimeCrawlerExtractor:
         
         # 導入rotation策略
         try:
-            from test_reader_rotation import RotationPipelineReader
+            from common.rotation_pipeline import RotationPipelineReader
             
             # 創建rotation實例
             rotation_reader = RotationPipelineReader()

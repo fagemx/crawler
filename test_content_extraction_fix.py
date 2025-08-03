@@ -9,7 +9,7 @@ import sys
 import asyncio
 from scripts.realtime_crawler_extractor import RealtimeCrawlerExtractor
 
-async def test_specific_post():
+def test_specific_post():
     """測試特定貼文的內容提取"""
     
     # 測試貼文：主文是 "關稅+台幣升值，傳產業者們「海嘯第一排」"
@@ -27,7 +27,7 @@ async def test_specific_post():
     
     # 測試Jina API提取
     print("\n🌐 測試Jina API提取...")
-    success, content = await extractor.fetch_content_jina_api(test_url)
+    success, content = extractor.fetch_content_jina_api(test_url)
     
     if success:
         print(f"✅ Jina API成功獲取內容 ({len(content)} 字符)")
@@ -73,4 +73,4 @@ async def test_specific_post():
             print(f"❌ 本地Reader也失敗: {local_content}")
 
 if __name__ == "__main__":
-    asyncio.run(test_specific_post())
+    test_specific_post()
