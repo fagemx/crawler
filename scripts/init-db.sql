@@ -7,12 +7,14 @@
 
 -- 貼文基本資料表
 CREATE TABLE IF NOT EXISTS posts (
-    url            TEXT PRIMARY KEY,
-    author         TEXT,
-    markdown       TEXT,          -- Jina Reader 提取的 markdown 內容
-    media_urls     JSONB,         -- 媒體 URL 列表 ["https://...jpg", ...]
-    created_at     TIMESTAMPTZ DEFAULT now(),
-    last_seen      TIMESTAMPTZ DEFAULT now()
+    url               TEXT PRIMARY KEY,
+    author            TEXT,
+    markdown          TEXT,          -- Jina Reader 提取的 markdown 內容
+    media_urls        JSONB,         -- 媒體 URL 列表 ["https://...jpg", ...]
+    created_at        TIMESTAMPTZ DEFAULT now(),  -- 爬蟲處理時間
+    post_published_at TIMESTAMPTZ,  -- 真實貼文發布時間 (從DOM提取)
+    tags              JSONB DEFAULT '[]',  -- 主題標籤列表 (從標籤連結提取)
+    last_seen         TIMESTAMPTZ DEFAULT now()
 );
 
 -- 貼文指標表（與 posts 分離，支援獨立更新）

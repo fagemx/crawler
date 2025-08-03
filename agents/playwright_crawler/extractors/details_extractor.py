@@ -347,6 +347,24 @@ class DetailsExtractor:
             
             content_data["videos"] = videos
             
+            # ← 新增: 提取真實發文時間
+            try:
+                post_published_at = await self._extract_post_published_at(page)
+                if post_published_at:
+                    content_data["post_published_at"] = post_published_at
+                    logging.debug(f"   ✅ 提取發文時間: {post_published_at}")
+            except Exception as e:
+                logging.debug(f"   ⚠️ 發文時間提取失敗: {e}")
+            
+            # ← 新增: 提取主題標籤
+            try:
+                tags = await self._extract_tags_from_dom(page)
+                if tags:
+                    content_data["tags"] = tags
+                    logging.debug(f"   ✅ 提取標籤: {tags}")
+            except Exception as e:
+                logging.debug(f"   ⚠️ 標籤提取失敗: {e}")
+            
         except Exception as e:
             logging.debug(f"   ⚠️ DOM 內容提取失敗: {e}")
         
@@ -572,9 +590,32 @@ class DetailsExtractor:
                 post.videos = actual_videos
                 updated = True
         
+        # ← 新增: 更新真實發文時間
+        if content_data.get("post_published_at") and not post.post_published_at:
+            post.post_published_at = content_data["post_published_at"]
+            updated = True
+        
+        # ← 新增: 更新主題標籤
+        if content_data.get("tags") and not post.tags:
+            post.tags = content_data["tags"]
+            updated = True
+        
         if updated:
             post.processing_stage = "details_filled_hybrid"
-            logging.info(f"  ✅ 混合策略成功補齊 {post.post_id}: 讚={post.likes_count}, 內容={len(post.content)}字, 圖片={len(post.images)}個, 影片={len(post.videos)}個")
+            # 構建補齊信息
+            info_parts = [
+                f"讚={post.likes_count}",
+                f"內容={len(post.content)}字",
+                f"圖片={len(post.images)}個",
+                f"影片={len(post.videos)}個"
+            ]
+            
+            if post.post_published_at:
+                info_parts.append(f"發文時間={post.post_published_at.strftime('%Y-%m-%d %H:%M')}")
+            if post.tags:
+                info_parts.append(f"標籤={post.tags}")
+                
+            logging.info(f"  ✅ 混合策略成功補齊 {post.post_id}: {', '.join(info_parts)}")
             
             # 發布進度
             if task_id:
@@ -592,3 +633,193 @@ class DetailsExtractor:
             logging.warning(f"  ⚠️ 混合策略無法補齊 {post.post_id} 的數據")
         
         return updated
+    
+    async def _extract_post_published_at(self, page: Page) -> Optional[Any]:
+        """提取貼文真實發布時間 (從DOM)"""
+        from datetime import datetime
+        import json
+        
+        try:
+            # 方法A: 直接抓 <time> 的 datetime 屬性
+            time_elements = page.locator('time[datetime]')
+            count = await time_elements.count()
+            
+            if count > 0:
+                for i in range(min(count, 5)):  # 檢查前5個
+                    try:
+                        time_el = time_elements.nth(i)
+                        
+                        # datetime 屬性
+                        iso_time = await time_el.get_attribute('datetime')
+                        if iso_time:
+                            from dateutil import parser
+                            return parser.parse(iso_time)
+                        
+                        # title 或 aria-label 屬性  
+                        title_time = (await time_el.get_attribute('title') or 
+                                    await time_el.get_attribute('aria-label'))
+                        if title_time:
+                            parsed_time = self._parse_chinese_time(title_time)
+                            if parsed_time:
+                                return parsed_time
+                    except Exception:
+                        continue
+            
+            # 方法B: 解析 __NEXT_DATA__
+            try:
+                script_el = page.locator('#__NEXT_DATA__')
+                if await script_el.count() > 0:
+                    script_content = await script_el.text_content()
+                    data = json.loads(script_content)
+                    
+                    taken_at = self._find_taken_at(data)
+                    if taken_at:
+                        return datetime.fromtimestamp(taken_at)
+                        
+            except Exception:
+                pass
+            
+        except Exception:
+            pass
+        
+        return None
+    
+    def _parse_chinese_time(self, time_str: str) -> Optional[Any]:
+        """解析中文時間格式"""
+        from datetime import datetime
+        try:
+            # 處理 "2025年8月3日下午 2:36" 格式
+            if "年" in time_str and "月" in time_str and "日" in time_str:
+                import re
+                match = re.search(r'(\d{4})年(\d{1,2})月(\d{1,2})日.*?(\d{1,2}):(\d{2})', time_str)
+                if match:
+                    year, month, day, hour, minute = map(int, match.groups())
+                    
+                    # 處理下午/上午
+                    if "下午" in time_str and hour < 12:
+                        hour += 12
+                    elif "上午" in time_str and hour == 12:
+                        hour = 0
+                    
+                    return datetime(year, month, day, hour, minute)
+        except:
+            pass
+        return None
+    
+    def _find_taken_at(self, data: Any, path: str = "") -> Optional[int]:
+        """遞歸搜索 taken_at 時間戳"""
+        if isinstance(data, dict):
+            for key, value in data.items():
+                if key == "taken_at" and isinstance(value, int) and value > 1000000000:
+                    return value
+                result = self._find_taken_at(value, f"{path}.{key}")
+                if result:
+                    return result
+        elif isinstance(data, list):
+            for i, item in enumerate(data):
+                result = self._find_taken_at(item, f"{path}[{i}]")
+                if result:
+                    return result
+        return None
+    
+    async def _extract_tags_from_dom(self, page: Page) -> List[str]:
+        """提取主題標籤 (專門搜索Threads標籤連結)"""
+        tags = []
+        
+        try:
+            # 策略1: 搜索標籤連結（優先級最高）
+            tag_link_selectors = [
+                'a[href*="/search?q="][href*="serp_type=tags"]',  # 標籤搜索連結
+                'a[href*="/search"][href*="tag_id="]',  # 包含tag_id的連結
+                'a[href*="serp_type=tags"]',  # 標籤類型連結
+            ]
+            
+            for selector in tag_link_selectors:
+                try:
+                    tag_links = page.locator(selector)
+                    count = await tag_links.count()
+                    
+                    if count > 0:
+                        # 只檢查前3個（避免回復中的標籤）
+                        for i in range(min(count, 3)):
+                            try:
+                                link = tag_links.nth(i)
+                                href = await link.get_attribute('href')
+                                text = await link.inner_text()
+                                
+                                if href and text:
+                                    tag_name = self._extract_tag_name_from_link(href, text)
+                                    if tag_name and tag_name not in tags:
+                                        tags.append(tag_name)
+                                        return tags  # 找到一個就返回
+                                        
+                            except Exception:
+                                continue
+                                
+                except Exception:
+                    continue
+            
+            # 策略2: 搜索主文章區域內的標籤元素
+            main_post_selectors = [
+                'article:first-of-type',
+                '[role="article"]:first-of-type',
+                'div[data-pressable-container]:first-of-type',
+            ]
+            
+            for main_selector in main_post_selectors:
+                try:
+                    main_element = page.locator(main_selector)
+                    if await main_element.count() > 0:
+                        # 在主文章內搜索標籤連結
+                        main_tag_links = main_element.locator('a[href*="/search"]')
+                        main_count = await main_tag_links.count()
+                        
+                        if main_count > 0:
+                            for i in range(min(main_count, 2)):
+                                try:
+                                    link = main_tag_links.nth(i)
+                                    href = await link.get_attribute('href')
+                                    text = await link.inner_text()
+                                    
+                                    if href and text:
+                                        tag_name = self._extract_tag_name_from_link(href, text)
+                                        if tag_name and tag_name not in tags:
+                                            tags.append(tag_name)
+                                            return tags
+                                            
+                                except Exception:
+                                    continue
+                        
+                except Exception:
+                    continue
+            
+        except Exception:
+            pass
+        
+        return tags[:1] if tags else []  # 只返回第一個標籤
+    
+    def _extract_tag_name_from_link(self, href: str, text: str) -> Optional[str]:
+        """從標籤連結中提取標籤名稱"""
+        try:
+            # 從URL的q參數中解析
+            if "q=" in href:
+                import urllib.parse
+                parsed_url = urllib.parse.urlparse(href)
+                query_params = urllib.parse.parse_qs(parsed_url.query)
+                
+                if 'q' in query_params:
+                    tag_name = query_params['q'][0]
+                    tag_name = urllib.parse.unquote(tag_name)
+                    return tag_name
+            
+            # 從連結文本中取得（備用）
+            if text and len(text.strip()) > 0 and len(text.strip()) <= 20:
+                clean_text = text.strip()
+                if clean_text.startswith('#'):
+                    clean_text = clean_text[1:]
+                return clean_text
+                
+        except Exception:
+            pass
+        
+        return None

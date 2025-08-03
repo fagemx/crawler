@@ -54,12 +54,20 @@ class PostMetrics(BaseModel):
     media_urls: Optional[List[str]] = Field(default_factory=list, description="舊版媒體URL欄位(已棄用)")
     images: List[str] = Field(default_factory=list, description="圖片URL列表")
     videos: List[str] = Field(default_factory=list, description="影片URL列表")
-    created_at: datetime = Field(..., description="貼文發布時間")
+    created_at: datetime = Field(..., description="貼文發布時間")  # 注意：實際為爬蟲處理時間
+    post_published_at: Optional[datetime] = Field(None, description="貼文真實發布時間 (從DOM提取)")
+    tags: List[str] = Field(default_factory=list, description="主題標籤列表 (從標籤連結提取)")
     fetched_at: datetime = Field(default_factory=datetime.utcnow, description="資料抓取時間")
     views_fetched_at: Optional[datetime] = Field(None, description="瀏覽數抓取時間")
 
     @validator('created_at', pre=True, allow_reuse=True)
     def parse_created_at(cls, v):
+        if isinstance(v, str):
+            return datetime.fromisoformat(v)
+        return v
+    
+    @validator('post_published_at', pre=True, allow_reuse=True)
+    def parse_post_published_at(cls, v):
         if isinstance(v, str):
             return datetime.fromisoformat(v)
         return v
@@ -118,7 +126,7 @@ class PostMetrics(BaseModel):
             "likes_count", "comments_count",
             "reposts_count", "shares_count",
             "views_count", "content",
-            "images", "videos",
+            "images", "videos", "tags",
         ):
             src = getattr(other, field, None)
             dst = getattr(self, field, None)
@@ -134,6 +142,10 @@ class PostMetrics(BaseModel):
                 elif src > 0 and src > dst:
                     # 來源值更大且 > 0，使用來源值
                     setattr(self, field, src)
+        
+        # 特殊處理：post_published_at (datetime 欄位)
+        if other.post_published_at and not self.post_published_at:
+            self.post_published_at = other.post_published_at
         
         # 更新處理階段和時間
         if other.processing_stage and other.processing_stage != "initial":

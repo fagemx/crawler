@@ -342,6 +342,8 @@ class PlaywrightLogic:
                         "calculated_score": post.calculate_score(),
                         "content": post.content,
                         "created_at": post.created_at.isoformat() if post.created_at else None,
+                        "post_published_at": post.post_published_at.isoformat() if post.post_published_at else None,
+                        "tags": post.tags,
                         "images": post.images,
                         "videos": post.videos
                     } for post in final_posts
