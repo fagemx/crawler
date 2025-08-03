@@ -18,6 +18,7 @@ from typing import Dict, Optional, List, AsyncGenerator
 import httpx
 from pathlib import Path
 from common.config import get_auth_file_path
+from common.incremental_crawl_manager import IncrementalCrawlManager
 
 def safe_print(msg, fallback_msg=None):
     """安全的打印函數，避免Unicode編碼錯誤"""
@@ -37,9 +38,13 @@ class RealtimeCrawlerExtractor:
     智能滾動收集URLs，收集到立即送Jina API提取
     """
     
-    def __init__(self, target_username: str, max_posts: int = 20):
+    def __init__(self, target_username: str, max_posts: int = 20, incremental: bool = True):
         self.target_username = target_username
         self.max_posts = max_posts
+        self.incremental = incremental
+        
+        # 增量爬取管理器
+        self.crawl_manager = IncrementalCrawlManager() if incremental else None
         
         # 爬蟲Agent設定
         self.agent_url = "http://localhost:8006/v1/playwright/crawl"
@@ -442,7 +447,7 @@ class RealtimeCrawlerExtractor:
         }
 
     async def collect_urls_only(self) -> List[str]:
-        """直接使用Playwright進行純URL收集，不經過Agent API"""
+        """直接使用Playwright進行純URL收集，支持增量檢測"""
         from playwright.async_api import async_playwright
         
         # 檢查認證檔案
@@ -455,7 +460,18 @@ class RealtimeCrawlerExtractor:
         
         print(f"🔧 開始直接Playwright滾動收集URLs @{self.target_username}")
         print(f"🎯 目標數量: {self.max_posts} 個URLs")
-        print("📋 模式: 純URL收集，跳過所有詳細處理")
+        print(f"📋 模式: {'增量收集' if self.incremental else '全量收集'}")
+        
+        # 增量模式：獲取已存在的post_ids
+        existing_post_ids = set()
+        if self.incremental and self.crawl_manager:
+            existing_post_ids = await self.crawl_manager.get_existing_post_ids(self.target_username)
+            checkpoint = await self.crawl_manager.get_crawl_checkpoint(self.target_username)
+            print(f"🔍 增量模式: 已爬取 {len(existing_post_ids)} 個貼文")
+            if checkpoint:
+                print(f"📊 上次檢查點: {checkpoint.latest_post_id} (總計: {checkpoint.total_crawled})")
+        else:
+            print("📋 全量模式: 爬取所有找到的貼文")
         
         urls = []
         
@@ -516,12 +532,31 @@ class RealtimeCrawlerExtractor:
                     
                     before_count = len(urls)
                     
-                    # 去重並添加新URLs
+                    # 去重並添加新URLs（支持增量檢測）
+                    new_urls_this_round = 0
                     for url in current_urls:
                         if url not in urls and len(urls) < self.max_posts:
+                            post_id = url.split('/')[-1] if url else None
+                            
+                            # 增量模式：檢查是否已存在於資料庫
+                            if self.incremental and post_id in existing_post_ids:
+                                print(f"   🔍 [{len(urls)+1}] 發現已爬取貼文: {post_id} - 開始收集新貼文")
+                                # 找到已存在的貼文，後續都是新貼文，繼續收集
+                                continue
+                            
                             urls.append(url)
                             collected_count = len(urls)
-                            print(f"   📍 [{collected_count}] 發現: {url.split('/')[-1]}")
+                            new_urls_this_round += 1
+                            
+                            status_icon = "🆕" if self.incremental else "📍"
+                            print(f"   {status_icon} [{collected_count}] 發現: {post_id}")
+                    
+                    # 增量模式：如果找到已存在貼文，說明後續都是新貼文
+                    if self.incremental and new_urls_this_round == 0:
+                        found_existing = any(url.split('/')[-1] in existing_post_ids for url in current_urls)
+                        if found_existing:
+                            print(f"   ✅ 增量檢測: 已收集到所有新貼文 ({len(urls)} 個)")
+                            break
                     
                     # 檢查是否有新內容
                     new_urls_found = len(urls) - before_count
@@ -896,12 +931,43 @@ class RealtimeCrawlerExtractor:
         self.save_results()
 
     def save_results(self):
-        """保存結果到JSON文件"""
+        """保存結果到JSON文件並更新資料庫檢查點"""
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         filename = f"realtime_extraction_results_{timestamp}.json"
         
         total_time = time.time() - self.start_time
         extraction_time = total_time - getattr(self, 'url_collection_time', 0)
+        
+        # 增量模式：保存到資料庫並更新檢查點
+        if self.incremental and self.crawl_manager and self.results:
+            try:
+                import asyncio
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                
+                # 保存結果到資料庫
+                saved_count = loop.run_until_complete(
+                    self.crawl_manager.save_quick_crawl_results(self.results, self.target_username)
+                )
+                
+                # 更新檢查點（使用最新的貼文ID）
+                if self.results:
+                    latest_post_id = self.results[0].get('post_id')  # 第一個是最新的
+                    if latest_post_id:
+                        loop.run_until_complete(
+                            self.crawl_manager.update_crawl_checkpoint(
+                                self.target_username, 
+                                latest_post_id, 
+                                len(self.results)
+                            )
+                        )
+                
+                loop.close()
+                print(f"💾 已保存 {saved_count} 個新貼文到資料庫")
+                
+            except Exception as e:
+                print(f"❌ 資料庫保存失敗: {e}")
+                print("📝 將只保存到JSON文件")
         
         output_data = {
             'timestamp': datetime.now().isoformat(),
@@ -961,14 +1027,26 @@ async def main():
             pass
     
     # 設定命令行參數
-    parser = argparse.ArgumentParser(description='實時爬蟲+提取器')
+    parser = argparse.ArgumentParser(description='實時爬蟲+提取器 - 支持增量爬取')
     parser.add_argument('--username', default='gvmonthly', help='目標帳號用戶名')
     parser.add_argument('--max_posts', type=int, default=100, help='要爬取的貼文數量')
+    parser.add_argument('--incremental', action='store_true', default=True, help='啟用增量爬取模式（預設啟用）')
+    parser.add_argument('--full', action='store_true', help='強制全量爬取模式（忽略已存在的貼文）')
     
     args = parser.parse_args()
     
+    # 決定爬取模式
+    incremental_mode = args.incremental and not args.full
+    mode_desc = "增量爬取" if incremental_mode else "全量爬取"
+    
+    print(f"🚀 啟動實時爬蟲+提取器")
+    print(f"👤 目標帳號: @{args.username}")
+    print(f"📊 目標數量: {args.max_posts} 個貼文")
+    print(f"📋 爬取模式: {mode_desc}")
+    print("=" * 60)
+    
     # 創建並執行實時提取器
-    extractor = RealtimeCrawlerExtractor(args.username, args.max_posts)
+    extractor = RealtimeCrawlerExtractor(args.username, args.max_posts, incremental_mode)
     await extractor.run_realtime_extraction()
 
 if __name__ == "__main__":

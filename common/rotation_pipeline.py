@@ -131,18 +131,24 @@ class RotationPipelineReader:
     def _is_likely_main_post_content(self, content: str, lines: List[str], index: int) -> bool:
         """判斷內容是否可能是主貼文"""
         # 檢查後續是否有 "Translate" 標識（主貼文的典型結構）
+        has_translate = False
         for j in range(index + 1, min(index + 3, len(lines))):
             if 'Translate' in lines[j]:
-                return True
+                has_translate = True
+                break
         
         # 檢查是否包含常見的主貼文特徵
-        if (len(content) > 15 and  # 有一定長度
+        has_content_features = (
+            len(content) > 15 and  # 有一定長度
             not content.startswith('>>>') and  # 不是回覆
             not content.startswith('·') and  # 不是元數據
-            ('!' in content or '?' in content or '。' in content or '，' in content)):  # 包含標點符號
-            return True
+            not content.startswith('[') and  # 不是連結
+            ('!' in content or '?' in content or '。' in content or '，' in content or
+             '😆' in content or '😅' in content or '護照' in content or '台灣' in content)  # 包含標點符號或表情
+        )
         
-        return False
+        # 必須有 Translate 標識 AND 有內容特徵
+        return has_translate and has_content_features
     
     def _extract_content_fallback(self, lines: List[str]) -> Optional[str]:
         """備選內容提取方法"""
