@@ -333,13 +333,15 @@ class CSVExportManager:
                         '總處理數': data.get('total_processed', 0),
                         'API成功數': data.get('api_success_count', 0),
                         '本地成功數': data.get('local_success_count', 0),
-                        '整體成功率': f"{data.get('overall_success_rate', 0):.1f}%",
-                        '觀看數提取率': f"{data.get('views_extraction_rate', 0):.1f}%",
-                        '內容提取率': f"{data.get('content_extraction_rate', 0):.1f}%",
-                        'URL收集時間': f"{data.get('timing', {}).get('url_collection_time', 0):.1f}s",
-                        '內容提取時間': f"{data.get('timing', {}).get('content_extraction_time', 0):.1f}s",
-                        '總耗時': f"{data.get('timing', {}).get('total_time', 0):.1f}s",
-                        '整體速度': f"{data.get('timing', {}).get('overall_speed', 0):.2f} 篇/秒"
+                        '成功率(%)': data.get('overall_success_rate', 0),
+                        '觀看數提取率(%)': data.get('views_extraction_rate', 0),
+                        '內容提取率(%)': data.get('content_extraction_rate', 0),
+                        '按讚數提取率(%)': data.get('likes_extraction_rate', 0),
+                        '留言數提取率(%)': data.get('comments_extraction_rate', 0),
+                        'URL收集時間(秒)': round(data.get('timing', {}).get('url_collection_time', 0), 1),
+                        '內容提取時間(秒)': round(data.get('timing', {}).get('content_extraction_time', 0), 1),
+                        '總耗時(秒)': round(data.get('timing', {}).get('total_time', 0), 1),
+                        '整體速度(篇/秒)': round(data.get('timing', {}).get('overall_speed', 0), 2)
                     }
                     csv_data.append(csv_row)
                     

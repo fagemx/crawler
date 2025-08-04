@@ -8,6 +8,7 @@ import asyncio
 import json
 import time
 import threading
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 import sys
@@ -58,17 +59,14 @@ class RealtimeCrawlerComponent:
             )
             
         with col2:
-            st.subheader("📊 提取策略")
-            strategy_info = st.info("""
-            **🔄 輪迴策略：**
-            - 10個API請求 → 20個本地Reader
-            - 避免API 429阻擋
-            - 自動回退機制
+            col_title, col_refresh = st.columns([3, 1])
+            with col_title:
+                st.subheader("📊 資料庫統計")
+            with col_refresh:
+                if st.button("🔄", key="refresh_db_stats", help="刷新統計信息"):
+                    st.rerun()  # 重新運行頁面來刷新統計
             
-            **📈 提取數據：**
-            - 觀看數、文字內容
-            - 按讚、留言、轉發、分享
-            """)
+            self._display_database_stats()
         
         # 控制按鈕
         col1, col2, col3 = st.columns([1, 1, 2])
@@ -114,7 +112,9 @@ class RealtimeCrawlerComponent:
             ]
             
             # 添加爬取模式參數
-            if not is_incremental:
+            if is_incremental:
+                cmd.append('--incremental')  # 增量模式
+            else:
                 cmd.append('--full')  # 全量模式
             
             # 執行腳本 - 設置UTF-8編碼
@@ -123,25 +123,61 @@ class RealtimeCrawlerComponent:
             env['PYTHONIOENCODING'] = 'utf-8'
             env['PYTHONUTF8'] = '1'
             
-            result = subprocess.run(
-                cmd, 
-                capture_output=True, 
-                text=True, 
-                encoding='utf-8',
-                errors='replace',
-                env=env,
-                cwd=os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-            )
+            # 創建一個日志容器來實時顯示輸出
+            log_container = st.empty()
+            log_text = []
             
-            if result.returncode == 0:
+            with st.expander("📋 爬取過程日志", expanded=True):
+                log_placeholder = st.empty()
+                
+                # 使用Popen來實時捕獲輸出
+                process = subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,  # 合併stderr到stdout
+                    text=True,
+                    encoding='utf-8',
+                    errors='replace',
+                    env=env,
+                    cwd=os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+                    bufsize=1,  # 行緩衝
+                    universal_newlines=True
+                )
+                
+                # 實時讀取輸出
+                all_output = []
+                while True:
+                    output = process.stdout.readline()
+                    if output == '' and process.poll() is not None:
+                        break
+                    if output:
+                        line = output.strip()
+                        all_output.append(line)
+                        log_text.append(line)
+                        
+                        # 只顯示最後30行，避免界面過長
+                        display_lines = log_text[-30:] if len(log_text) > 30 else log_text
+                        log_placeholder.code('\n'.join(display_lines), language='text')
+                
+                # 等待進程完成
+                return_code = process.poll()
+                
+            if return_code == 0:
                 # 成功執行，尋找最新的結果文件
                 import glob
-                results_pattern = "realtime_extraction_results_*.json"
-                results_files = glob.glob(results_pattern)
+                from pathlib import Path
+                
+                # 先檢查新的資料夾位置
+                extraction_dir = Path("extraction_results")
+                if extraction_dir.exists():
+                    results_files = list(extraction_dir.glob("realtime_extraction_results_*.json"))
+                else:
+                    # 回退到根目錄查找（向後兼容）
+                    results_files = [Path(f) for f in glob.glob("realtime_extraction_results_*.json")]
                 
                 if results_files:
                     # 取最新的文件
-                    latest_file = max(results_files, key=os.path.getctime)
+                    latest_file = max(results_files, key=lambda f: f.stat().st_mtime)
                     
                     # 讀取結果
                     with open(latest_file, 'r', encoding='utf-8') as f:
@@ -157,11 +193,185 @@ class RealtimeCrawlerComponent:
                 else:
                     st.error("❌ 未找到結果文件")
             else:
-                st.error(f"❌ 爬取失敗：{result.stderr}")
+                st.error(f"❌ 爬取失敗 (返回碼: {return_code})")
+                # 顯示最後的錯誤日志
+                if all_output:
+                    error_lines = [line for line in all_output if '❌' in line or 'Error' in line or 'Exception' in line]
+                    if error_lines:
+                        st.error("錯誤詳情：")
+                        for error_line in error_lines[-5:]:  # 顯示最後5條錯誤
+                            st.text(error_line)
                 
         except Exception as e:
             st.error(f"❌ 執行錯誤：{str(e)}")
             st.session_state.realtime_error = str(e)
+    
+    def _display_database_stats(self):
+        """顯示資料庫統計信息"""
+        try:
+            # 使用 asyncio 和 subprocess 來獲取資料庫統計
+            import subprocess
+            import json
+            import sys
+            import os
+            
+            # 創建一個臨時腳本來獲取資料庫統計
+            script_content = '''
+import asyncio
+import sys
+import os
+import json
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from common.incremental_crawl_manager import IncrementalCrawlManager
+
+async def get_database_stats():
+    crawl_manager = IncrementalCrawlManager()
+    try:
+        await crawl_manager.db.init_pool()
+        
+        # 獲取所有用戶的統計信息
+        async with crawl_manager.db.get_connection() as conn:
+            # 統計每個用戶的貼文數量
+            user_stats = await conn.fetch("""
+                SELECT 
+                    username,
+                    COUNT(*) as post_count,
+                    MAX(created_at) as latest_crawl,
+                    MIN(created_at) as first_crawl
+                FROM post_metrics_sql 
+                GROUP BY username 
+                ORDER BY post_count DESC, latest_crawl DESC
+                LIMIT 20
+            """)
+            
+            # 總體統計
+            total_stats = await conn.fetchrow("""
+                SELECT 
+                    COUNT(*) as total_posts,
+                    COUNT(DISTINCT username) as total_users,
+                    MAX(created_at) as latest_activity
+                FROM post_metrics_sql
+            """)
+            
+            stats = {
+                "total_stats": dict(total_stats) if total_stats else {},
+                "user_stats": [dict(row) for row in user_stats] if user_stats else []
+            }
+            
+            print(json.dumps(stats, default=str))
+            
+    except Exception as e:
+        print(json.dumps({"error": str(e)}))
+    finally:
+        await crawl_manager.db.close_pool()
+
+if __name__ == "__main__":
+    asyncio.run(get_database_stats())
+'''
+            
+            # 將腳本寫入臨時文件
+            import tempfile
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False, encoding='utf-8') as f:
+                f.write(script_content)
+                temp_script = f.name
+            
+            try:
+                # 執行腳本獲取統計信息
+                result = subprocess.run(
+                    [sys.executable, temp_script],
+                    capture_output=True,
+                    text=True,
+                    encoding='utf-8',
+                    cwd=os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+                    timeout=10
+                )
+                
+                if result.returncode == 0 and result.stdout.strip():
+                    stats = json.loads(result.stdout.strip())
+                    
+                    if "error" in stats:
+                        st.error(f"❌ 資料庫錯誤: {stats['error']}")
+                        return
+                    
+                    # 顯示總體統計
+                    total_stats = stats.get("total_stats", {})
+                    if total_stats:
+                        st.info(f"""
+                        **📈 總體統計**
+                        - 📊 總貼文數: {total_stats.get('total_posts', 0):,}
+                        - 👥 已爬取用戶: {total_stats.get('total_users', 0)} 個
+                        - ⏰ 最後活動: {str(total_stats.get('latest_activity', 'N/A'))[:16] if total_stats.get('latest_activity') else 'N/A'}
+                        """)
+                    
+                    # 顯示用戶統計
+                    user_stats = stats.get("user_stats", [])
+                    if user_stats:
+                        st.write("**👥 各用戶統計:**")
+                        
+                        # 使用表格顯示
+                        import pandas as pd
+                        df_data = []
+                        for user in user_stats:
+                            latest = str(user.get('latest_crawl', 'N/A'))[:16] if user.get('latest_crawl') else 'N/A'
+                            df_data.append({
+                                "用戶名": f"@{user.get('username', 'N/A')}",
+                                "貼文數": f"{user.get('post_count', 0):,}",
+                                "最後爬取": latest
+                            })
+                        
+                        if df_data:
+                            df = pd.DataFrame(df_data)
+                            st.dataframe(
+                                df, 
+                                use_container_width=True,
+                                hide_index=True,
+                                height=min(300, len(df_data) * 35 + 38)  # 動態高度
+                            )
+                    else:
+                        st.warning("📝 資料庫中暫無爬取記錄")
+                else:
+                    st.warning("⚠️ 無法獲取資料庫統計信息")
+                    if result.stderr:
+                        st.text(f"錯誤: {result.stderr}")
+                        
+            finally:
+                # 清理臨時文件
+                try:
+                    os.unlink(temp_script)
+                except:
+                    pass
+                    
+        except Exception as e:
+            st.error(f"❌ 獲取統計信息失敗: {str(e)}")
+    
+    def _show_json_download_button(self, results_file):
+        """顯示JSON下載按鈕"""
+        if results_file and Path(results_file).exists():
+            try:
+                # 讀取JSON文件內容
+                with open(results_file, 'r', encoding='utf-8') as f:
+                    json_content = f.read()
+                
+                # 生成下載文件名（包含時間戳）
+                file_path = Path(results_file)
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                download_filename = f"crawl_results_{timestamp}.json"
+                
+                # 使用 st.download_button 提供下載
+                st.download_button(
+                    label="💾 下載JSON",
+                    data=json_content,
+                    file_name=download_filename,
+                    mime="application/json",
+                    help="下載爬取結果JSON文件到您的下載資料夾",
+                    key="download_json_btn"
+                )
+                
+            except Exception as e:
+                st.error(f"❌ 準備下載文件失敗: {e}")
+        else:
+            st.button("💾 下載JSON", disabled=True, help="暫無可下載的結果文件")
     
     def _reset_results(self):
         """重置結果"""
@@ -243,9 +453,7 @@ class RealtimeCrawlerComponent:
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            if st.button("💾 下載JSON", key="download_json"):
-                st.success(f"JSON結果已保存到: {results_file}")
-                st.json({"message": f"請查看項目根目錄下的 {results_file} 文件"})
+            self._show_json_download_button(results_file)
         
         with col2:
             if st.button("📊 導出CSV", key="export_csv"):
@@ -327,9 +535,17 @@ class RealtimeCrawlerComponent:
             if result.returncode == 0:
                 # 查找處理後的文件
                 import glob
-                dedup_files = glob.glob("realtime_extraction_results_*_dedup.json")
+                from pathlib import Path
+                
+                # 檢查新的資料夾位置
+                extraction_dir = Path("extraction_results")
+                if extraction_dir.exists():
+                    dedup_files = list(extraction_dir.glob("realtime_extraction_results_*_dedup.json"))
+                else:
+                    dedup_files = [Path(f) for f in glob.glob("realtime_extraction_results_*_dedup.json")]
+                
                 if dedup_files:
-                    latest_dedup = max(dedup_files, key=os.path.getctime)
+                    latest_dedup = max(dedup_files, key=lambda f: f.stat().st_mtime)
                     
                     # 讀取處理後的結果
                     import json
@@ -546,23 +762,77 @@ class RealtimeCrawlerComponent:
                 # 查找所有JSON文件
                 import glob
                 import os
-                json_files = glob.glob("realtime_extraction_results_*.json")
+                # 檢查新的資料夾位置
+                extraction_dir = Path("extraction_results")
+                if extraction_dir.exists():
+                    json_files = list(extraction_dir.glob("realtime_extraction_results_*.json"))
+                else:
+                    json_files = [Path(f) for f in glob.glob("realtime_extraction_results_*.json")]
                 
                 if len(json_files) >= 2:
                     st.write(f"🔍 找到 {len(json_files)} 個爬取結果文件：")
                     
-                    # 顯示文件列表
-                    selected_files = []
-                    for i, file in enumerate(sorted(json_files, reverse=True)[:10]):  # 最新的10個
-                        file_time = self._extract_time_from_filename(file)
-                        if st.checkbox(f"{os.path.basename(file)} ({file_time})", key=f"compare_file_{i}"):
-                            selected_files.append(file)
+                    # 顯示文件列表 - 使用 multiselect 更直觀
+                    file_options = {}
+                    for file in sorted(json_files, reverse=True)[:10]:  # 最新的10個
+                        file_time = self._extract_time_from_filename(str(file))
+                        display_name = f"{file.name} ({file_time})"
+                        file_options[display_name] = str(file)
+                    
+                    # 初始化會話狀態
+                    if "comparison_selected_files" not in st.session_state:
+                        st.session_state.comparison_selected_files = []
+                    
+                    selected_displays = st.multiselect(
+                        "選擇要比對的文件（至少2個）：",
+                        options=list(file_options.keys()),
+                        default=[],
+                        help="選擇多個文件進行比對分析",
+                        key="comparison_file_selector"
+                    )
+                    
+                    selected_files = [file_options[display] for display in selected_displays]
+                    
+                    # 添加調試信息
+                    if selected_displays:
+                        st.text(f"🔍 調試: 當前選中 {len(selected_displays)} 個顯示項目")
+                        for i, display in enumerate(selected_displays):
+                            st.text(f"   {i+1}. {display}")
                     
                     if len(selected_files) >= 2:
-                        if st.button("📊 生成對比報告", key="generate_comparison"):
-                            self._generate_comparison_report(selected_files)
+                        st.success(f"✅ 已選擇 {len(selected_files)} 個文件進行比對")
+                        
+                        # 顯示選中的文件摘要
+                        with st.expander("📄 選中文件摘要", expanded=True):
+                            for i, file_path in enumerate(selected_files):
+                                try:
+                                    with open(file_path, 'r', encoding='utf-8') as f:
+                                        data = json.load(f)
+                                    
+                                    timestamp = data.get('timestamp', 'N/A')
+                                    success_count = data.get('total_processed', 0)
+                                    success_rate = data.get('overall_success_rate', 0)
+                                    
+                                    st.markdown(f"**📁 文件 {i+1}: {Path(file_path).name}**")
+                                    col1, col2, col3 = st.columns(3)
+                                    with col1:
+                                        st.text(f"⏰ 時間: {timestamp[:16] if timestamp != 'N/A' else 'N/A'}")
+                                    with col2:
+                                        st.text(f"✅ 成功: {success_count} 個")
+                                    with col3:
+                                        st.text(f"📊 成功率: {success_rate:.1f}%")
+                                    st.divider()
+                                except Exception as e:
+                                    st.error(f"❌ 讀取 {Path(file_path).name} 失敗: {e}")
+                        
+                        if st.button("📊 生成對比報告", key="generate_comparison", type="primary"):
+                            with st.spinner("正在生成對比報告..."):
+                                self._generate_comparison_report(selected_files)
+                    elif len(selected_files) == 1:
+                        st.warning("⚠️ 已選擇1個文件，請再選擇至少1個文件進行比對")
+                        st.info("💡 提示：可以按住 Ctrl 鍵點擊其他文件來多選")
                     else:
-                        st.warning("⚠️ 請至少選擇2個文件進行對比")
+                        st.info("💡 請選擇至少2個文件進行比對分析")
                 else:
                     st.warning("⚠️ 需要至少2個爬取結果文件才能進行對比")
             
@@ -668,10 +938,54 @@ class RealtimeCrawlerComponent:
                 )
                 
                 # 顯示摘要
-                st.write("**對比摘要：**")
+                st.write("**📊 對比摘要：**")
                 import pandas as pd
                 df = pd.read_csv(csv_file, encoding='utf-8-sig')
+                
+                # 顯示完整表格
                 st.dataframe(df, use_container_width=True)
+                
+                # 顯示關鍵指標對比
+                if len(df) >= 2:
+                    st.write("**🔍 關鍵指標分析：**")
+                    
+                    col1, col2, col3 = st.columns(3)
+                    
+                    with col1:
+                        avg_success_rate = df['成功率(%)'].mean()
+                        max_success_rate = df['成功率(%)'].max()
+                        min_success_rate = df['成功率(%)'].min()
+                        st.metric("平均成功率", f"{avg_success_rate:.1f}%", 
+                                 f"{max_success_rate - min_success_rate:.1f}% 差距")
+                    
+                    with col2:
+                        if '總耗時(秒)' in df.columns:
+                            avg_time = df['總耗時(秒)'].mean()
+                            fastest = df['總耗時(秒)'].min()
+                            slowest = df['總耗時(秒)'].max()
+                            st.metric("平均耗時", f"{avg_time:.1f}s", 
+                                     f"{slowest - fastest:.1f}s 差距")
+                    
+                    with col3:
+                        if '觀看數提取率(%)' in df.columns:
+                            avg_views_rate = df['觀看數提取率(%)'].mean()
+                            st.metric("平均觀看數提取率", f"{avg_views_rate:.1f}%")
+                
+                # 顯示趨勢分析
+                if len(df) >= 3:
+                    st.write("**📈 趨勢分析：**")
+                    
+                    # 按時間排序
+                    df_sorted = df.sort_values('爬取時間') if '爬取時間' in df.columns else df
+                    
+                    # 成功率趨勢
+                    success_trend = df_sorted['成功率(%)'].diff().iloc[-1] if len(df_sorted) > 1 else 0
+                    if success_trend > 0:
+                        st.success(f"📈 成功率呈上升趨勢 (+{success_trend:.1f}%)")
+                    elif success_trend < 0:
+                        st.error(f"📉 成功率呈下降趨勢 ({success_trend:.1f}%)")
+                    else:
+                        st.info("📊 成功率保持穩定")
                 
         except Exception as e:
             st.error(f"❌ 生成對比報告失敗: {e}")
@@ -680,14 +994,19 @@ class RealtimeCrawlerComponent:
         """導出所有最新結果"""
         try:
             import glob
-            json_files = glob.glob("realtime_extraction_results_*.json")
+            # 檢查新的資料夾位置  
+            extraction_dir = Path("extraction_results")
+            if extraction_dir.exists():
+                json_files = list(extraction_dir.glob("realtime_extraction_results_*.json"))
+            else:
+                json_files = [Path(f) for f in glob.glob("realtime_extraction_results_*.json")]
             
             if not json_files:
                 st.warning("⚠️ 未找到任何爬取結果文件")
                 return
             
             # 找最新的文件
-            latest_file = max(json_files, key=lambda f: Path(f).stat().st_mtime)
+            latest_file = max(json_files, key=lambda f: f.stat().st_mtime)
             
             from common.csv_export_manager import CSVExportManager
             csv_manager = CSVExportManager()

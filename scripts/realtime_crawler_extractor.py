@@ -465,11 +465,23 @@ class RealtimeCrawlerExtractor:
         # 增量模式：獲取已存在的post_ids
         existing_post_ids = set()
         if self.incremental and self.crawl_manager:
-            existing_post_ids = await self.crawl_manager.get_existing_post_ids(self.target_username)
-            checkpoint = await self.crawl_manager.get_crawl_checkpoint(self.target_username)
-            print(f"🔍 增量模式: 已爬取 {len(existing_post_ids)} 個貼文")
-            if checkpoint:
-                print(f"📊 上次檢查點: {checkpoint.latest_post_id} (總計: {checkpoint.total_crawled})")
+            print("🔍 正在檢查資料庫連接...")
+            try:
+                existing_post_ids = await self.crawl_manager.get_existing_post_ids(self.target_username)
+                checkpoint = await self.crawl_manager.get_crawl_checkpoint(self.target_username)
+                print(f"✅ 資料庫連接成功")
+                print(f"🔍 增量模式: 已爬取 {len(existing_post_ids)} 個貼文")
+                if len(existing_post_ids) > 0:
+                    print(f"📋 已存在貼文ID範例: {list(existing_post_ids)[:3]}...")
+                if checkpoint:
+                    print(f"📊 上次檢查點: {checkpoint.latest_post_id} (總計: {checkpoint.total_crawled})")
+                else:
+                    print("📊 未找到檢查點記錄 (首次爬取)")
+            except Exception as e:
+                print(f"❌ 資料庫連接失敗: {e}")
+                print("🔄 回退到全量模式")
+                self.incremental = False
+                self.crawl_manager = None
         else:
             print("📋 全量模式: 爬取所有找到的貼文")
         
@@ -505,14 +517,15 @@ class RealtimeCrawlerExtractor:
                 print("🔄 開始智能滾動收集URLs...")
                 
                 # 增強的滾動收集邏輯
-                collected_count = 0
                 scroll_rounds = 0
                 max_scroll_rounds = 80  # 大幅增加最大滾動次數
                 no_new_content_rounds = 0  # 連續無新內容的輪次
                 max_no_new_rounds = 15  # 增加連續無新內容的最大容忍輪次（更多耐心）
+                consecutive_existing_rounds = 0  # 增量模式：連續發現已存在貼文的輪次
+                max_consecutive_existing = 8  # 增量模式：允許的最大連續已存在輪次
                 last_urls_count = 0
                 
-                while collected_count < self.max_posts and scroll_rounds < max_scroll_rounds:
+                while len(urls) < self.max_posts and scroll_rounds < max_scroll_rounds:
                     # 提取當前頁面的URLs（過濾無效URLs）
                     current_urls = await page.evaluate("""
                         () => {
@@ -534,29 +547,49 @@ class RealtimeCrawlerExtractor:
                     
                     # 去重並添加新URLs（支持增量檢測）
                     new_urls_this_round = 0
-                    for url in current_urls:
-                        if url not in urls and len(urls) < self.max_posts:
-                            post_id = url.split('/')[-1] if url else None
-                            
-                            # 增量模式：檢查是否已存在於資料庫
-                            if self.incremental and post_id in existing_post_ids:
-                                print(f"   🔍 [{len(urls)+1}] 發現已爬取貼文: {post_id} - 開始收集新貼文")
-                                # 找到已存在的貼文，後續都是新貼文，繼續收集
-                                continue
-                            
-                            urls.append(url)
-                            collected_count = len(urls)
-                            new_urls_this_round += 1
-                            
-                            status_icon = "🆕" if self.incremental else "📍"
-                            print(f"   {status_icon} [{collected_count}] 發現: {post_id}")
+                    found_existing_this_round = False
+                    existing_skipped_this_round = 0
                     
-                    # 增量模式：如果找到已存在貼文，說明後續都是新貼文
-                    if self.incremental and new_urls_this_round == 0:
-                        found_existing = any(url.split('/')[-1] in existing_post_ids for url in current_urls)
-                        if found_existing:
-                            print(f"   ✅ 增量檢測: 已收集到所有新貼文 ({len(urls)} 個)")
+                    for url in current_urls:
+                        post_id = url.split('/')[-1] if url else None
+                        
+                        # 跳過已收集的URL
+                        if url in urls:
+                            continue
+                            
+                        # 增量模式：檢查是否已存在於資料庫
+                        if self.incremental and post_id in existing_post_ids:
+                            print(f"   🔍 [{len(urls)+1}] 發現已爬取貼文: {post_id} - 跳過 (已在資料庫)")
+                            found_existing_this_round = True
+                            existing_skipped_this_round += 1
+                            continue
+                        
+                        # 檢查是否已達到目標數量
+                        if len(urls) >= self.max_posts:
                             break
+                            
+                        urls.append(url)
+                        new_urls_this_round += 1
+                        
+                        status_icon = "🆕" if self.incremental else "📍"
+                        print(f"   {status_icon} [{len(urls)}] 發現: {post_id}")
+                    
+                    # 增量模式：智能停止條件
+                    if self.incremental:
+                        if found_existing_this_round:
+                            consecutive_existing_rounds += 1
+                            if len(urls) >= self.max_posts:
+                                print(f"   ✅ 增量檢測: 已收集足夠新貼文 ({len(urls)} 個)")
+                                break
+                            elif consecutive_existing_rounds >= max_consecutive_existing:
+                                print(f"   ⏹️ 增量檢測: 連續 {consecutive_existing_rounds} 輪發現已存在貼文，停止收集")
+                                print(f"   📊 最終收集: {len(urls)} 個新貼文 (目標: {self.max_posts})")
+                                break
+                            else:
+                                print(f"   🔍 增量檢測: 發現已存在貼文但數量不足 ({len(urls)}/{self.max_posts})，繼續滾動... (連續發現: {consecutive_existing_rounds}/{max_consecutive_existing})")
+                        else:
+                            # 這輪沒有發現已存在貼文，重置計數器
+                            consecutive_existing_rounds = 0
                     
                     # 檢查是否有新內容
                     new_urls_found = len(urls) - before_count
@@ -616,9 +649,8 @@ class RealtimeCrawlerExtractor:
                             for url in final_urls:
                                 if url not in urls and len(urls) < self.max_posts:
                                     urls.append(url)
-                                    collected_count = len(urls)
                                     final_new_count += 1
-                                    print(f"   📍 [{collected_count}] 最後發現: {url.split('/')[-1]}")
+                                    print(f"   📍 [{len(urls)}] 最後發現: {url.split('/')[-1]}")
                             
                             if final_new_count == 0:
                                 print("   ✅ 確認已到達頁面底部")
@@ -630,7 +662,7 @@ class RealtimeCrawlerExtractor:
                         no_new_content_rounds = 0  # 重置計數器
                         print(f"   ✅ 第{scroll_rounds+1}輪發現{new_urls_found}個新URL")
                     
-                    if collected_count >= self.max_posts:
+                    if len(urls) >= self.max_posts:
                         print(f"   🎯 已達到目標數量 {self.max_posts}")
                         break
                     
@@ -681,7 +713,7 @@ class RealtimeCrawlerExtractor:
                     
                     # 每5輪顯示進度
                     if scroll_rounds % 5 == 0:
-                        print(f"   📊 滾動進度: 第{scroll_rounds}輪，已收集{collected_count}個URL")
+                        print(f"   📊 滾動進度: 第{scroll_rounds}輪，已收集{len(urls)}個URL")
                 
                 if scroll_rounds >= max_scroll_rounds:
                     print(f"   ⚠️ 達到最大滾動輪次 ({max_scroll_rounds})，停止滾動")
@@ -928,46 +960,68 @@ class RealtimeCrawlerExtractor:
                 print(f"      📝 內容: {content_preview}")
         
         # 保存結果
-        self.save_results()
+        result_file = self.save_results()
+        return result_file
 
     def save_results(self):
         """保存結果到JSON文件並更新資料庫檢查點"""
+        # 創建結果資料夾
+        results_dir = Path("extraction_results")
+        results_dir.mkdir(exist_ok=True)
+        
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f"realtime_extraction_results_{timestamp}.json"
+        filename = results_dir / f"realtime_extraction_results_{timestamp}.json"
         
         total_time = time.time() - self.start_time
         extraction_time = total_time - getattr(self, 'url_collection_time', 0)
         
         # 增量模式：保存到資料庫並更新檢查點
         if self.incremental and self.crawl_manager and self.results:
+            print(f"💾 正在保存 {len(self.results)} 個結果到資料庫...")
             try:
                 import asyncio
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
                 
-                # 保存結果到資料庫
-                saved_count = loop.run_until_complete(
-                    self.crawl_manager.save_quick_crawl_results(self.results, self.target_username)
-                )
-                
-                # 更新檢查點（使用最新的貼文ID）
-                if self.results:
-                    latest_post_id = self.results[0].get('post_id')  # 第一個是最新的
-                    if latest_post_id:
-                        loop.run_until_complete(
-                            self.crawl_manager.update_crawl_checkpoint(
-                                self.target_username, 
-                                latest_post_id, 
-                                len(self.results)
+                # 檢查是否已有運行中的事件循環
+                try:
+                    current_loop = asyncio.get_running_loop()
+                    # 如果有運行中的循環，使用 run_in_executor 來執行同步版本
+                    print("🔍 檢測到運行中的事件循環，使用同步模式...")
+                    self._save_to_database_sync()
+                except RuntimeError:
+                    # 沒有運行中的循環，可以創建新的
+                    print("📤 正在寫入資料庫...")
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    
+                    # 保存結果到資料庫
+                    saved_count = loop.run_until_complete(
+                        self.crawl_manager.save_quick_crawl_results(self.results, self.target_username)
+                    )
+                    print(f"✅ 成功保存 {saved_count} 個貼文到資料庫")
+                    
+                    # 更新檢查點（使用最新的貼文ID）
+                    if self.results:
+                        latest_post_id = self.results[0].get('post_id')  # 第一個是最新的
+                        if latest_post_id:
+                            print(f"📊 更新檢查點: {latest_post_id}")
+                            loop.run_until_complete(
+                                self.crawl_manager.update_crawl_checkpoint(
+                                    self.target_username, 
+                                    latest_post_id, 
+                                    len(self.results)
+                                )
                             )
-                        )
-                
-                loop.close()
-                print(f"💾 已保存 {saved_count} 個新貼文到資料庫")
+                            print(f"✅ 檢查點更新成功")
+                    
+                    loop.close()
+                    print(f"💾 資料庫操作完成: 保存 {saved_count} 個新貼文")
                 
             except Exception as e:
                 print(f"❌ 資料庫保存失敗: {e}")
+                print(f"🔍 錯誤詳情: {type(e).__name__}: {str(e)}")
                 print("📝 將只保存到JSON文件")
+        elif self.incremental:
+            print("⚠️ 增量模式但無法保存到資料庫 (crawl_manager 不可用)")
         
         output_data = {
             'timestamp': datetime.now().isoformat(),
@@ -1006,6 +1060,75 @@ class RealtimeCrawlerExtractor:
             json.dump(output_data, f, ensure_ascii=False, indent=2)
         
         safe_print(f"💾 結果已保存到: {filename}", f"[保存] 結果已保存到: {filename}")
+        
+        # 返回文件名供UI使用
+        return str(filename)
+    
+    def _save_to_database_sync(self):
+        """同步模式保存到資料庫 - 用於已有事件循環的環境"""
+        import threading
+        import concurrent.futures
+        
+        def async_save_worker():
+            """在新線程中運行異步保存操作"""
+            import asyncio
+            from common.incremental_crawl_manager import IncrementalCrawlManager
+            
+            # 在新線程中創建新的事件循環
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            # 創建新的獨立資料庫管理器，避免連接衝突
+            new_crawl_manager = IncrementalCrawlManager()
+            
+            try:
+                # 保存結果到資料庫
+                print("📤 正在寫入資料庫...")
+                saved_count = loop.run_until_complete(
+                    new_crawl_manager.save_quick_crawl_results(self.results, self.target_username)
+                )
+                print(f"✅ 成功保存 {saved_count} 個貼文到資料庫")
+                
+                # 更新檢查點（使用最新的貼文ID）
+                if self.results and saved_count > 0:
+                    latest_post_id = self.results[0].get('post_id')  # 第一個是最新的
+                    if latest_post_id:
+                        print(f"📊 更新檢查點: {latest_post_id}")
+                        loop.run_until_complete(
+                            new_crawl_manager.update_crawl_checkpoint(
+                                self.target_username, 
+                                latest_post_id, 
+                                saved_count
+                            )
+                        )
+                        print(f"✅ 檢查點更新成功")
+                
+                print(f"💾 資料庫操作完成: 保存 {saved_count} 個新貼文")
+                return saved_count
+                
+            finally:
+                # 關閉新管理器的連接
+                try:
+                    loop.run_until_complete(new_crawl_manager.db.close_pool())
+                except:
+                    pass
+                loop.close()
+        
+        # 使用ThreadPoolExecutor在新線程中執行異步操作
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(async_save_worker)
+            try:
+                # 等待完成，設置超時避免卡住
+                result = future.result(timeout=60)  # 60秒超時
+                print(f"🎯 線程執行完成，結果: {result}")
+                return result
+            except concurrent.futures.TimeoutError:
+                print("❌ 資料庫保存超時")
+                raise
+            except Exception as e:
+                print(f"❌ 資料庫保存線程執行失敗: {e}")
+                print(f"🔍 錯誤類型: {type(e).__name__}")
+                raise
 
 async def main():
     """主函數"""
@@ -1030,13 +1153,18 @@ async def main():
     parser = argparse.ArgumentParser(description='實時爬蟲+提取器 - 支持增量爬取')
     parser.add_argument('--username', default='gvmonthly', help='目標帳號用戶名')
     parser.add_argument('--max_posts', type=int, default=100, help='要爬取的貼文數量')
-    parser.add_argument('--incremental', action='store_true', default=True, help='啟用增量爬取模式（預設啟用）')
+    parser.add_argument('--incremental', action='store_true', help='啟用增量爬取模式')
     parser.add_argument('--full', action='store_true', help='強制全量爬取模式（忽略已存在的貼文）')
     
     args = parser.parse_args()
     
-    # 決定爬取模式
-    incremental_mode = args.incremental and not args.full
+    # 決定爬取模式（預設增量，除非明確指定全量）
+    if args.full:
+        incremental_mode = False  # 強制全量
+    elif args.incremental:
+        incremental_mode = True   # 明確增量
+    else:
+        incremental_mode = True   # 預設增量
     mode_desc = "增量爬取" if incremental_mode else "全量爬取"
     
     print(f"🚀 啟動實時爬蟲+提取器")

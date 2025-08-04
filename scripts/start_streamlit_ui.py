@@ -20,6 +20,7 @@ def main():
     print("🚀 啟動 Streamlit UI...")
     print(f"📁 項目路徑: {project_root}")
     print(f"🌐 UI 將在 http://localhost:8501 啟動")
+    print("📌 瀏覽器不會自動開啟，請手動訪問上述網址")
     print("=" * 50)
     
     # 設置環境變數
@@ -33,6 +34,7 @@ def main():
             str(ui_path),
             "--server.port", "8501",
             "--server.address", "0.0.0.0",
+            "--server.headless", "true",
             "--theme.base", "light"
         ], env=env, cwd=project_root)
     except KeyboardInterrupt:

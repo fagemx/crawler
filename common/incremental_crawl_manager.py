@@ -67,13 +67,17 @@ class IncrementalCrawlManager:
     async def get_existing_post_ids(self, username: str) -> Set[str]:
         """獲取已爬取的貼文ID集合"""
         try:
+            print(f"🔍 正在查詢 @{username} 的已存在貼文...")
             results = await self.db.fetch_all("""
                 SELECT post_id FROM post_metrics_sql 
                 WHERE username = $1
             """, username)
-            return {row['post_id'] for row in results}
+            post_ids = {row['post_id'] for row in results}
+            print(f"✅ 查詢完成: 找到 {len(post_ids)} 個已存在貼文")
+            return post_ids
         except Exception as e:
             print(f"❌ 獲取已存在貼文ID失敗: {e}")
+            print(f"🔍 錯誤類型: {type(e).__name__}")
             return set()
     
     async def save_quick_crawl_results(self, results: List[Dict], username: str) -> int:
@@ -105,11 +109,11 @@ class IncrementalCrawlManager:
                             views_fetched_at = NOW()
                         WHERE post_id = $8
                     """, 
-                        result.get('views'),
-                        result.get('likes'),
-                        result.get('comments'),
-                        result.get('reposts'),
-                        result.get('shares'),
+                        self._parse_number(result.get('views')),
+                        self._parse_number(result.get('likes')),
+                        self._parse_number(result.get('comments')),
+                        self._parse_number(result.get('reposts')),
+                        self._parse_number(result.get('shares')),
                         result.get('content'),
                         result.get('source', 'realtime_crawler'),
                         post_id
@@ -134,11 +138,11 @@ class IncrementalCrawlManager:
                         username,
                         result.get('url', f"https://www.threads.net/@{username}/post/{post_id}"),
                         result.get('content'),
-                        result.get('likes'),
-                        result.get('comments'),
-                        result.get('reposts'),
-                        result.get('shares'),
-                        result.get('views'),
+                        self._parse_number(result.get('likes')),
+                        self._parse_number(result.get('comments')),
+                        self._parse_number(result.get('reposts')),
+                        self._parse_number(result.get('shares')),
+                        self._parse_number(result.get('views')),
                         result.get('source', 'realtime_crawler'),
                         result.get('success', False)
                     )
@@ -147,8 +151,48 @@ class IncrementalCrawlManager:
         
         except Exception as e:
             print(f"❌ 保存爬取結果失敗: {e}")
+            print(f"🔍 錯誤類型: {type(e).__name__}")
+            print(f"🔍 錯誤詳情: {str(e)}")
+            # 不要吞掉異常，讓上層處理
+            raise
         
         return saved_count
+
+    def _parse_number(self, value) -> Optional[int]:
+        """解析數字字符串為整數"""
+        if value is None:
+            return None
+        
+        if isinstance(value, int):
+            return value
+        
+        if isinstance(value, str):
+            # 移除千分位分隔符和其他字符
+            value = value.replace(',', '').replace(' ', '')
+            
+            # 處理 K/M/B 後綴
+            if value.endswith('K') or value.endswith('k'):
+                try:
+                    return int(float(value[:-1]) * 1000)
+                except ValueError:
+                    return None
+            elif value.endswith('M') or value.endswith('m'):
+                try:
+                    return int(float(value[:-1]) * 1000000)
+                except ValueError:
+                    return None
+            elif value.endswith('B') or value.endswith('b'):
+                try:
+                    return int(float(value[:-1]) * 1000000000)
+                except ValueError:
+                    return None
+            else:
+                try:
+                    return int(float(value))
+                except ValueError:
+                    return None
+        
+        return None
 
     def detect_new_posts_boundary(self, crawled_urls: List[str], existing_post_ids: Set[str]) -> Tuple[List[str], int]:
         """

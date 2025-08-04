@@ -49,6 +49,23 @@ class DatabaseClient:
         async with self.pool.acquire() as conn:
             yield conn
     
+    async def fetch_all(self, query: str, *args) -> List[Dict]:
+        """執行查詢並返回所有結果"""
+        async with self.get_connection() as conn:
+            rows = await conn.fetch(query, *args)
+            return [dict(row) for row in rows]
+    
+    async def fetch_one(self, query: str, *args) -> Optional[Dict]:
+        """執行查詢並返回第一個結果"""
+        async with self.get_connection() as conn:
+            row = await conn.fetchrow(query, *args)
+            return dict(row) if row else None
+    
+    async def execute(self, query: str, *args) -> str:
+        """執行SQL命令（INSERT, UPDATE, DELETE等）"""
+        async with self.get_connection() as conn:
+            return await conn.execute(query, *args)
+    
     # ============================================================================
     # Tier-1: 貼文基本資料 (posts 表)
     # ============================================================================
