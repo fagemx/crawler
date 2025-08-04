@@ -1,0 +1,11 @@
+{
+  "crawl_id": "20250804_190310_76a9bbef",
+  "timestamp": "2025-08-04T19:03:10.304671",
+  "target_username": "unknown",
+  "crawler_type": "playwright",
+  "total_processed": 0,
+  "results": [],
+  "source": "playwright_agent",
+  "database_saved": false,
+  "database_saved_count": 0
+}

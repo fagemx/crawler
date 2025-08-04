@@ -1,0 +1,44 @@
+{
+  "crawl_id": "20250804_195154_d224df7d",
+  "timestamp": "2025-08-04T19:51:54.402068",
+  "target_username": "iamteresa0424",
+  "crawler_type": "playwright",
+  "max_posts": 1,
+  "total_processed": 1,
+  "api_success_count": 1,
+  "api_failure_count": 0,
+  "overall_success_rate": 100.0,
+  "timing": {
+    "total_time": 0,
+    "url_collection_time": 0,
+    "content_extraction_time": 0
+  },
+  "results": [
+    {
+      "post_id": "iamteresa0424_DM2lxaqJqeO",
+      "url": "https://www.threads.com/@iamteresa0424/post/DM2lxaqJqeO",
+      "content": "iamteresa0424",
+      "views": "122000",
+      "likes": "2565",
+      "comments": "38",
+      "reposts": "24",
+      "shares": "1186",
+      "source": "playwright_agent",
+      "crawler_type": "playwright",
+      "success": true,
+      "has_views": true,
+      "has_content": true,
+      "has_likes": true,
+      "has_comments": true,
+      "has_reposts": true,
+      "has_shares": true,
+      "content_length": 13,
+      "extracted_at": "2025-08-04T19:51:54.401545",
+      "created_at": "2025-08-04T11:46:23.247996",
+      "username": "iamteresa0424"
+    }
+  ],
+  "source": "playwright_agent",
+  "database_saved": false,
+  "database_saved_count": 0
+}

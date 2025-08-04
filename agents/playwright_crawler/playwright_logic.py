@@ -278,26 +278,41 @@ class PlaywrightLogic:
             # 為所有完整處理的貼文標記DOM狀態為success
             for post in final_posts:
                 if post.is_complete:
-                    post.dom_status = "success"
-                    post.dom_processed_at = datetime.utcnow()
+                    # 不設置 dom_status，因為 Playwright 專用表格沒有這些字段
+                    # post.dom_status = "success"
+                    # post.dom_processed_at = datetime.utcnow()
                     # 如果有內容但Reader狀態未設定，推斷為DOM提取的內容
-                    if post.content and post.reader_status == "pending":
-                        post.reader_status = "success"
-                        post.reader_processed_at = datetime.utcnow()
+                    if post.content: # and post.reader_status == "pending":
+                        # 不設置 reader_status，因為 Playwright 專用表格沒有這些字段
+                        # post.reader_status = "success"
+                        # post.reader_processed_at = datetime.utcnow()
+                        pass
                 else:
-                    post.dom_status = "failed"
+                    # 不設置 dom_status，因為 Playwright 專用表格沒有這些字段
+                    # post.dom_status = "failed"
+                    pass
             
-            saved_count = await crawl_history.upsert_posts(final_posts)
-            logging.info(f"✅ 成功處理 {saved_count}/{len(final_posts)} 篇貼文")
+            # 不在後端保存到資料庫，讓前端UI處理資料庫保存
+            # 這樣可以保持 Playwright 和 Realtime 爬蟲的數據分離
+            # saved_count = await crawl_history.upsert_posts(final_posts)
+            # logging.info(f"✅ 成功處理 {saved_count}/{len(final_posts)} 篇貼文")
             
-            # 更新爬取狀態
-            if final_posts:
-                latest_post_id = final_posts[0].post_id
-                await crawl_history.update_crawl_state(username, latest_post_id, saved_count)
-                logging.info(f"📊 更新 {username} 狀態: latest={latest_post_id}, +{saved_count}篇")
+            # 不更新爬取狀態，讓前端UI處理
+            # if final_posts:
+            #     latest_post_id = final_posts[0].post_id
+            #     await crawl_history.update_crawl_state(username, latest_post_id, saved_count)
+            #     logging.info(f"📊 更新 {username} 狀態: latest={latest_post_id}, +{saved_count}篇")
             
-            # 步驟10: 生成任務指標
-            task_metrics = await crawl_history.get_task_metrics(username, need_to_fetch, len(final_posts))
+            logging.info(f"✅ 成功處理 {len(final_posts)} 篇貼文，資料庫保存將由前端UI處理")
+            
+            # 步驟10: 生成簡化的任務指標（不依賴資料庫）
+            # task_metrics = await crawl_history.get_task_metrics(username, need_to_fetch, len(final_posts))
+            task_metrics = {
+                "total_processed": len(final_posts),
+                "username": username,
+                "need_to_fetch": need_to_fetch,
+                "success": True
+            }
             logging.info(f"📊 任務完成: {task_metrics}")
 
             return PostMetricsBatch(

@@ -1,0 +1,11 @@
+{
+  "progress": 0.0,
+  "stage": "error",
+  "current_work": "API請求失敗: Client error '422 Unprocessable Entity' for url 'http://localhost:8006/v1/playwright/crawl'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/422",
+  "log_messages": [
+    "🚀 爬蟲任務已啟動...",
+    "[20:51:23] 🔧 準備爬取參數...",
+    "[20:51:23] 📊 目標: @okinafa, 數量: 2",
+    "[20:51:24] ❌ API請求失敗: Client error '422 Unprocessable Entity' for url 'http://localhost:8006/v1/playwright/crawl'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/422"
+  ]
+}
