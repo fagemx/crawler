@@ -77,16 +77,44 @@ class RotationPipelineReader:
         return None
     
     def extract_post_content(self, content: str) -> Optional[str]:
-        """智能提取主貼文內容 - 區分主貼文和回覆 (修正版本)"""
+        """智能提取主貼文內容 - 區分主貼文和分享貼文"""
         lines = content.split('\n')
         
-        # 策略1: 查找主貼文（第一個出現的實質內容）
+        # 策略1: 專門處理 Threads 頁面結構
+        main_post_content = self._extract_main_post_from_threads_structure(lines)
+        if main_post_content:
+            return main_post_content
+        
+        # 策略2: 通用結構化提取
         main_post_content = self._extract_main_post_from_structure(lines)
         if main_post_content:
             return main_post_content
         
-        # 策略2: 回到原始方法作為備選
+        # 策略3: 回到原始方法作為備選
         return self._extract_content_fallback(lines)
+    
+    def _extract_main_post_from_threads_structure(self, lines: List[str]) -> Optional[str]:
+        """專門從 Threads 頁面結構中提取主貼文內容"""
+        # 策略A: 檢查開頭是否就是主內容（常見模式）
+        for i, line in enumerate(lines[:10]):  # 只檢查前10行
+            stripped = line.strip()
+            if (stripped and 
+                len(stripped) > 8 and
+                not stripped.startswith('[') and
+                not stripped.startswith('![') and
+                not stripped.startswith('http') and
+                not stripped.startswith('=') and  # 跳過分隔符
+                not stripped.isdigit() and
+                not stripped in ['Translate', 'views', 'Log in', 'Thread', 'Sorry, we\'re having trouble playing this video.', 'Learn more'] and
+                not re.match(r'^\d+[dhm]$', stripped) and
+                not re.match(r'^\d+$', stripped)):
+                
+                # 這很可能是主內容
+                return stripped
+        
+        # 策略B: 查找目標用戶名後的內容（需要用戶名信息）
+        # 注意：rotation_pipeline 中沒有 target_username，所以策略B暫時跳過
+        return None
     
     def _extract_main_post_from_structure(self, lines: List[str]) -> Optional[str]:
         """從結構化內容中提取主貼文 - 優先提取當前頁面的主要內容"""
@@ -113,9 +141,10 @@ class RotationPipelineReader:
                 not stripped.startswith('Log in') and  # 跳過登入提示
                 not stripped.startswith('Thread') and  # 跳過Thread標題
                 not stripped.startswith('gvmonthly') and  # 跳過用戶名
+                not stripped.startswith('=') and  # 跳過分隔符
                 not stripped.isdigit() and  # 跳過純數字
                 not re.match(r'^\d+[dhm]$', stripped) and  # 跳過時間格式
-                not stripped in ['Translate', 'views'] and  # 跳過特殊詞
+                not stripped in ['Translate', 'views', 'Sorry, we\'re having trouble playing this video.', 'Learn more'] and  # 跳過特殊詞
                 len(stripped) > 8):  # 內容要有一定長度
                 
                 # 檢查這是否可能是主貼文內容

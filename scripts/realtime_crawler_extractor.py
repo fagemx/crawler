@@ -44,7 +44,8 @@ class RealtimeCrawlerExtractor:
         self.incremental = incremental
         
         # 增量爬取管理器
-        self.crawl_manager = IncrementalCrawlManager() if incremental else None
+        # 始終創建crawl_manager，以便所有模式都能保存到資料庫
+        self.crawl_manager = IncrementalCrawlManager()
         
         # 爬蟲Agent設定
         self.agent_url = "http://localhost:8006/v1/playwright/crawl"
@@ -129,16 +130,88 @@ class RealtimeCrawlerExtractor:
         else: return int(number_str)
 
     def extract_post_content(self, content: str) -> Optional[str]:
-        """智能提取主貼文內容 - 區分主貼文和回覆"""
+        """智能提取主貼文內容 - 區分主貼文和分享貼文"""
         lines = content.split('\n')
         
-        # 策略1: 查找主貼文（第一個出現的實質內容）
+        # 策略1: 專門處理 Threads 頁面結構
+        main_post_content = self._extract_main_post_from_threads_structure(lines)
+        if main_post_content:
+            return main_post_content
+        
+        # 策略2: 通用結構化提取
         main_post_content = self._extract_main_post_from_structure(lines)
         if main_post_content:
             return main_post_content
         
-        # 策略2: 回到原始方法作為備選
+        # 策略3: 回到原始方法作為備選
         return self._extract_content_fallback(lines)
+    
+    def _extract_main_post_from_threads_structure(self, lines: List[str]) -> Optional[str]:
+        """專門從 Threads 頁面結構中提取主貼文內容"""
+        current_username = self.target_username
+        
+        # 策略A: 檢查開頭是否就是主內容（常見模式）
+        for i, line in enumerate(lines[:10]):  # 只檢查前10行
+            stripped = line.strip()
+            if (stripped and 
+                len(stripped) > 8 and
+                not stripped.startswith('[') and
+                not stripped.startswith('![') and
+                not stripped.startswith('http') and
+                not stripped.startswith('=') and  # 跳過分隔符
+                not stripped.isdigit() and
+                not stripped in ['Translate', 'views', 'Log in', 'Thread', 'Sorry, we\'re having trouble playing this video.', 'Learn more'] and
+                not re.match(r'^\d+[dhm]$', stripped) and
+                not re.match(r'^\d+$', stripped)):
+                
+                # 這很可能是主內容
+                return stripped
+        
+        # 策略B: 查找目標用戶名後的內容
+        target_user_found = False
+        
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+            
+            # 檢查是否找到目標用戶名（支持連結格式）
+            if (current_username in stripped and 
+                (not stripped.startswith('[') or f'[{current_username}]' in stripped)):
+                target_user_found = True
+                continue
+            
+            # 如果已經找到目標用戶，開始收集內容
+            if target_user_found:
+                # 跳過時間戳
+                if re.match(r'^\d{2}/\d{2}/\d{2}$', stripped):
+                    continue
+                
+                # 找到實質內容
+                if (stripped and 
+                    len(stripped) > 8 and
+                    not stripped.startswith('[') and
+                    not stripped.startswith('![') and
+                    not stripped.startswith('http') and
+                    not stripped.isdigit() and
+                    not stripped in ['Translate', 'views', 'Log in', 'Thread', 'Sorry, we\'re having trouble playing this video.', 'Learn more'] and
+                    not re.match(r'^\d+[dhm]$', stripped) and
+                    not re.match(r'^\d+$', stripped)):
+                    
+                    # 檢查這是否是分享的貼文
+                    is_shared_post = False
+                    for j in range(i + 1, min(i + 5, len(lines))):
+                        next_line = lines[j].strip()
+                        if ('profile picture' in next_line and current_username not in next_line):
+                            is_shared_post = True
+                            break
+                    
+                    if not is_shared_post:
+                        return stripped
+                
+                # 如果遇到其他用戶的 profile picture，停止
+                if 'profile picture' in stripped and current_username not in stripped:
+                    break
+        
+        return None
     
     def _extract_main_post_from_structure(self, lines: List[str]) -> Optional[str]:
         """從結構化內容中提取主貼文 - 優先提取當前頁面的主要內容"""
@@ -479,9 +552,9 @@ class RealtimeCrawlerExtractor:
                     print("📊 未找到檢查點記錄 (首次爬取)")
             except Exception as e:
                 print(f"❌ 資料庫連接失敗: {e}")
-                print("🔄 回退到全量模式")
+                print("🔄 回退到全量模式（只收集不更新檢查點）")
                 self.incremental = False
-                self.crawl_manager = None
+                # 保留crawl_manager以便全量模式也能保存到資料庫
         else:
             print("📋 全量模式: 爬取所有找到的貼文")
         
@@ -522,25 +595,32 @@ class RealtimeCrawlerExtractor:
                 no_new_content_rounds = 0  # 連續無新內容的輪次
                 max_no_new_rounds = 15  # 增加連續無新內容的最大容忍輪次（更多耐心）
                 consecutive_existing_rounds = 0  # 增量模式：連續發現已存在貼文的輪次
-                max_consecutive_existing = 8  # 增量模式：允許的最大連續已存在輪次
+                max_consecutive_existing = 15  # 增量模式：允許的最大連續已存在輪次（放寬限制）
                 last_urls_count = 0
                 
                 while len(urls) < self.max_posts and scroll_rounds < max_scroll_rounds:
-                    # 提取當前頁面的URLs（過濾無效URLs）
-                    current_urls = await page.evaluate("""
-                        () => {
+                    # 提取當前頁面的URLs（過濾無效URLs和非目標用戶）
+                    current_urls = await page.evaluate(f"""
+                        () => {{
+                            const targetUsername = '{self.target_username}';
                             const links = Array.from(document.querySelectorAll('a[href*="/post/"]'));
                             return [...new Set(links.map(link => link.href)
                                 .filter(url => url.includes('/post/'))
-                                .filter(url => {
+                                .filter(url => {{
+                                    // 檢查URL是否屬於目標用戶
+                                    const usernamePart = url.split('/@')[1];
+                                    if (!usernamePart) return false;
+                                    const extractedUsername = usernamePart.split('/')[0];
+                                    
                                     const postId = url.split('/post/')[1];
-                                    // 過濾掉 media、無效ID等
+                                    // 過濾掉 media、無效ID等，並確保是目標用戶的貼文
                                     return postId && 
                                            postId !== 'media' && 
                                            postId.length > 5 && 
-                                           /^[A-Za-z0-9_-]+$/.test(postId);
-                                }))];
-                        }
+                                           /^[A-Za-z0-9_-]+$/.test(postId) &&
+                                           extractedUsername === targetUsername;
+                                }}))];
+                        }}
                     """)
                     
                     before_count = len(urls)
@@ -975,8 +1055,8 @@ class RealtimeCrawlerExtractor:
         total_time = time.time() - self.start_time
         extraction_time = total_time - getattr(self, 'url_collection_time', 0)
         
-        # 增量模式：保存到資料庫並更新檢查點
-        if self.incremental and self.crawl_manager and self.results:
+        # 保存到資料庫（增量模式會更新檢查點，全量模式僅保存）
+        if self.crawl_manager and self.results:
             print(f"💾 正在保存 {len(self.results)} 個結果到資料庫...")
             try:
                 import asyncio
@@ -999,8 +1079,8 @@ class RealtimeCrawlerExtractor:
                     )
                     print(f"✅ 成功保存 {saved_count} 個貼文到資料庫")
                     
-                    # 更新檢查點（使用最新的貼文ID）
-                    if self.results:
+                    # 只在增量模式下更新檢查點
+                    if self.incremental and self.results:
                         latest_post_id = self.results[0].get('post_id')  # 第一個是最新的
                         if latest_post_id:
                             print(f"📊 更新檢查點: {latest_post_id}")
@@ -1089,8 +1169,8 @@ class RealtimeCrawlerExtractor:
                 )
                 print(f"✅ 成功保存 {saved_count} 個貼文到資料庫")
                 
-                # 更新檢查點（使用最新的貼文ID）
-                if self.results and saved_count > 0:
+                # 只在增量模式下更新檢查點
+                if self.incremental and self.results and saved_count > 0:
                     latest_post_id = self.results[0].get('post_id')  # 第一個是最新的
                     if latest_post_id:
                         print(f"📊 更新檢查點: {latest_post_id}")

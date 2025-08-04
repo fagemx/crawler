@@ -58,12 +58,23 @@ class RealtimeCrawlerComponent:
                 key="crawl_mode"
             )
             
+            # 顯示爬取過程日誌（移到這裡，避免重新渲染影響）
+            if 'realtime_crawl_logs' in st.session_state and st.session_state.realtime_crawl_logs:
+                with st.expander("📋 爬取過程日誌", expanded=False):
+                    # 顯示最後50行日誌
+                    log_lines = st.session_state.realtime_crawl_logs[-50:] if len(st.session_state.realtime_crawl_logs) > 50 else st.session_state.realtime_crawl_logs
+                    st.code('\n'.join(log_lines), language='text')
+            
         with col2:
             col_title, col_refresh = st.columns([3, 1])
             with col_title:
                 st.subheader("📊 資料庫統計")
             with col_refresh:
-                if st.button("🔄", key="refresh_db_stats", help="刷新統計信息"):
+                if st.button("🔄 刷新", key="refresh_db_stats", help="刷新資料庫統計信息", type="secondary"):
+                    # 清理可能的緩存狀態
+                    if 'db_stats_cache' in st.session_state:
+                        del st.session_state.db_stats_cache
+                    st.success("🔄 正在刷新統計...")
                     st.rerun()  # 重新運行頁面來刷新統計
             
             self._display_database_stats()
@@ -78,11 +89,94 @@ class RealtimeCrawlerComponent:
                     self._execute_crawling_simple(username, max_posts, is_incremental)
                 
         with col2:
-            if st.button("🔄 重置", key="reset_realtime"):
-                self._reset_results()
+            # 載入CSV文件功能
+            uploaded_file = st.file_uploader(
+                "📁 載入CSV文件", 
+                type=['csv'], 
+                key="csv_uploader",
+                help="上傳之前導出的CSV文件來查看結果"
+            )
+            if uploaded_file is not None:
+                self._load_csv_file(uploaded_file)
+        
+        with col3:
+            # 清除結果按鈕 (只在有結果時顯示)
+            if 'realtime_results' in st.session_state:
+                if st.button("🗑️ 清除結果", key="clear_results", help="清除當前顯示的結果"):
+                    self._clear_results()
         
         # 結果顯示
         self._render_results_area()
+    
+    def _load_csv_file(self, uploaded_file):
+        """載入CSV文件並轉換為結果格式"""
+        try:
+            import pandas as pd
+            import io
+            
+            # 讀取CSV文件
+            content = uploaded_file.getvalue()
+            df = pd.read_csv(io.StringIO(content.decode('utf-8-sig')))
+            
+            # 檢查CSV格式是否正確
+            required_columns = ['username', 'post_id', 'content', 'views']
+            missing_columns = [col for col in required_columns if col not in df.columns]
+            
+            if missing_columns:
+                st.error(f"❌ CSV格式不正確，缺少欄位: {', '.join(missing_columns)}")
+                return
+            
+            # 轉換為結果格式
+            results = []
+            for _, row in df.iterrows():
+                # 轉換數據並處理空值
+                views = str(row.get('views', '')).strip()
+                likes = str(row.get('likes', '')).strip()
+                comments = str(row.get('comments', '')).strip()
+                reposts = str(row.get('reposts', '')).strip()
+                shares = str(row.get('shares', '')).strip()
+                content = str(row.get('content', '')).strip()
+                
+                result = {
+                    'username': str(row.get('username', '')),
+                    'post_id': str(row.get('post_id', '')),
+                    'content': content,
+                    'views': views,
+                    'likes': likes,
+                    'comments': comments,
+                    'reposts': reposts,
+                    'shares': shares,
+                    'url': str(row.get('url', '')),
+                    'source': str(row.get('source', 'csv_import')),
+                    'created_at': str(row.get('created_at', '')),
+                    'fetched_at': str(row.get('fetched_at', '')),
+                    'success': True,
+                    # 添加has_*欄位以兼容顯示邏輯
+                    'has_views': bool(views and views != 'nan' and views != ''),
+                    'has_content': bool(content and content != 'nan' and content != ''),
+                    'has_likes': bool(likes and likes != 'nan' and likes != ''),
+                    'has_comments': bool(comments and comments != 'nan' and comments != ''),
+                    'has_reposts': bool(reposts and reposts != 'nan' and reposts != ''),
+                    'has_shares': bool(shares and shares != 'nan' and shares != ''),
+                    'content_length': len(content) if content else 0,
+                    'extracted_at': datetime.now().isoformat()
+                }
+                results.append(result)
+            
+            # 保存到會話狀態
+            st.session_state.realtime_results = {
+                'results': results,
+                'total_count': len(results),
+                'username': results[0]['username'] if results else '',
+                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'source': f"CSV文件: {uploaded_file.name}"
+            }
+            
+            st.success(f"✅ 成功載入 {len(results)} 筆記錄")
+            st.info(f"📊 來源: {uploaded_file.name}")
+            
+        except Exception as e:
+            st.error(f"❌ 載入CSV文件失敗: {str(e)}")
     
     def _execute_crawling_simple(self, username: str, max_posts: int, is_incremental: bool = True):
         """簡化的爬取執行方法 - 使用同步版本避免asyncio衝突"""
@@ -125,7 +219,10 @@ class RealtimeCrawlerComponent:
             
             # 創建一個日志容器來實時顯示輸出
             log_container = st.empty()
-            log_text = []
+            # 將日誌保存到會話狀態，避免頁面重新渲染時丟失
+            # 每次新的爬取開始時清空之前的日誌
+            st.session_state.realtime_crawl_logs = []
+            log_text = st.session_state.realtime_crawl_logs
             
             with st.expander("📋 爬取過程日志", expanded=True):
                 log_placeholder = st.empty()
@@ -189,6 +286,12 @@ class RealtimeCrawlerComponent:
                     
                     total_processed = len(st.session_state.realtime_results)
                     st.success(f"✅ 爬取完成！處理了 {total_processed} 篇貼文")
+                    
+                    # 清理資料庫統計緩存，下次會自動刷新
+                    if 'db_stats_cache' in st.session_state:
+                        del st.session_state.db_stats_cache
+                    
+                    st.info("📊 增量爬取已自動保存到資料庫，您可以點擊右側「🔄 刷新」查看更新的統計")
                     st.balloons()
                 else:
                     st.error("❌ 未找到結果文件")
@@ -208,6 +311,11 @@ class RealtimeCrawlerComponent:
     
     def _display_database_stats(self):
         """顯示資料庫統計信息"""
+        # 檢查是否有緩存的統計信息
+        if 'db_stats_cache' in st.session_state:
+            self._render_cached_stats(st.session_state.db_stats_cache)
+            return
+        
         try:
             # 使用 asyncio 和 subprocess 來獲取資料庫統計
             import subprocess
@@ -294,42 +402,12 @@ if __name__ == "__main__":
                         st.error(f"❌ 資料庫錯誤: {stats['error']}")
                         return
                     
-                    # 顯示總體統計
-                    total_stats = stats.get("total_stats", {})
-                    if total_stats:
-                        st.info(f"""
-                        **📈 總體統計**
-                        - 📊 總貼文數: {total_stats.get('total_posts', 0):,}
-                        - 👥 已爬取用戶: {total_stats.get('total_users', 0)} 個
-                        - ⏰ 最後活動: {str(total_stats.get('latest_activity', 'N/A'))[:16] if total_stats.get('latest_activity') else 'N/A'}
-                        """)
+                    # 保存到緩存
+                    st.session_state.db_stats_cache = stats
                     
-                    # 顯示用戶統計
-                    user_stats = stats.get("user_stats", [])
-                    if user_stats:
-                        st.write("**👥 各用戶統計:**")
-                        
-                        # 使用表格顯示
-                        import pandas as pd
-                        df_data = []
-                        for user in user_stats:
-                            latest = str(user.get('latest_crawl', 'N/A'))[:16] if user.get('latest_crawl') else 'N/A'
-                            df_data.append({
-                                "用戶名": f"@{user.get('username', 'N/A')}",
-                                "貼文數": f"{user.get('post_count', 0):,}",
-                                "最後爬取": latest
-                            })
-                        
-                        if df_data:
-                            df = pd.DataFrame(df_data)
-                            st.dataframe(
-                                df, 
-                                use_container_width=True,
-                                hide_index=True,
-                                height=min(300, len(df_data) * 35 + 38)  # 動態高度
-                            )
-                    else:
-                        st.warning("📝 資料庫中暫無爬取記錄")
+                    # 渲染統計信息
+                    self._render_cached_stats(stats)
+                    
                 else:
                     st.warning("⚠️ 無法獲取資料庫統計信息")
                     if result.stderr:
@@ -344,6 +422,318 @@ if __name__ == "__main__":
                     
         except Exception as e:
             st.error(f"❌ 獲取統計信息失敗: {str(e)}")
+    
+    def _delete_user_data(self, username: str):
+        """刪除指定用戶的所有爬蟲資料"""
+        if not username:
+            st.error("❌ 請選擇一個有效的用戶")
+            return
+        
+        # 使用簡化的確認邏輯，避免session state複雜性
+        import hashlib
+        username_hash = hashlib.md5(username.encode()).hexdigest()[:8]
+        
+        # 直接顯示確認按鈕，使用唯一的key
+        st.error(f"⚠️ **危險操作確認**")
+        st.markdown(f"""
+        您即將刪除用戶 **@{username}** 的所有爬蟲資料，包括：
+        - 所有貼文內容  
+        - 觀看數、按讚數、留言數等指標
+        - 爬取時間戳記錄
+        - 增量爬取檢查點
+        
+        **此操作無法復原！**
+        """)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button(f"✅ 確認刪除 @{username}", type="primary", key=f"final_confirm_delete_{username_hash}"):
+                # 立即執行刪除
+                self._execute_user_deletion(username)
+        
+        with col2:
+            if st.button("❌ 取消操作", key=f"cancel_delete_{username_hash}"):
+                st.success("✅ 已取消刪除操作")
+                return
+    
+    def _execute_user_deletion(self, username: str):
+        """執行實際的用戶刪除操作"""
+        try:
+            import subprocess
+            import json
+            import sys
+            import os
+            import tempfile
+            import time
+            
+            # 創建簡化的刪除腳本（基於測試成功的邏輯）
+            delete_script_content = f'''
+import asyncio
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from common.incremental_crawl_manager import IncrementalCrawlManager
+
+async def delete_user_data():
+    crawl_manager = IncrementalCrawlManager()
+    try:
+        await crawl_manager.db.init_pool()
+        
+        async with crawl_manager.db.get_connection() as conn:
+            # 計算要刪除的數量
+            posts_count = await conn.fetchval("""
+                SELECT COUNT(*) FROM post_metrics_sql WHERE username = $1
+            """, "{username}")
+            
+            crawl_state_count = await conn.fetchval("""
+                SELECT COUNT(*) FROM crawl_state WHERE username = $1
+            """, "{username}")
+            
+            # 執行刪除
+            async with conn.transaction():
+                await conn.execute("""
+                    DELETE FROM post_metrics_sql WHERE username = $1
+                """, "{username}")
+                
+                await conn.execute("""
+                    DELETE FROM crawl_state WHERE username = $1
+                """, "{username}")
+            
+            print(f"SUCCESS:{posts_count}:{crawl_state_count}")
+            
+    except Exception as e:
+        print(f"ERROR:{str(e)}")
+    finally:
+        await crawl_manager.db.close_pool()
+
+if __name__ == "__main__":
+    asyncio.run(delete_user_data())
+'''
+            
+            # 寫入臨時文件
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False, encoding='utf-8') as f:
+                f.write(delete_script_content)
+                temp_script = f.name
+            
+            try:
+                # 執行刪除腳本
+                with st.spinner(f"🗑️ 正在刪除用戶 @{username} 的資料..."):
+                    result = subprocess.run(
+                        [sys.executable, temp_script],
+                        capture_output=True,
+                        text=True,
+                        encoding='utf-8',
+                        cwd=os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+                        timeout=30
+                    )
+                
+                if result.returncode == 0 and result.stdout.strip():
+                    output = result.stdout.strip()
+                    if output.startswith("SUCCESS:"):
+                        _, posts_count, crawl_state_count = output.split(":")
+                        st.success(f"""
+                        ✅ **刪除成功！**
+                        
+                        用戶 @{username} 的資料已被完全刪除：
+                        - 🗑️ 刪除貼文數: {posts_count} 個
+                        - 🗑️ 刪除爬取記錄: {crawl_state_count} 個
+                        """)
+                        
+                        # 刷新頁面以更新統計
+                        st.info("📊 正在刷新統計資料...")
+                        time.sleep(1)
+                        st.rerun()
+                    else:
+                        st.error(f"❌ 刪除失敗: {output}")
+                else:
+                    st.error(f"❌ 刪除腳本執行失敗")
+                    if result.stderr:
+                        st.text(f"錯誤詳情: {result.stderr}")
+                        
+            finally:
+                # 清理臨時文件
+                try:
+                    os.unlink(temp_script)
+                except:
+                    pass
+                    
+        except Exception as e:
+            st.error(f"❌ 刪除操作失敗: {str(e)}")
+    
+    def _export_user_csv(self, username: str):
+        """導出指定用戶的所有貼文為CSV格式"""
+        if not username:
+            st.error("❌ 請選擇一個有效的用戶")
+            return
+        
+        try:
+            import subprocess
+            import json
+            import sys
+            import os
+            import tempfile
+            from datetime import datetime
+            
+            # 創建導出腳本
+            export_script_content = f'''
+import asyncio
+import sys
+import os
+import json
+import csv
+from datetime import datetime
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from common.incremental_crawl_manager import IncrementalCrawlManager
+
+async def export_user_csv(username):
+    crawl_manager = IncrementalCrawlManager()
+    try:
+        await crawl_manager.db.init_pool()
+        
+        async with crawl_manager.db.get_connection() as conn:
+            # 查詢用戶的所有貼文數據
+            posts = await conn.fetch("""
+                SELECT 
+                    post_id,
+                    url,
+                    content,
+                    views_count,
+                    likes_count,
+                    comments_count,
+                    reposts_count,
+                    shares_count,
+                    source,
+                    created_at,
+                    fetched_at
+                FROM post_metrics_sql 
+                WHERE username = $1
+                ORDER BY created_at DESC
+            """, username)
+            
+            if not posts:
+                print(json.dumps({{"success": False, "error": "用戶沒有貼文資料"}}))
+                return
+            
+            # 準備CSV文件路徑
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            csv_filename = f"user_posts_{{username}}_{{timestamp}}.csv"
+            csv_filepath = os.path.join("exports", csv_filename)
+            
+            # 確保exports目錄存在
+            os.makedirs("exports", exist_ok=True)
+            
+            # 寫入CSV文件
+            with open(csv_filepath, 'w', newline='', encoding='utf-8-sig') as csvfile:
+                fieldnames = [
+                    'username', 'post_id', 'url', 'content', 'views', 
+                    'likes', 'comments', 'reposts', 'shares', 'source', 'created_at', 'fetched_at'
+                ]
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                
+                # 寫入標題行
+                writer.writeheader()
+                
+                # 寫入數據
+                for post in posts:
+                    writer.writerow({{
+                        'username': username,
+                        'post_id': post['post_id'],
+                        'url': post['url'],
+                        'content': post['content'] or '',
+                        'views': post['views_count'] or '',
+                        'likes': post['likes_count'] or '',
+                        'comments': post['comments_count'] or '',
+                        'reposts': post['reposts_count'] or '',
+                        'shares': post['shares_count'] or '',
+                        'source': post['source'] or '',
+                        'created_at': str(post['created_at']) if post['created_at'] else '',
+                        'fetched_at': str(post['fetched_at']) if post['fetched_at'] else ''
+                    }})
+            
+            result = {{
+                "success": True,
+                "csv_file": csv_filepath,
+                "post_count": len(posts),
+                "username": username
+            }}
+            
+            print(json.dumps(result))
+            
+    except Exception as e:
+        print(json.dumps({{"success": False, "error": str(e)}}))
+    finally:
+        await crawl_manager.db.close_pool()
+
+if __name__ == "__main__":
+    asyncio.run(export_user_csv("{username}"))
+'''
+            
+            # 寫入臨時文件
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False, encoding='utf-8') as f:
+                f.write(export_script_content)
+                temp_script = f.name
+            
+            try:
+                # 執行導出腳本
+                with st.spinner(f"📊 正在導出用戶 @{username} 的貼文資料..."):
+                    result = subprocess.run(
+                        [sys.executable, temp_script],
+                        capture_output=True,
+                        text=True,
+                        encoding='utf-8',
+                        cwd=os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+                        timeout=60
+                    )
+                
+                if result.returncode == 0 and result.stdout.strip():
+                    export_result = json.loads(result.stdout.strip())
+                    
+                    if export_result.get("success"):
+                        csv_file_path = export_result.get("csv_file")
+                        post_count = export_result.get("post_count", 0)
+                        
+                        st.success(f"""
+                        ✅ **導出成功！**
+                        
+                        用戶 @{username} 的貼文已導出為CSV：
+                        - 📊 導出貼文數: {post_count:,} 個
+                        - 📁 文件路徑: {csv_file_path}
+                        """)
+                        
+                        # 提供下載按鈕
+                        if os.path.exists(csv_file_path):
+                            with open(csv_file_path, 'r', encoding='utf-8-sig') as f:
+                                csv_content = f.read()
+                            
+                            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                            download_filename = f"user_posts_{username}_{timestamp}.csv"
+                            
+                            st.download_button(
+                                label="📥 下載CSV文件",
+                                data=csv_content,
+                                file_name=download_filename,
+                                mime="text/csv",
+                                key=f"download_user_csv_{username}"
+                            )
+                        
+                    else:
+                        st.error(f"❌ 導出失敗: {export_result.get('error', '未知錯誤')}")
+                else:
+                    st.error(f"❌ 導出腳本執行失敗")
+                    if result.stderr:
+                        st.text(f"錯誤詳情: {result.stderr}")
+                        
+            finally:
+                # 清理臨時文件
+                try:
+                    os.unlink(temp_script)
+                except:
+                    pass
+                    
+        except Exception as e:
+            st.error(f"❌ 導出操作失敗: {str(e)}")
     
     def _show_json_download_button(self, results_file):
         """顯示JSON下載按鈕"""
@@ -373,15 +763,18 @@ if __name__ == "__main__":
         else:
             st.button("💾 下載JSON", disabled=True, help="暫無可下載的結果文件")
     
-    def _reset_results(self):
-        """重置結果"""
+    def _clear_results(self):
+        """清除當前結果"""
         if 'realtime_results' in st.session_state:
             del st.session_state.realtime_results
         if 'realtime_results_file' in st.session_state:
             del st.session_state.realtime_results_file
         if 'realtime_error' in st.session_state:
             del st.session_state.realtime_error
-        st.success("🔄 結果已重置")
+        if 'latest_csv_file' in st.session_state:
+            del st.session_state.latest_csv_file
+        st.success("🗑️ 結果已清除")
+        st.rerun()  # 重新運行頁面來刷新UI
     
     def _render_results_area(self):
         """渲染結果區域"""
@@ -390,21 +783,34 @@ if __name__ == "__main__":
         elif 'realtime_error' in st.session_state:
             st.error(f"❌ 爬取錯誤：{st.session_state.realtime_error}")
         else:
-            st.info("👆 點擊「開始爬取」來開始")
+            st.info("👆 點擊「開始爬取」來開始，或上傳CSV文件查看之前的結果")
     
     def _show_results(self):
         """顯示爬取結果"""
-        results = st.session_state.realtime_results
+        # 從session state獲取結果（可能是字典格式）
+        realtime_results = st.session_state.realtime_results
+        
+        # 檢查results的格式，如果是字典則提取results列表
+        if isinstance(realtime_results, dict):
+            results = realtime_results.get('results', [])
+        else:
+            results = realtime_results if realtime_results else []
+        
         results_file = st.session_state.get('realtime_results_file', 'unknown.json')
         
         st.subheader("📊 爬取結果")
         
+        # 確保results是列表
+        if not isinstance(results, list):
+            st.error("❌ 結果格式錯誤，請重新載入")
+            return
+        
         # 基本統計
         total_posts = len(results)
-        successful_views = len([r for r in results if r.get('has_views')])
-        successful_content = len([r for r in results if r.get('has_content')])
-        successful_likes = len([r for r in results if r.get('has_likes')])
-        successful_comments = len([r for r in results if r.get('has_comments')])
+        successful_views = len([r for r in results if isinstance(r, dict) and r.get('has_views')])
+        successful_content = len([r for r in results if isinstance(r, dict) and r.get('has_content')])
+        successful_likes = len([r for r in results if isinstance(r, dict) and r.get('has_likes')])
+        successful_comments = len([r for r in results if isinstance(r, dict) and r.get('has_comments')])
         
         # 統計指標
         col1, col2, col3, col4 = st.columns(4)
@@ -448,6 +854,25 @@ if __name__ == "__main__":
         # 詳細結果表格
         if st.checkbox("📋 顯示詳細結果", key="show_detailed_results"):
             self._show_detailed_table(results)
+        
+        # 資料庫狀態和備用保存
+        if isinstance(realtime_results, dict):
+            db_saved = realtime_results.get('database_saved', False)
+            saved_count = realtime_results.get('database_saved_count', 0)
+            if db_saved:
+                st.success(f"✅ 已保存到資料庫 ({saved_count} 個貼文)")
+            else:
+                # 顯示備用保存選項
+                col_info, col_save = st.columns([3, 1])
+                with col_info:
+                    st.info("ℹ️ 爬蟲通常會自動保存到資料庫。如果統計中沒有看到新數據，您可以使用備用保存功能")
+                with col_save:
+                    if st.button("💾 備用保存", key="save_to_database", help="手動保存到資料庫（備用功能）"):
+                        self._save_results_to_database()
+        else:
+            st.info("💡 增量爬取模式會自動保存到資料庫並更新統計")
+
+        st.divider()
         
         # 下載和導出按鈕
         col1, col2, col3, col4 = st.columns(4)
@@ -1219,7 +1644,7 @@ if __name__ == "__main__":
         st.subheader("📈 互動數據分析")
         
         # 收集有效的互動數據
-        valid_results = [r for r in results if r.get('has_views') and r.get('has_likes')]
+        valid_results = [r for r in results if isinstance(r, dict) and r.get('has_views') and r.get('has_likes')]
         
         if not valid_results:
             st.warning("無足夠的互動數據進行分析")
@@ -1244,3 +1669,260 @@ if __name__ == "__main__":
                 st.metric("平均按讚數", f"{sum(avg_likes)/len(avg_likes):.0f}")
             with col2:
                 st.metric("最高按讚數", f"{max(avg_likes):.0f}")
+    
+    def _render_cached_stats(self, stats):
+        """渲染緩存的統計信息"""
+        # 顯示總體統計
+        total_stats = stats.get("total_stats", {})
+        if total_stats:
+            st.info(f"""
+            **📈 總體統計**
+            - 📊 總貼文數: {total_stats.get('total_posts', 0):,}
+            - 👥 已爬取用戶: {total_stats.get('total_users', 0)} 個
+            - ⏰ 最後活動: {str(total_stats.get('latest_activity', 'N/A'))[:16] if total_stats.get('latest_activity') else 'N/A'}
+            """)
+        
+        # 顯示用戶統計
+        user_stats = stats.get("user_stats", [])
+        if user_stats:
+            st.write("**👥 各用戶統計:**")
+            
+            # 使用表格顯示
+            import pandas as pd
+            df_data = []
+            for user in user_stats:
+                latest = str(user.get('latest_crawl', 'N/A'))[:16] if user.get('latest_crawl') else 'N/A'
+                df_data.append({
+                    "用戶名": f"@{user.get('username', 'N/A')}",
+                    "貼文數": f"{user.get('post_count', 0):,}",
+                    "最後爬取": latest
+                })
+            
+            if df_data:
+                df = pd.DataFrame(df_data)
+                st.dataframe(
+                    df, 
+                    use_container_width=True,
+                    hide_index=True,
+                    height=min(300, len(df_data) * 35 + 38)  # 動態高度
+                )
+                
+                # 添加用戶資料管理功能（折疊形式）
+                st.markdown("---")
+                with st.expander("🗂️ 用戶資料管理", expanded=False):
+                    # 用戶選擇
+                    user_options = [user.get('username', 'N/A') for user in user_stats]
+                    selected_user = st.selectbox(
+                        "選擇要管理的用戶:",
+                        options=user_options,
+                        index=0 if user_options else None,
+                        help="選擇一個用戶來管理其爬蟲資料"
+                    )
+                    
+                    # 操作按鈕
+                    if selected_user:
+                        col1, col2 = st.columns(2)
+                        
+                        with col1:
+                            # 導出用戶CSV按鈕
+                            if st.button(
+                                "📊 導出CSV", 
+                                key="export_user_csv_btn",
+                                help="導出所選用戶的所有貼文為CSV格式",
+                                use_container_width=True
+                            ):
+                                self._export_user_csv(selected_user)
+                        
+                        with col2:
+                            # 使用JavaScript來精確定位並設置按鈕樣式
+                            st.markdown("""
+                            <script>
+                            setTimeout(function() {
+                                // 查找具有特定文本的按鈕
+                                const buttons = document.querySelectorAll('button');
+                                buttons.forEach(button => {
+                                    if (button.textContent.includes('🗑️ 刪除用戶資料')) {
+                                        button.style.backgroundColor = '#ff4b4b';
+                                        button.style.color = 'white';
+                                        button.style.borderColor = '#ff4b4b';
+                                        
+                                        button.addEventListener('mouseenter', function() {
+                                            this.style.backgroundColor = '#ff2b2b';
+                                            this.style.borderColor = '#ff2b2b';
+                                        });
+                                        
+                                        button.addEventListener('mouseleave', function() {
+                                            if (!this.disabled) {
+                                                this.style.backgroundColor = '#ff4b4b';
+                                                this.style.borderColor = '#ff4b4b';
+                                            }
+                                        });
+                                    }
+                                });
+                            }, 100);
+                            </script>
+                            """, unsafe_allow_html=True)
+                            
+                            # 刪除用戶資料按鈕
+                            if st.button(
+                                "🗑️ 刪除用戶資料", 
+                                key="delete_user_data_btn",
+                                help="刪除所選用戶的所有爬蟲資料",
+                                use_container_width=True
+                            ):
+                                self._delete_user_data(selected_user)
+                    
+                    if selected_user:
+                        # 顯示選中用戶的詳細信息
+                        selected_user_info = next((u for u in user_stats if u.get('username') == selected_user), None)
+                        if selected_user_info:
+                            st.info(f"""
+                            **📋 用戶 @{selected_user} 的詳細信息:**
+                            - 📊 貼文總數: {selected_user_info.get('post_count', 0):,} 個
+                            - ⏰ 最後爬取: {str(selected_user_info.get('latest_crawl', 'N/A'))[:16] if selected_user_info.get('latest_crawl') else 'N/A'}
+                            - 🕐 首次爬取: {str(selected_user_info.get('first_crawl', 'N/A'))[:16] if selected_user_info.get('first_crawl') else 'N/A'}
+                            """)
+                            
+                            st.warning("⚠️ **注意**: 刪除操作將永久移除該用戶的所有爬蟲資料，包括貼文內容、觀看數等，此操作無法復原！")
+        else:
+            st.warning("📝 資料庫中暫無爬取記錄")
+    
+    def _save_results_to_database(self):
+        """將當前爬取結果保存到資料庫"""
+        if 'realtime_results' not in st.session_state:
+            st.error("❌ 沒有可保存的結果")
+            return
+        
+        # 從session state獲取結果
+        realtime_results = st.session_state.realtime_results
+        
+        # 檢查results的格式，如果是字典則提取results列表
+        if isinstance(realtime_results, dict):
+            results = realtime_results.get('results', [])
+            target_username = realtime_results.get('target_username', '')
+        else:
+            results = realtime_results if realtime_results else []
+            target_username = results[0].get('username', '') if results else ''
+        
+        if not results:
+            st.error("❌ 沒有找到可保存的結果")
+            return
+        
+        if not target_username:
+            st.error("❌ 無法識別目標用戶名")
+            return
+        
+        try:
+            import subprocess
+            import json
+            import sys
+            import os
+            import tempfile
+            
+            # 創建保存腳本
+            save_script_content = f'''
+import asyncio
+import sys
+import os
+import json
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from common.incremental_crawl_manager import IncrementalCrawlManager
+
+async def save_to_database():
+    crawl_manager = IncrementalCrawlManager()
+    try:
+        await crawl_manager.db.init_pool()
+        
+        # 準備結果數據
+        results = {json.dumps(results, ensure_ascii=False)}
+        target_username = "{target_username}"
+        
+        # 保存結果到資料庫
+        saved_count = await crawl_manager.save_quick_crawl_results(results, target_username)
+        
+        # 更新檢查點（使用最新的貼文ID）
+        if results and saved_count > 0:
+            latest_post_id = results[0].get('post_id')  # 第一個是最新的
+            if latest_post_id:
+                await crawl_manager.update_crawl_checkpoint(
+                    target_username, 
+                    latest_post_id, 
+                    saved_count
+                )
+        
+        result = {{
+            "success": True,
+            "saved_count": saved_count,
+            "target_username": target_username
+        }}
+        
+        print(json.dumps(result))
+        
+    except Exception as e:
+        print(json.dumps({{"success": False, "error": str(e)}}))
+    finally:
+        await crawl_manager.db.close_pool()
+
+if __name__ == "__main__":
+    asyncio.run(save_to_database())
+'''
+            
+            # 寫入臨時文件
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False, encoding='utf-8') as f:
+                f.write(save_script_content)
+                temp_script = f.name
+            
+            try:
+                # 執行保存腳本
+                with st.spinner(f"💾 正在保存 {len(results)} 個貼文到資料庫..."):
+                    result = subprocess.run(
+                        [sys.executable, temp_script],
+                        capture_output=True,
+                        text=True,
+                        encoding='utf-8',
+                        cwd=os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+                        timeout=60
+                    )
+                
+                if result.returncode == 0 and result.stdout.strip():
+                    save_result = json.loads(result.stdout.strip())
+                    
+                    if save_result.get("success"):
+                        saved_count = save_result.get("saved_count", 0)
+                        
+                        st.success(f"""
+                        ✅ **保存成功！**
+                        
+                        已成功將 @{target_username} 的貼文保存到資料庫：
+                        - 💾 保存貼文數: {saved_count} 個
+                        - 🔄 檢查點已更新
+                        """)
+                        
+                        # 更新session state，標記為已保存
+                        if isinstance(st.session_state.realtime_results, dict):
+                            st.session_state.realtime_results['database_saved'] = True
+                            st.session_state.realtime_results['database_saved_count'] = saved_count
+                        
+                        # 清理資料庫統計緩存，下次查看會更新
+                        if 'db_stats_cache' in st.session_state:
+                            del st.session_state.db_stats_cache
+                        
+                        st.info("📊 資料庫統計已更新，您可以點擊刷新按鈕查看最新數據")
+                        
+                    else:
+                        st.error(f"❌ 保存失敗: {save_result.get('error', '未知錯誤')}")
+                else:
+                    st.error(f"❌ 保存腳本執行失敗")
+                    if result.stderr:
+                        st.text(f"錯誤詳情: {result.stderr}")
+                        
+            finally:
+                # 清理臨時文件
+                try:
+                    os.unlink(temp_script)
+                except:
+                    pass
+                    
+        except Exception as e:
+            st.error(f"❌ 保存操作失敗: {str(e)}")
