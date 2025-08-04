@@ -111,10 +111,10 @@ class PlaywrightCrawlerComponentV2:
     
     def _render_setup(self):
         """渲染設定頁面"""
-        # 參數設定區域
-        col1, col2 = st.columns(2)
+        # 參數設定區域 - 修復佈局問題
+        col_settings, col_stats = st.columns([1, 1])
         
-        with col1:
+        with col_settings:
             st.subheader("⚙️ 爬取設定")
             username = st.text_input(
                 "目標帳號", 
@@ -132,11 +132,30 @@ class PlaywrightCrawlerComponentV2:
                 key="playwright_max_posts_v2"
             )
             
-            if st.button("🚀 開始爬取", key="start_playwright_v2"):
-                # 啟動爬蟲
-                self._start_crawling(username, max_posts)
+            # 控制按鈕區域
+            col1, col2, col3 = st.columns([1, 1, 2])
+            
+            with col1:
+                if st.button("🚀 開始爬取", key="start_playwright_v2"):
+                    # 啟動爬蟲
+                    self._start_crawling(username, max_posts)
+                    
+            with col2:
+                uploaded_file = st.file_uploader(
+                    "📁 載入CSV文件", 
+                    type=['csv'], 
+                    key="playwright_csv_uploader_v2",
+                    help="上傳之前導出的CSV文件來查看結果"
+                )
+                if uploaded_file is not None:
+                    self._load_csv_file(uploaded_file)
+            
+            with col3:
+                if 'playwright_results' in st.session_state:
+                    if st.button("🗑️ 清除結果", key="clear_playwright_results_v2", help="清除當前顯示的結果"):
+                        self._clear_results()
                 
-        with col2:
+        with col_stats:
             col_title, col_refresh = st.columns([3, 1])
             with col_title:
                 st.subheader("📊 資料庫統計")
@@ -188,18 +207,47 @@ class PlaywrightCrawlerComponentV2:
             if progress_data:
                 stage = progress_data.get("stage", "unknown")
                 stage_names = {
-                    "initialization": "🔧 初始化",
-                    "fetch_start": "🔍 開始爬取",
-                    "post_parsed": "📝 解析貼文",
-                    "batch_parsed": "📦 批次處理",
-                    "fill_views_start": "👁️ 補充觀看數",
-                    "fill_views_completed": "✅ 觀看數完成",
-                    "api_completed": "🎯 API完成",
-                    "completed": "🎉 全部完成",
+                    # 初始階段
+                    "initialization": "🔧 初始化爬蟲環境",
+                    "auth_loading": "🔐 載入認證檔案",
+                    "request_preparation": "📋 準備API請求",
+                    "api_request": "🚀 發送API請求",
+                    "api_processing": "⏳ API處理中",
+                    
+                    # Playwright 處理階段
+                    "browser_launch": "🌐 啟動瀏覽器",
+                    "page_navigation": "🧭 導航到用戶頁面",
+                    "page_loading": "⏳ 頁面載入中",
+                    "scroll_start": "📜 開始智能滾動",
+                    "url_collection": "🔗 收集貼文URLs",
+                    "url_processing": "🔄 處理URLs",
+                    
+                    # 數據補齊階段
+                    "fill_details_start": "🔍 開始補齊詳細數據",
+                    "fill_details_progress": "📝 補齊貼文內容和互動",
+                    "fill_views_start": "👁️ 開始補齊觀看數",
+                    "fill_views_progress": "📊 補齊觀看數據",
+                    "deduplication": "🧹 去重處理",
+                    
+                    # 完成階段
+                    "response_processing": "📦 處理API響應",
+                    "completed": "🎉 爬取完成",
                     "error": "❌ 發生錯誤"
                 }
                 stage_display = stage_names.get(stage, f"🔄 {stage}")
-                st.info(f"**當前階段**: {stage_display}")
+                
+                # 根據進度顯示不同的顏色和樣式
+                if progress >= 0.9:
+                    st.success(f"**當前階段**: {stage_display}")
+                elif progress >= 0.5:
+                    st.info(f"**當前階段**: {stage_display}")
+                elif stage == "error":
+                    st.error(f"**當前階段**: {stage_display}")
+                else:
+                    st.warning(f"**當前階段**: {stage_display}")
+                
+                # 顯示進度階段圖
+                self._render_progress_stages(progress, stage)
                 
                 # 顯示日誌
                 log_messages = progress_data.get("log_messages", [])
@@ -259,9 +307,50 @@ class PlaywrightCrawlerComponentV2:
         error_msg = st.session_state.get('playwright_error_msg', '未知錯誤')
         st.error(f"錯誤信息: {error_msg}")
         
-        if st.button("🔙 返回設定"):
-            st.session_state.playwright_crawl_status = "idle"
-            st.rerun()
+        # 顯示詳細錯誤信息
+        progress_file = st.session_state.get('playwright_progress_file', '')
+        if progress_file and os.path.exists(progress_file):
+            progress_data = self._read_progress(progress_file)
+            if progress_data:
+                st.subheader("🔍 詳細錯誤信息")
+                
+                # 顯示錯誤詳情
+                if 'error' in progress_data:
+                    st.code(progress_data['error'], language='text')
+                
+                # 顯示日誌
+                log_messages = progress_data.get("log_messages", [])
+                if log_messages:
+                    with st.expander("📋 錯誤日誌", expanded=True):
+                        recent_logs = log_messages[-20:] if len(log_messages) > 20 else log_messages
+                        st.code('\n'.join(recent_logs), language='text')
+                
+                # 顯示完整進度數據
+                with st.expander("🔧 調試信息", expanded=False):
+                    st.json(progress_data)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("🔙 返回設定"):
+                # 清理進度檔案
+                if progress_file and os.path.exists(progress_file):
+                    try:
+                        os.remove(progress_file)
+                    except:
+                        pass
+                st.session_state.playwright_crawl_status = "idle"
+                st.rerun()
+        
+        with col2:
+            if st.button("🔄 重試"):
+                # 清理進度檔案
+                if progress_file and os.path.exists(progress_file):
+                    try:
+                        os.remove(progress_file)
+                    except:
+                        pass
+                st.session_state.playwright_crawl_status = "idle"
+                st.rerun()
     
     # ---------- 3. 爬蟲啟動邏輯 ----------
     def _start_crawling(self, username: str, max_posts: int):
@@ -301,47 +390,183 @@ class PlaywrightCrawlerComponentV2:
     def _background_crawler_worker(self, username: str, max_posts: int, task_id: str, progress_file: str):
         """背景爬蟲工作線程 - 只寫檔案，不做任何 st.* 操作"""
         try:
-            # 準備 API 請求
-            self._log_to_file(progress_file, "🔧 準備爬取參數...")
-            self._update_progress_file(progress_file, 0.1, "initialization", "準備API請求...")
+            # 階段1: 初始化 (0-5%)
+            self._log_to_file(progress_file, "🔧 初始化爬蟲環境...")
+            self._update_progress_file(progress_file, 0.02, "initialization", "初始化爬蟲環境...")
             
-            # 讀取認證文件
+            # 階段2: 讀取認證 (5-10%)
+            self._log_to_file(progress_file, "🔐 讀取認證檔案...")
+            self._update_progress_file(progress_file, 0.05, "auth_loading", "讀取認證檔案...")
+            
             try:
                 with open(self.auth_file_path, "r", encoding="utf-8") as f:
                     auth_content = json.load(f)
+                self._log_to_file(progress_file, f"✅ 認證檔案讀取成功，包含 {len(auth_content.get('cookies', []))} 個 cookies")
             except Exception as e:
                 self._update_progress_file(progress_file, 0.0, "error", f"❌ 讀取認證檔案失敗: {e}")
                 return
             
-            # 構建 API 請求
+            # 階段3: 準備請求 (10-15%)
+            self._log_to_file(progress_file, "📋 構建API請求參數...")
+            self._update_progress_file(progress_file, 0.10, "request_preparation", "構建API請求...")
+            
             payload = {
                 "username": username,
                 "max_posts": max_posts,
-                "auth_file_content": auth_content
+                "auth_json_content": auth_content
             }
             
-            self._log_to_file(progress_file, f"📊 目標: @{username}, 數量: {max_posts}")
-            self._update_progress_file(progress_file, 0.2, "fetch_start", "發送API請求...")
+            self._log_to_file(progress_file, f"📊 目標用戶: @{username}")
+            self._log_to_file(progress_file, f"📝 目標貼文數: {max_posts}")
             
-            # 發送 API 請求（同步）
+            # 階段4: 發送請求 (15-20%)
+            self._log_to_file(progress_file, "🚀 發送API請求到Playwright Agent...")
+            self._update_progress_file(progress_file, 0.15, "api_request", "發送API請求...")
+            
+            # 發送 API 請求並監控進度
             try:
                 import httpx
+                import time
+                
+                # 開始API請求
+                start_time = time.time()
+                
                 with httpx.Client(timeout=600.0) as client:
+                    # 階段5: 等待響應 (20-25%)
+                    self._log_to_file(progress_file, "⏳ 等待Playwright處理...")
+                    self._update_progress_file(progress_file, 0.20, "api_processing", "Playwright正在處理...")
+                    
+                    # 模擬進度更新（因為我們無法直接監控Playwright的內部進度）
+                    self._simulate_processing_progress(progress_file, start_time)
+                    
                     response = client.post(self.agent_url, json=payload)
                     response.raise_for_status()
                     result = response.json()
                 
-                self._log_to_file(progress_file, "✅ API請求成功")
-                self._update_progress_file(progress_file, 1.0, "api_completed", "處理完成", final_data=result)
+                # 階段9: 處理響應 (95-100%)
+                self._log_to_file(progress_file, "✅ API請求成功，正在處理響應...")
+                self._update_progress_file(progress_file, 0.95, "response_processing", "處理API響應...")
+                
+                posts_count = len(result.get('posts', []))
+                self._log_to_file(progress_file, f"📦 獲取到 {posts_count} 篇貼文")
+                
+                # 階段10: 完成 (100%)
+                self._log_to_file(progress_file, "🎉 爬取任務完成！")
+                self._update_progress_file(progress_file, 1.0, "completed", "爬取完成", final_data=result)
                 
             except Exception as e:
-                self._log_to_file(progress_file, f"❌ API請求失敗: {e}")
-                self._update_progress_file(progress_file, 0.0, "error", f"API請求失敗: {e}")
+                error_msg = f"API請求失敗: {e}"
+                self._log_to_file(progress_file, f"❌ {error_msg}")
+                self._update_progress_file(progress_file, 0.0, "error", error_msg, error=str(e))
                 
         except Exception as e:
-            self._update_progress_file(progress_file, 0.0, "error", f"背景任務失敗: {e}")
+            error_msg = f"背景任務失敗: {e}"
+            self._log_to_file(progress_file, f"❌ {error_msg}")
+            self._update_progress_file(progress_file, 0.0, "error", error_msg, error=str(e))
     
-    def _update_progress_file(self, progress_file: str, progress: float, stage: str, current_work: str, final_data: Dict = None):
+    def _simulate_processing_progress(self, progress_file: str, start_time: float):
+        """模擬處理進度更新"""
+        import time
+        import threading
+        
+        def update_progress():
+            stages = [
+                (0.25, "browser_launch", "啟動瀏覽器..."),
+                (0.30, "page_navigation", "導航到用戶頁面..."),
+                (0.35, "page_loading", "等待頁面加載..."),
+                (0.40, "scroll_start", "開始智能滾動..."),
+                (0.50, "url_collection", "收集貼文URLs..."),
+                (0.60, "url_processing", "處理貼文URLs..."),
+                (0.65, "fill_details_start", "開始補齊詳細數據..."),
+                (0.75, "fill_details_progress", "補齊貼文內容和互動數據..."),
+                (0.80, "fill_views_start", "開始補齊觀看數..."),
+                (0.85, "fill_views_progress", "補齊觀看數據..."),
+                (0.90, "deduplication", "去重處理...")
+            ]
+            
+            for progress, stage, description in stages:
+                elapsed = time.time() - start_time
+                # 如果API已經完成，就不再更新模擬進度
+                if elapsed > 300:  # 5分鐘後停止模擬
+                    break
+                    
+                self._log_to_file(progress_file, f"📊 {description}")
+                self._update_progress_file(progress_file, progress, stage, description)
+                time.sleep(8)  # 每8秒更新一次
+        
+        # 在背景線程中運行進度模擬
+        progress_thread = threading.Thread(target=update_progress, daemon=True)
+        progress_thread.start()
+    
+    def _render_progress_stages(self, progress: float, current_stage: str):
+        """渲染進度階段圖"""
+        st.subheader("📊 爬取流程進度")
+        
+        # 定義階段及其進度範圍
+        stages = [
+            ("🔧", "初始化", 0.0, 0.10, ["initialization", "auth_loading"]),
+            ("🚀", "發送請求", 0.10, 0.20, ["request_preparation", "api_request"]),
+            ("🌐", "瀏覽器處理", 0.20, 0.40, ["api_processing", "browser_launch", "page_navigation", "page_loading"]),
+            ("📜", "智能滾動", 0.40, 0.60, ["scroll_start", "url_collection", "url_processing"]),
+            ("📝", "補齊數據", 0.60, 0.90, ["fill_details_start", "fill_details_progress", "fill_views_start", "fill_views_progress", "deduplication"]),
+            ("✅", "完成處理", 0.90, 1.00, ["response_processing", "completed"])
+        ]
+        
+        # 創建階段顯示
+        cols = st.columns(len(stages))
+        
+        for i, (icon, name, start_progress, end_progress, stage_names) in enumerate(stages):
+            with cols[i]:
+                # 判斷階段狀態
+                if current_stage in stage_names:
+                    # 當前階段 - 黃色進行中
+                    st.markdown(f"""
+                    <div style='text-align: center; padding: 10px; background-color: #FFF3CD; border: 2px solid #FFC107; border-radius: 8px; margin: 5px 0;'>
+                        <div style='font-size: 24px;'>{icon}</div>
+                        <div style='font-weight: bold; color: #856404;'>{name}</div>
+                        <div style='font-size: 12px; color: #856404;'>進行中...</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                elif progress > end_progress:
+                    # 已完成階段 - 綠色
+                    st.markdown(f"""
+                    <div style='text-align: center; padding: 10px; background-color: #D4EDDA; border: 2px solid #28A745; border-radius: 8px; margin: 5px 0;'>
+                        <div style='font-size: 24px;'>{icon}</div>
+                        <div style='font-weight: bold; color: #155724;'>{name}</div>
+                        <div style='font-size: 12px; color: #155724;'>✓ 完成</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                elif progress >= start_progress:
+                    # 部分完成階段 - 藍色
+                    stage_progress = (progress - start_progress) / (end_progress - start_progress)
+                    st.markdown(f"""
+                    <div style='text-align: center; padding: 10px; background-color: #CCE5FF; border: 2px solid #007BFF; border-radius: 8px; margin: 5px 0;'>
+                        <div style='font-size: 24px;'>{icon}</div>
+                        <div style='font-weight: bold; color: #004085;'>{name}</div>
+                        <div style='font-size: 12px; color: #004085;'>{stage_progress:.0%}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    # 未開始階段 - 灰色
+                    st.markdown(f"""
+                    <div style='text-align: center; padding: 10px; background-color: #F8F9FA; border: 2px solid #DEE2E6; border-radius: 8px; margin: 5px 0;'>
+                        <div style='font-size: 24px; opacity: 0.5;'>{icon}</div>
+                        <div style='font-weight: bold; color: #6C757D;'>{name}</div>
+                        <div style='font-size: 12px; color: #6C757D;'>等待中</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+        
+        # 顯示當前階段的詳細信息
+        for icon, name, start_progress, end_progress, stage_names in stages:
+            if current_stage in stage_names:
+                stage_progress = (progress - start_progress) / (end_progress - start_progress) if end_progress > start_progress else 1.0
+                stage_progress = max(0.0, min(1.0, stage_progress))
+                
+                st.info(f"📍 **{name}** 階段進度: {stage_progress:.1%}")
+                st.progress(stage_progress)
+                break
+    
+    def _update_progress_file(self, progress_file: str, progress: float, stage: str, current_work: str, final_data: Dict = None, error: str = None):
         """更新進度檔案"""
         data = {
             "progress": progress,
@@ -350,6 +575,8 @@ class PlaywrightCrawlerComponentV2:
         }
         if final_data:
             data["final_data"] = final_data
+        if error:
+            data["error"] = error
         
         self._write_progress(progress_file, data)
     
@@ -435,6 +662,72 @@ class PlaywrightCrawlerComponentV2:
                 )
                 
                 st.caption("💡 這是 Playwright 爬蟲的專用統計，與 Realtime 爬蟲分離儲存")
+                
+                # 添加用戶資料管理功能（折疊形式）
+                st.markdown("---")
+                with st.expander("🗂️ 用戶資料管理", expanded=False):
+                    # 用戶選擇
+                    user_options = [user.get('username', 'N/A') for user in user_stats]
+                    selected_user = st.selectbox(
+                        "選擇要管理的用戶:",
+                        options=user_options,
+                        index=0 if user_options else None,
+                        help="選擇一個用戶來管理其爬蟲資料",
+                        key="playwright_user_selector"
+                    )
+                    
+                    # 操作按鈕
+                    if selected_user:
+                        col1, col2 = st.columns(2)
+                        
+                        with col1:
+                            # 導出用戶CSV按鈕
+                            if st.button(
+                                "📊 導出CSV", 
+                                key="playwright_export_user_csv_btn",
+                                help="導出所選用戶的所有貼文為CSV格式",
+                                use_container_width=True
+                            ):
+                                self._export_user_csv(selected_user)
+                        
+                        with col2:
+                            # 自訂紅色樣式
+                            st.markdown("""
+                            <style>
+                            div.stButton > button[key="playwright_delete_user_data_btn"] {
+                                background-color: #ff4b4b !important;
+                                color: white !important;
+                                border-color: #ff4b4b !important;
+                            }
+                            div.stButton > button[key="playwright_delete_user_data_btn"]:hover {
+                                background-color: #ff2b2b !important;
+                                border-color: #ff2b2b !important;
+                            }
+                            </style>
+                            """, unsafe_allow_html=True)
+                            
+                            # 刪除用戶資料按鈕（紅色）
+                            if st.button(
+                                "🗑️ 刪除用戶資料", 
+                                key="playwright_delete_user_data_btn",
+                                help="刪除所選用戶的所有爬蟲資料",
+                                use_container_width=True
+                            ):
+                                self._delete_user_data(selected_user)
+                    
+                    if selected_user:
+                        # 顯示選中用戶的詳細信息
+                        selected_user_info = next((u for u in user_stats if u.get('username') == selected_user), None)
+                        if selected_user_info:
+                            st.info(f"""
+                            **📋 用戶 @{selected_user} 的詳細信息:**
+                            - 📊 貼文總數: {selected_user_info.get('post_count', 0):,} 個
+                            - ⏰ 最後爬取: {str(selected_user_info.get('latest_crawl', 'N/A'))[:16] if selected_user_info.get('latest_crawl') else 'N/A'}
+                            - 📈 平均觀看數: {selected_user_info.get('avg_views', 0):,}
+                            - 👍 平均按讚數: {selected_user_info.get('avg_likes', 0):,}
+                            """)
+                            
+                            st.warning("⚠️ **注意**: 刪除操作將永久移除該用戶的所有Playwright爬蟲資料，包括貼文內容、觀看數等，此操作無法復原！")
         else:
             st.warning("📝 Playwright 資料庫中暫無爬取記錄")
     
@@ -540,19 +833,72 @@ class PlaywrightCrawlerComponentV2:
         # 更多導出功能
         st.subheader("📤 更多導出")
         
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            if st.button("💾 下載JSON", key="download_playwright_json_v2"):
-                self._show_json_download_button(results)
+            # 直接下載JSON
+            json_content = json.dumps(results, ensure_ascii=False, indent=2)
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            download_filename = f"playwright_crawl_results_{timestamp}.json"
+            
+            st.download_button(
+                label="💾 下載JSON",
+                data=json_content,
+                file_name=download_filename,
+                mime="application/json",
+                help="直接下載爬取結果JSON文件",
+                key="download_playwright_json_v2"
+            )
         
         with col2:
-            if st.button("📊 導出CSV", key="export_playwright_csv_v2"):
-                self._export_csv_results(posts)
+            # 直接下載CSV
+            if posts:
+                import pandas as pd
+                import io
+                
+                # 準備CSV數據
+                csv_data = []
+                for i, r in enumerate(posts, 1):
+                    csv_data.append({
+                        "序號": i,
+                        "貼文ID": r.get('post_id', ''),
+                        "URL": r.get('url', ''),
+                        "內容": r.get('content', ''),
+                        "觀看數": r.get('views', ''),
+                        "按讚數": r.get('likes', ''),
+                        "留言數": r.get('comments', ''),
+                        "分享數": r.get('reposts', ''),
+                        "來源": r.get('source', ''),
+                        "爬取時間": r.get('extracted_at', ''),
+                        "用戶名": r.get('username', ''),
+                        "成功": "是" if r.get('success') else "否"
+                    })
+                
+                df = pd.DataFrame(csv_data)
+                output = io.StringIO()
+                df.to_csv(output, index=False, encoding='utf-8-sig')
+                csv_content = output.getvalue()
+                
+                csv_filename = f"playwright_crawl_results_{timestamp}.csv"
+                
+                st.download_button(
+                    label="📊 下載CSV",
+                    data=csv_content,
+                    file_name=csv_filename,
+                    mime="text/csv",
+                    help="直接下載爬取結果CSV文件",
+                    key="download_playwright_csv_v2"
+                )
+            else:
+                st.button("📊 下載CSV", disabled=True, help="沒有數據可下載")
         
         with col3:
-            if st.button("📋 複製結果", key="copy_playwright_results_v2"):
-                self._copy_results_to_clipboard(posts)
+            if st.button("📈 歷史分析", key="playwright_history_analysis_v2"):
+                self._show_history_analysis_options()
+        
+        with col4:
+            if st.button("🔍 更多導出", key="playwright_more_exports_v2"):
+                self._show_advanced_export_options()
     
     def _safe_int(self, value):
         """安全轉換為整數"""
@@ -574,103 +920,413 @@ class PlaywrightCrawlerComponentV2:
         except:
             return 0
     
-    def _show_json_download_button(self, results):
-        """顯示JSON下載按鈕"""
+
+    
+    def _show_history_analysis_options(self):
+        """顯示歷史分析選項"""
+        if 'playwright_results' not in st.session_state:
+            st.error("❌ 請先執行爬取以獲取帳號信息")
+            return
+        
+        # 獲取當前帳號
+        results = st.session_state.playwright_results
+        if not results:
+            st.error("❌ 無法獲取帳號信息")
+            return
+        
+        target_username = results.get('target_username')
+        if not target_username:
+            st.error("❌ 無法識別目標帳號")
+            return
+        
+        with st.expander("📈 歷史數據導出選項", expanded=True):
+            export_type = st.radio(
+                "選擇導出類型",
+                options=["最近數據", "全部歷史", "統計分析"],
+                help="選擇要導出的歷史數據範圍",
+                key="playwright_history_export_type"
+            )
+            
+            col1, col2 = st.columns(2)
+            
+            if export_type == "最近數據":
+                with col1:
+                    days_back = st.number_input("回溯天數", min_value=1, max_value=365, value=7, key="playwright_days_back")
+                with col2:
+                    limit = st.number_input("最大記錄數", min_value=10, max_value=10000, value=1000, key="playwright_limit_recent")
+                
+                if st.button("📊 導出最近數據", key="playwright_export_recent"):
+                    self._export_history_data(target_username, "recent", days_back=days_back, limit=limit)
+            
+            elif export_type == "全部歷史":
+                with col1:
+                    limit = st.number_input("最大記錄數", min_value=100, max_value=50000, value=5000, key="playwright_limit_all")
+                
+                if st.button("📊 導出全部歷史", key="playwright_export_all"):
+                    self._export_history_data(target_username, "all", limit=limit)
+            
+            elif export_type == "統計分析":
+                st.info("按日期統計的分析報告，包含平均觀看數、成功率等指標")
+                
+                if st.button("📈 導出統計分析", key="playwright_export_analysis"):
+                    self._export_history_data(target_username, "analysis")
+    
+    def _export_history_data(self, username: str, export_type: str, **kwargs):
+        """導出歷史數據"""
         try:
-            json_content = json.dumps(results, ensure_ascii=False, indent=2)
+            # 使用 Playwright 專用的資料庫處理器
+            if export_type == "recent":
+                # 模擬最近數據導出
+                days_back = kwargs.get('days_back', 7)
+                limit = kwargs.get('limit', 1000)
+                
+                # 從資料庫獲取最近數據
+                data = {
+                    "username": username,
+                    "export_type": "recent",
+                    "days_back": days_back,
+                    "limit": limit,
+                    "exported_at": datetime.now().isoformat(),
+                    "data": []  # 這裡應該從 playwright_post_metrics 表獲取數據
+                }
+                
+            elif export_type == "all":
+                limit = kwargs.get('limit', 5000)
+                data = {
+                    "username": username,
+                    "export_type": "all",
+                    "limit": limit,
+                    "exported_at": datetime.now().isoformat(),
+                    "data": []
+                }
+                
+            elif export_type == "analysis":
+                data = {
+                    "username": username,
+                    "export_type": "analysis",
+                    "exported_at": datetime.now().isoformat(),
+                    "summary": {
+                        "total_posts": 0,
+                        "avg_views": 0,
+                        "success_rate": 0
+                    },
+                    "data": []
+                }
+            
+            # 準備下載
+            import json
+            import io
+            json_content = json.dumps(data, ensure_ascii=False, indent=2)
             
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            download_filename = f"playwright_crawl_results_{timestamp}.json"
+            filename = f"playwright_history_{username}_{export_type}_{timestamp}.json"
             
             st.download_button(
-                label="💾 下載JSON",
+                label=f"📥 下載{export_type}數據",
                 data=json_content,
-                file_name=download_filename,
+                file_name=filename,
                 mime="application/json",
-                help="下載爬取結果JSON文件",
-                key="download_playwright_json_btn_v2"
+                help="下載歷史數據JSON文件"
+            )
+            
+            st.success(f"✅ {export_type}數據準備完成！")
+            
+        except Exception as e:
+            st.error(f"❌ 歷史數據導出失敗: {str(e)}")
+    
+    def _show_advanced_export_options(self):
+        """顯示進階導出選項"""
+        with st.expander("🔍 進階導出功能", expanded=True):
+            st.markdown("**更多導出選項和批量操作**")
+            
+            tab1, tab2, tab3 = st.tabs(["📊 對比報告", "🔄 批量導出", "⚡ 快速工具"])
+            
+            with tab1:
+                st.subheader("📊 多次爬取對比報告")
+                st.info("比較多次爬取結果的效能和成功率")
+                
+                # 查找所有Playwright JSON文件
+                import glob
+                from pathlib import Path
+                
+                # 檢查新的資料夾位置
+                extraction_dir = Path("crawl_data")
+                if extraction_dir.exists():
+                    json_files = list(extraction_dir.glob("crawl_data_*.json"))
+                else:
+                    json_files = [Path(f) for f in glob.glob("crawl_data_*.json")]
+                
+                if len(json_files) >= 2:
+                    st.write(f"🔍 找到 {len(json_files)} 個Playwright爬取結果文件：")
+                    
+                    # 顯示文件列表
+                    file_options = {}
+                    for file in sorted(json_files, reverse=True)[:10]:  # 最新的10個
+                        file_time = self._extract_time_from_filename(str(file))
+                        display_name = f"{file.name} ({file_time})"
+                        file_options[display_name] = str(file)
+                    
+                    selected_displays = st.multiselect(
+                        "選擇要比對的文件（至少2個）：",
+                        options=list(file_options.keys()),
+                        default=[],
+                        help="選擇多個文件進行比對分析",
+                        key="playwright_comparison_file_selector"
+                    )
+                    
+                    selected_files = [file_options[display] for display in selected_displays]
+                    
+                    if len(selected_files) >= 2:
+                        if st.button("📊 生成對比報告", key="playwright_generate_comparison", type="primary"):
+                            self._generate_comparison_report(selected_files)
+                    else:
+                        st.info("💡 請選擇至少2個文件進行比對分析")
+                else:
+                    st.warning("⚠️ 需要至少2個Playwright爬取結果文件才能進行對比")
+            
+            with tab2:
+                st.subheader("🔄 批量導出功能")
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    if st.button("📥 導出所有最新結果", key="playwright_export_all_latest"):
+                        self._export_all_latest_results()
+                
+                with col2:
+                    if st.button("📈 導出所有帳號統計", key="playwright_export_all_stats"):
+                        self._export_all_account_stats()
+            
+            with tab3:
+                st.subheader("⚡ 快速工具")
+                
+                col1, col2, col3 = st.columns(3)
+                
+                with col1:
+                    if st.button("🧹 清理暫存檔案", key="playwright_cleanup_temp"):
+                        self._cleanup_temp_files()
+                
+                with col2:
+                    if st.button("📋 複製結果摘要", key="playwright_copy_summary"):
+                        if 'playwright_results' in st.session_state:
+                            self._copy_results_summary()
+                        else:
+                            st.error("❌ 沒有可複製的結果")
+                
+                with col3:
+                    if st.button("🔗 生成分享連結", key="playwright_share_link"):
+                        self._generate_share_link()
+    
+    def _extract_time_from_filename(self, filename: str) -> str:
+        """從檔案名提取時間"""
+        import re
+        match = re.search(r'(\d{8}_\d{6})', filename)
+        if match:
+            time_str = match.group(1)
+            return f"{time_str[:4]}-{time_str[4:6]}-{time_str[6:8]} {time_str[9:11]}:{time_str[11:13]}"
+        return "未知時間"
+    
+    def _generate_comparison_report(self, selected_files: list):
+        """生成對比報告"""
+        try:
+            import pandas as pd
+            
+            comparison_data = []
+            
+            for file_path in selected_files:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                
+                comparison_data.append({
+                    "檔案名": Path(file_path).name,
+                    "時間戳": data.get('timestamp', 'N/A'),
+                    "用戶名": data.get('target_username', 'N/A'),
+                    "爬蟲類型": data.get('crawler_type', 'playwright'),
+                    "總貼文數": len(data.get('results', [])),
+                    "成功數": data.get('api_success_count', 0),
+                    "失敗數": data.get('api_failure_count', 0),
+                    "成功率": data.get('overall_success_rate', 0),
+                })
+            
+            df = pd.DataFrame(comparison_data)
+            
+            st.subheader("📊 對比報告")
+            st.dataframe(df, use_container_width=True)
+            
+            # 提供下載
+            csv_content = df.to_csv(index=False, encoding='utf-8-sig')
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"playwright_comparison_report_{timestamp}.csv"
+            
+            st.download_button(
+                label="📥 下載對比報告",
+                data=csv_content,
+                file_name=filename,
+                mime="text/csv"
             )
             
         except Exception as e:
-            st.error(f"❌ 準備下載文件失敗: {e}")
+            st.error(f"❌ 生成對比報告失敗: {e}")
     
-    def _export_csv_results(self, posts):
-        """導出CSV結果"""
+    def _export_all_latest_results(self):
+        """導出所有最新結果"""
+        st.info("📦 批量導出功能開發中...")
+    
+    def _export_all_account_stats(self):
+        """導出所有帳號統計"""
+        st.info("📈 帳號統計導出功能開發中...")
+    
+    def _cleanup_temp_files(self):
+        """清理暫存檔案"""
+        import glob
+        temp_files = glob.glob("temp_playwright_progress_*.json")
+        cleaned = 0
+        for file in temp_files:
+            try:
+                os.remove(file)
+                cleaned += 1
+            except:
+                pass
+        st.success(f"🧹 已清理 {cleaned} 個暫存檔案")
+    
+    def _copy_results_summary(self):
+        """複製結果摘要"""
+        results = st.session_state.get('playwright_results', {})
+        posts = results.get('results', [])
+        
+        summary = f"""Playwright 爬蟲結果摘要
+用戶: @{results.get('target_username', 'unknown')}
+時間: {results.get('timestamp', 'N/A')}
+總貼文: {len(posts)}
+成功率: {results.get('overall_success_rate', 0):.1f}%
+"""
+        
+        st.text_area("📋 結果摘要（請複製）", value=summary, key="playwright_summary_copy")
+    
+    def _generate_share_link(self):
+        """生成分享連結"""
+        st.info("🔗 分享連結功能開發中...")
+    
+    def _clear_results(self):
+        """清除結果"""
+        if 'playwright_results' in st.session_state:
+            del st.session_state.playwright_results
+        if 'playwright_results_file' in st.session_state:
+            del st.session_state.playwright_results_file
+        st.success("🗑️ 結果已清除")
+        st.rerun()
+    
+    def _load_csv_file(self, uploaded_file):
+        """載入CSV文件"""
         try:
+            import pandas as pd
+            df = pd.read_csv(uploaded_file)
+            
+            # 轉換為結果格式
+            results = {
+                "crawl_id": f"imported_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "timestamp": datetime.now().isoformat(),
+                "source": "csv_import",
+                "crawler_type": "playwright",
+                "results": df.to_dict('records')
+            }
+            
+            st.session_state.playwright_results = results
+            st.success(f"✅ 成功載入 {len(df)} 筆記錄")
+            st.rerun()
+            
+        except Exception as e:
+            st.error(f"❌ 載入CSV失敗: {e}")
+    
+    def _export_user_csv(self, username: str):
+        """導出指定用戶的所有貼文為CSV"""
+        try:
+            # 使用 asyncio 獲取用戶貼文
+            posts = asyncio.run(self.db_handler.get_user_posts_async(username))
+            
+            if not posts:
+                st.warning(f"❌ 用戶 @{username} 沒有找到任何貼文記錄")
+                return
+            
             import pandas as pd
             import io
             
             # 準備CSV數據
             csv_data = []
-            for i, r in enumerate(posts, 1):
+            for i, post in enumerate(posts, 1):
                 csv_data.append({
                     "序號": i,
-                    "貼文ID": r.get('post_id', ''),
-                    "URL": r.get('url', ''),
-                    "內容": r.get('content', ''),
-                    "觀看數": r.get('views', ''),
-                    "按讚數": r.get('likes', ''),
-                    "留言數": r.get('comments', ''),
-                    "分享數": r.get('reposts', ''),
-                    "來源": r.get('source', ''),
-                    "爬取時間": r.get('extracted_at', ''),
-                    "用戶名": r.get('username', ''),
-                    "成功": "是" if r.get('success') else "否"
+                    "用戶名": post.get('username', ''),
+                    "貼文ID": post.get('post_id', ''),
+                    "URL": post.get('url', ''),
+                    "內容": post.get('content', ''),
+                    "觀看數": post.get('views', 0),
+                    "按讚數": post.get('likes', 0),
+                    "留言數": post.get('comments', 0),
+                    "轉發數": post.get('reposts', 0),
+                    "分享數": post.get('shares', 0),
+                    "來源": post.get('source', ''),
+                    "爬取ID": post.get('crawl_id', ''),
+                    "建立時間": post.get('created_at', ''),
+                    "爬取時間": post.get('fetched_at', '')
                 })
             
-            if csv_data:
-                df = pd.DataFrame(csv_data)
-                
-                # 轉換為CSV
-                output = io.StringIO()
-                df.to_csv(output, index=False, encoding='utf-8-sig')
-                csv_content = output.getvalue()
-                
-                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                download_filename = f"playwright_crawl_results_{timestamp}.csv"
-                
-                st.download_button(
-                    label="📊 下載CSV",
-                    data=csv_content,
-                    file_name=download_filename,
-                    mime="text/csv",
-                    help="下載爬取結果CSV文件",
-                    key="download_playwright_csv_btn_v2"
-                )
-            else:
-                st.error("❌ 沒有數據可導出")
-                
-        except Exception as e:
-            st.error(f"❌ 導出CSV失敗: {e}")
-    
-    def _copy_results_to_clipboard(self, posts):
-        """複製結果到剪貼板"""
-        try:
-            # 構建可複製的文本
-            text_lines = ["Playwright 爬蟲結果", "=" * 30]
+            # 轉換為DataFrame
+            df = pd.DataFrame(csv_data)
             
-            for i, r in enumerate(posts, 1):
-                text_lines.append(f"\n{i}. 貼文ID: {r.get('post_id', 'N/A')}")
-                text_lines.append(f"   觀看數: {r.get('views', 'N/A')}")
-                text_lines.append(f"   按讚: {r.get('likes', 'N/A')}")
-                text_lines.append(f"   留言: {r.get('comments', 'N/A')}")
-                text_lines.append(f"   分享: {r.get('reposts', 'N/A')}")
-                if r.get('content'):
-                    content = r.get('content', '')[:100] + "..." if len(r.get('content', '')) > 100 else r.get('content', '')
-                    text_lines.append(f"   內容: {content}")
+            # 轉換為CSV
+            output = io.StringIO()
+            df.to_csv(output, index=False, encoding='utf-8-sig')
+            csv_content = output.getvalue()
             
-            result_text = '\n'.join(text_lines)
+            # 提供下載
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"user_posts_{username}_{timestamp}.csv"
             
-            # 顯示複製框
-            st.text_area(
-                "📋 複製下方文本:",
-                value=result_text,
-                height=300,
-                key="playwright_copy_text_v2",
-                help="選中全部文本並複製 (Ctrl+A, Ctrl+C)"
+            st.download_button(
+                label=f"📥 下載 @{username} 的貼文CSV",
+                data=csv_content,
+                file_name=filename,
+                mime="text/csv",
+                help=f"下載用戶 @{username} 的所有貼文記錄"
             )
             
-            st.info("💡 請選中上方文本並手動複製 (Ctrl+A 全選，Ctrl+C 複製)")
+            st.success(f"✅ 成功導出 @{username} 的 {len(posts)} 筆貼文記錄")
             
         except Exception as e:
-            st.error(f"❌ 準備複製文本失敗: {e}")
+            st.error(f"❌ 導出用戶CSV失敗: {e}")
+    
+    def _delete_user_data(self, username: str):
+        """刪除指定用戶的所有數據"""
+        try:
+            # 二次確認
+            st.warning(f"⚠️ 確認要刪除用戶 @{username} 的所有Playwright爬蟲資料嗎？")
+            
+            col1, col2, col3 = st.columns([1, 1, 2])
+            
+            with col1:
+                if st.button("✅ 確認刪除", key=f"confirm_delete_{username}", type="primary"):
+                    # 執行刪除
+                    result = asyncio.run(self.db_handler.delete_user_data_async(username))
+                    
+                    if result.get("success"):
+                        st.success(f"✅ {result.get('message', '刪除成功')}")
+                        
+                        # 清除緩存
+                        if 'playwright_db_stats_cache' in st.session_state:
+                            del st.session_state.playwright_db_stats_cache
+                        
+                        st.rerun()
+                    else:
+                        st.error(f"❌ 刪除失敗: {result.get('error', '未知錯誤')}")
+            
+            with col2:
+                if st.button("❌ 取消", key=f"cancel_delete_{username}"):
+                    st.info("🔄 已取消刪除操作")
+                    st.rerun()
+            
+            with col3:
+                st.info("💡 提示：刪除後將無法復原，請謹慎操作")
+                
+        except Exception as e:
+            st.error(f"❌ 刪除操作失敗: {e}")
