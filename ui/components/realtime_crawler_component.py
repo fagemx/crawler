@@ -1533,17 +1533,31 @@ if __name__ == "__main__":
                     from datetime import datetime
                     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
                     csv_file = f"export_all_accounts_stats_{timestamp}.csv"
-                    df.to_csv(csv_file, index=False, encoding='utf-8-sig')
                     
-                    st.success("✅ 所有帳號統計導出成功！")
-                    st.info(f"📁 文件位置: {csv_file}")
+                    # 使用字節流導出並提供下載
+                    import io
+                    output = io.BytesIO()
+                    df.to_csv(output, index=False, encoding='utf-8-sig')
+                    csv_content = output.getvalue()
+                    
+                    st.download_button(
+                        label="📥 下載所有帳號統計",
+                        data=csv_content,
+                        file_name=csv_file,
+                        mime="text/csv",
+                        help="下載所有帳號的統計數據"
+                    )
+                    st.success("✅ 所有帳號統計準備完成！")
                     
                     # 顯示預覽
                     st.write("**統計預覽：**")
                     st.dataframe(df, use_container_width=True)
                     
-                    # 提供下載
-                    csv_content = df.to_csv(index=False, encoding='utf-8-sig')
+                    # 提供下載 - 使用字節流確保正確編碼
+                    import io
+                    output = io.BytesIO()
+                    df.to_csv(output, index=False, encoding='utf-8-sig')
+                    csv_content = output.getvalue()
                     st.download_button(
                         label="📥 下載帳號統計",
                         data=csv_content,

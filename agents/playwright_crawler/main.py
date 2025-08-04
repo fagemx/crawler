@@ -69,6 +69,7 @@ class CrawlRequest(BaseModel):
     max_posts: int = Field(default=100, gt=0, le=500, description="要爬取的最大貼文數量")
     auth_json_content: Dict[str, Any] = Field(..., description="包含認證 cookies 和狀態的 auth.json 內容")
     task_id: Optional[str] = Field(default=None, description="任務 ID，用於進度追蹤")
+    incremental: bool = Field(default=True, description="增量模式：只爬取新貼文")
 
 class URLStatusItem(BaseModel):
     """單個URL的狀態信息"""
@@ -109,7 +110,8 @@ async def crawl_and_get_batch(request: CrawlRequest):
             username=request.username,
             extra_posts=request.max_posts,  # 向後兼容：max_posts作為extra_posts傳入
             auth_json_content=request.auth_json_content, # 使用傳入的認證內容
-            task_id=task_id
+            task_id=task_id,
+            incremental=request.incremental  # 傳遞增量模式參數
         )
         return batch
     except Exception as e:

@@ -59,6 +59,11 @@ class PlaywrightDatabaseHandler:
                                 comments_count INTEGER,
                                 reposts_count INTEGER,
                                 shares_count INTEGER,
+                                calculated_score DECIMAL,
+                                post_published_at TIMESTAMP,
+                                tags TEXT,
+                                images TEXT,
+                                videos TEXT,
                                 source VARCHAR(100) DEFAULT 'playwright_agent',
                                 crawler_type VARCHAR(50) DEFAULT 'playwright',
                                 crawl_id VARCHAR(255),
@@ -83,19 +88,30 @@ class PlaywrightDatabaseHandler:
                         for result in results:
                             try:
                                 # 解析數字字段
-                                views_count = PlaywrightUtils.parse_number_safe(result.get('views', ''))
-                                likes_count = PlaywrightUtils.parse_number_safe(result.get('likes', ''))
-                                comments_count = PlaywrightUtils.parse_number_safe(result.get('comments', ''))
-                                reposts_count = PlaywrightUtils.parse_number_safe(result.get('reposts', ''))
-                                shares_count = PlaywrightUtils.parse_number_safe(result.get('shares', ''))
+                                views_count = PlaywrightUtils.parse_number_safe(result.get('views_count', result.get('views', '')))
+                                likes_count = PlaywrightUtils.parse_number_safe(result.get('likes_count', result.get('likes', '')))
+                                comments_count = PlaywrightUtils.parse_number_safe(result.get('comments_count', result.get('comments', '')))
+                                reposts_count = PlaywrightUtils.parse_number_safe(result.get('reposts_count', result.get('reposts', '')))
+                                shares_count = PlaywrightUtils.parse_number_safe(result.get('shares_count', result.get('shares', '')))
+                                calculated_score = result.get('calculated_score', 0)
+                                
+                                # 處理時間字段
+                                post_published_at = result.get('post_published_at', '')
+                                
+                                # 處理陣列字段，轉換為 JSON 字符串
+                                import json
+                                tags_json = json.dumps(result.get('tags', []), ensure_ascii=False)
+                                images_json = json.dumps(result.get('images', []), ensure_ascii=False)
+                                videos_json = json.dumps(result.get('videos', []), ensure_ascii=False)
                                 
                                 # 使用 UPSERT 避免重複
                                 await conn.execute("""
                                     INSERT INTO playwright_post_metrics (
                                         username, post_id, url, content, 
                                         views_count, likes_count, comments_count, reposts_count, shares_count,
+                                        calculated_score, post_published_at, tags, images, videos,
                                         source, crawler_type, crawl_id, created_at
-                                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
+                                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW())
                                     ON CONFLICT (username, post_id, crawler_type) 
                                     DO UPDATE SET
                                         url = EXCLUDED.url,
@@ -105,6 +121,11 @@ class PlaywrightDatabaseHandler:
                                         comments_count = EXCLUDED.comments_count,
                                         reposts_count = EXCLUDED.reposts_count,
                                         shares_count = EXCLUDED.shares_count,
+                                        calculated_score = EXCLUDED.calculated_score,
+                                        post_published_at = EXCLUDED.post_published_at,
+                                        tags = EXCLUDED.tags,
+                                        images = EXCLUDED.images,
+                                        videos = EXCLUDED.videos,
                                         crawl_id = EXCLUDED.crawl_id,
                                         fetched_at = CURRENT_TIMESTAMP
                                 """, 
@@ -117,6 +138,11 @@ class PlaywrightDatabaseHandler:
                                     comments_count,
                                     reposts_count,
                                     shares_count,
+                                    calculated_score,
+                                    post_published_at,
+                                    tags_json,
+                                    images_json,
+                                    videos_json,
                                     'playwright_agent',
                                     'playwright',
                                     crawl_id
@@ -255,10 +281,10 @@ class PlaywrightDatabaseHandler:
             
             async with db.get_connection() as conn:
                 query = """
-                    SELECT username, post_id, content, views_count as views, 
-                           likes_count as likes, comments_count as comments, 
-                           reposts_count as reposts, shares_count as shares,
-                           url, source, crawl_id, created_at, fetched_at
+                    SELECT username, post_id, content, views_count, 
+                           likes_count, comments_count, reposts_count, shares_count,
+                           calculated_score, post_published_at, tags, images, videos,
+                           url, source, crawler_type, crawl_id, created_at, fetched_at
                     FROM playwright_post_metrics 
                     WHERE username = $1 
                     ORDER BY fetched_at DESC
@@ -268,7 +294,26 @@ class PlaywrightDatabaseHandler:
                 
                 posts = []
                 for row in rows:
-                    posts.append(dict(row))
+                    post = dict(row)
+                    
+                    # 將 JSON 字符串轉換回陣列
+                    import json
+                    try:
+                        post['tags'] = json.loads(post.get('tags', '[]')) if post.get('tags') else []
+                    except:
+                        post['tags'] = []
+                    
+                    try:
+                        post['images'] = json.loads(post.get('images', '[]')) if post.get('images') else []
+                    except:
+                        post['images'] = []
+                    
+                    try:
+                        post['videos'] = json.loads(post.get('videos', '[]')) if post.get('videos') else []
+                    except:
+                        post['videos'] = []
+                    
+                    posts.append(post)
                 
                 return posts
                 

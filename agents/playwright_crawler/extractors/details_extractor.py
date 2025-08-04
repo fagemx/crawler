@@ -38,8 +38,8 @@ class DetailsExtractor:
             logging.error("❌ Browser context 未初始化，無法執行 fill_post_details_from_page。")
             return posts_to_fill
 
-        # 減少並發數以避免觸發反爬蟲機制
-        semaphore = asyncio.Semaphore(1)  # 更保守的並發數
+        # 保守的並發數提升：從1增加到2，平衡速度與安全性
+        semaphore = asyncio.Semaphore(2)  # 輕微提升並發但保持安全
         
         async def fetch_single_details_hybrid(post: PostMetrics):
             async with semaphore:
@@ -53,19 +53,34 @@ class DetailsExtractor:
                     counts_data = {}
                     video_urls = set()
                     captured_graphql_request = {}
+                    response_handler_active = True
                     
                     async def handle_counts_response(response):
+                        if not response_handler_active:
+                            return  # 停止處理響應
                         await self._handle_graphql_response(response, counts_data, video_urls, captured_graphql_request)
                     
                     page.on("response", handle_counts_response)
                     
-                    # === 步驟 2: 導航和觸發載入 ===
-                    await page.goto(post.url, wait_until="networkidle", timeout=60000)
-                    await asyncio.sleep(3)
+                    # === 步驟 2: 導航和觸發載入（優化版：更快但安全的載入策略） ===
+                    await page.goto(post.url, wait_until="domcontentloaded", timeout=45000)
+                    
+                    # 智能等待：先短暫等待，如果沒有攔截到數據再延長
+                    await asyncio.sleep(1.5)  # 縮短初始等待時間
+                    
+                    # 檢查是否已經攔截到數據
+                    if not counts_data:
+                        logging.debug(f"   ⏳ 首次等待未攔截到數據，延長等待...")
+                        await asyncio.sleep(1.5)  # 額外等待1.5秒（總共3秒）
                     
                     # === 步驟 2.5: 混合策略重發請求 ===
                     if captured_graphql_request and not counts_data:
-                        counts_data = await self._resend_graphql_request(captured_graphql_request, post.url)
+                        counts_data = await self._resend_graphql_request(captured_graphql_request, post.url, context)
+                    
+                    # 成功獲取數據後停止監聽，避免不必要的攔截
+                    if counts_data and counts_data.get("likes", 0) > 0:
+                        response_handler_active = False
+                        logging.debug(f"   🛑 成功獲取計數數據，停止響應監聽")
                     
                     # 嘗試觸發影片載入
                     await self._trigger_video_loading(page)
@@ -98,32 +113,45 @@ class DetailsExtractor:
         return posts_to_fill
     
     async def _handle_graphql_response(self, response, counts_data: dict, video_urls: set, captured_graphql_request: dict):
-        """處理 GraphQL 響應的攔截"""
+        """處理 GraphQL 響應的攔截（優化版：支持去重）"""
         try:
             import json
             url = response.url.lower()
             headers = response.request.headers
             query_name = headers.get("x-fb-friendly-name", "")
             
+            # 檢查是否已經有完整數據，避免重複攔截
+            if (counts_data.get("likes", 0) > 0 and 
+                counts_data.get("comments", 0) >= 0 and 
+                counts_data.get("reposts", 0) >= 0 and 
+                counts_data.get("shares", 0) >= 0):
+                logging.debug(f"   ⏩ 已有完整計數數據，跳過重複攔截")
+                return
+            
             # 攔截計數查詢請求（保存headers和payload）
             if ("/graphql" in url and response.status == 200 and 
                 "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery" in query_name):
-                logging.info(f"   🎯 攔截到GraphQL計數查詢，保存請求信息...")
                 
-                # 保存請求信息（模仿hybrid_content_extractor.py的成功策略）
-                captured_graphql_request.update({
-                    "headers": dict(response.request.headers),
-                    "payload": response.request.post_data,
-                    "url": "https://www.threads.com/graphql/query"
-                })
-                
-                # 清理headers
-                clean_headers = captured_graphql_request["headers"].copy()
-                for h in ["host", "content-length", "accept-encoding"]:
-                    clean_headers.pop(h, None)
-                captured_graphql_request["clean_headers"] = clean_headers
-                
-                logging.info(f"   ✅ 成功保存GraphQL請求信息，準備重發...")
+                # 只在第一次攔截時記錄詳細日誌
+                if not captured_graphql_request.get("headers"):
+                    logging.info(f"   🎯 攔截到GraphQL計數查詢，保存請求信息...")
+                    
+                    # 保存請求信息（模仿hybrid_content_extractor.py的成功策略）
+                    captured_graphql_request.update({
+                        "headers": dict(response.request.headers),
+                        "payload": response.request.post_data,
+                        "url": "https://www.threads.com/graphql/query"
+                    })
+                    
+                    # 清理headers
+                    clean_headers = captured_graphql_request["headers"].copy()
+                    for h in ["host", "content-length", "accept-encoding"]:
+                        clean_headers.pop(h, None)
+                    captured_graphql_request["clean_headers"] = clean_headers
+                    
+                    logging.info(f"   ✅ 成功保存GraphQL請求信息，準備重發...")
+                else:
+                    logging.debug(f"   🔄 重複GraphQL攔截，使用已保存的請求信息")
                 
                 # 也嘗試直接解析當前響應（作為備用）
                 try:
@@ -134,13 +162,19 @@ class DetailsExtractor:
                             post_data = posts_list[0]
                             if isinstance(post_data, dict):
                                 text_info = post_data.get("text_post_app_info", {}) or {}
-                                counts_data.update({
+                                new_counts = {
                                     "likes": post_data.get("like_count") or 0,
                                     "comments": text_info.get("direct_reply_count") or 0, 
                                     "reposts": text_info.get("repost_count") or 0,
                                     "shares": text_info.get("reshare_count") or 0
-                                })
-                                logging.info(f"   ✅ 直接攔截成功: 讚={counts_data['likes']}, 留言={counts_data['comments']}, 轉發={counts_data['reposts']}, 分享={counts_data['shares']}")
+                                }
+                                
+                                # 只在沒有數據或數據更新時才更新
+                                if not counts_data or any(new_counts.get(k, 0) > counts_data.get(k, 0) for k in new_counts):
+                                    counts_data.update(new_counts)
+                                    logging.info(f"   ✅ 直接攔截成功: 讚={counts_data['likes']}, 留言={counts_data['comments']}, 轉發={counts_data['reposts']}, 分享={counts_data['shares']}")
+                                else:
+                                    logging.debug(f"   ⏩ 數據無更新，跳過重複記錄")
                 except Exception as e:
                     logging.debug(f"   ⚠️ 直接解析失敗: {e}")
             
@@ -158,7 +192,7 @@ class DetailsExtractor:
         except Exception as e:
             logging.debug(f"   ⚠️ 響應處理失敗: {e}")
     
-    async def _resend_graphql_request(self, captured_graphql_request: dict, post_url: str) -> dict:
+    async def _resend_graphql_request(self, captured_graphql_request: dict, post_url: str, context: BrowserContext) -> dict:
         """重發 GraphQL 請求"""
         logging.info(f"   🔄 使用保存的GraphQL請求信息重發請求...")
         counts_data = {}
@@ -266,12 +300,58 @@ class DetailsExtractor:
                     for i in range(min(count, 20)):
                         try:
                             text = await elements.nth(i).inner_text()
-                            if (text and len(text.strip()) > 10 and 
-                                not text.strip().isdigit() and
-                                "小時" not in text and "分鐘" not in text and
-                                not text.startswith("@")):
-                                content = text.strip()
-                                break
+                            
+                            # 基本過濾條件
+                            if not text or len(text.strip()) <= 10:
+                                continue
+                            if text.strip().isdigit():
+                                continue
+                            if text.startswith("@"):
+                                continue
+                            
+                            # 過濾時間相關
+                            if any(time_word in text for time_word in ["小時", "分鐘", "秒前", "天前", "週前", "個月前"]):
+                                continue
+                            
+                            # 過濾系統錯誤和提示信息（重點修復！）
+                            system_messages = [
+                                "Sorry, we're having trouble playing this video",
+                                "Learn more",
+                                "Something went wrong",
+                                "Video unavailable",
+                                "This content isn't available",
+                                "Unable to load",
+                                "Error loading",
+                                "播放發生錯誤",
+                                "無法播放",
+                                "載入失敗",
+                                "發生錯誤",
+                                "內容無法顯示"
+                            ]
+                            
+                            # 檢查是否包含系統錯誤信息
+                            text_lower = text.lower()
+                            if any(msg.lower() in text_lower for msg in system_messages):
+                                logging.debug(f"   ⚠️ 過濾系統錯誤信息: {text[:50]}...")
+                                continue
+                            
+                            # 過濾按鈕文字和導航
+                            button_texts = ["follow", "following", "like", "comment", "share", "more", "options"]
+                            if any(btn in text_lower for btn in button_texts):
+                                continue
+                            
+                            # 過濾純數字組合（讚數、分享數等）
+                            if re.match(r'^[\d,.\s]+$', text.strip()):
+                                continue
+                                
+                            # 過濾過短的內容
+                            if len(text.strip()) < 5:
+                                continue
+                            
+                            # 通過所有過濾條件，接受此內容
+                            content = text.strip()
+                            logging.debug(f"   ✅ 找到有效內容: {content[:50]}...")
+                            break
                         except:
                             continue
                     
@@ -279,6 +359,49 @@ class DetailsExtractor:
                         break
                 except:
                     continue
+            
+            # 如果沒有找到有效內容，嘗試其他策略
+            if not content:
+                logging.debug(f"   🔍 主要內容提取失敗，嘗試備用策略...")
+                
+                # 備用策略1：查找 aria-label 或 title 屬性
+                backup_selectors = [
+                    'div[aria-label]',
+                    'span[title]',
+                    '[data-testid="thread-description"]',
+                    'article[aria-label]'
+                ]
+                
+                for backup_selector in backup_selectors:
+                    try:
+                        elements = page.locator(backup_selector)
+                        backup_count = await elements.count()
+                        
+                        for i in range(min(backup_count, 10)):
+                            try:
+                                backup_text = await elements.nth(i).get_attribute("aria-label") or await elements.nth(i).get_attribute("title")
+                                if backup_text and len(backup_text.strip()) > 5:
+                                    # 同樣過濾系統錯誤信息
+                                    backup_text_lower = backup_text.lower()
+                                    if not any(msg.lower() in backup_text_lower for msg in [
+                                        "sorry, we're having trouble playing this video",
+                                        "learn more", "something went wrong", "video unavailable"
+                                    ]):
+                                        content = backup_text.strip()
+                                        logging.debug(f"   ✅ 備用策略找到內容: {content[:50]}...")
+                                        break
+                            except:
+                                continue
+                        
+                        if content:
+                            break
+                    except:
+                        continue
+                
+                # 如果仍然沒有內容，標記為影片貼文
+                if not content:
+                    logging.debug(f"   📹 可能是純影片貼文，無文字內容")
+                    content = ""  # 保持空字符串而不是錯誤信息
             
             content_data["content"] = content
             

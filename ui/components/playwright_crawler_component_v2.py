@@ -681,14 +681,8 @@ class PlaywrightCrawlerComponentV2:
                         col1, col2 = st.columns(2)
                         
                         with col1:
-                            # 導出用戶CSV按鈕
-                            if st.button(
-                                "📊 導出CSV", 
-                                key="playwright_export_user_csv_btn",
-                                help="導出所選用戶的所有貼文為CSV格式",
-                                use_container_width=True
-                            ):
-                                self._export_user_csv(selected_user)
+                            # 直接顯示下載按鈕（不需要分兩步）
+                            self._show_user_csv_download(selected_user)
                         
                         with col2:
                             # 自訂紅色樣式
@@ -798,14 +792,38 @@ class PlaywrightCrawlerComponentV2:
             
             table_data = []
             for i, r in enumerate(posts, 1):
+                # 處理 tags 顯示
+                tags = r.get('tags', [])
+                tags_display = ", ".join(tags) if tags else "無"
+                
+                # 處理圖片數量
+                images = r.get('images', [])
+                images_count = len(images) if images else 0
+                
+                # 處理影片數量
+                videos = r.get('videos', [])
+                videos_count = len(videos) if videos else 0
+                
+                # 處理時間顯示
+                created_at = r.get('created_at', '')
+                published_at = r.get('post_published_at', '')
+                
                 table_data.append({
                     "#": i,
-                    "貼文ID": r.get('post_id', 'N/A')[:15] + "..." if len(r.get('post_id', '')) > 15 else r.get('post_id', 'N/A'),
-                    "觀看數": r.get('views', 'N/A'),
-                    "按讚": r.get('likes', 'N/A'),
-                    "留言": r.get('comments', 'N/A'),
-                    "分享": r.get('reposts', 'N/A'),
-                    "內容預覽": (r.get('content', '')[:50] + "...") if r.get('content') else 'N/A',
+                    "貼文ID": r.get('post_id', 'N/A')[:20] + "..." if len(r.get('post_id', '')) > 20 else r.get('post_id', 'N/A'),
+                    "用戶名": r.get('username', 'N/A'),
+                    "內容預覽": (r.get('content', '')[:60] + "...") if r.get('content') else 'N/A',
+                    "觀看數": r.get('views_count', r.get('views', 'N/A')),
+                    "按讚": r.get('likes_count', r.get('likes', 'N/A')),
+                    "留言": r.get('comments_count', r.get('comments', 'N/A')),
+                    "轉發": r.get('reposts_count', r.get('reposts', 'N/A')),
+                    "分享": r.get('shares_count', r.get('shares', 'N/A')),
+                    "計算分數": r.get('calculated_score', 'N/A'),
+                    "標籤": tags_display,
+                    "圖片數": images_count,
+                    "影片數": videos_count,
+                    "發布時間": published_at[:19] if published_at else 'N/A',
+                    "爬取時間": created_at[:19] if created_at else 'N/A',
                     "狀態": "✅" if r.get('success') else "❌"
                 })
             
@@ -856,26 +874,45 @@ class PlaywrightCrawlerComponentV2:
                 import pandas as pd
                 import io
                 
-                # 準備CSV數據
+                # 準備CSV數據（與 JSON 格式完全一致）
                 csv_data = []
-                for i, r in enumerate(posts, 1):
+                for r in posts:
+                    # 處理 tags 陣列
+                    tags_str = "|".join(r.get('tags', [])) if r.get('tags') else ""
+                    
+                    # 處理 images 陣列
+                    images_str = "|".join(r.get('images', [])) if r.get('images') else ""
+                    
+                    # 處理 videos 陣列
+                    videos_str = "|".join(r.get('videos', [])) if r.get('videos') else ""
+                    
                     csv_data.append({
-                        "序號": i,
-                        "貼文ID": r.get('post_id', ''),
-                        "URL": r.get('url', ''),
-                        "內容": r.get('content', ''),
-                        "觀看數": r.get('views', ''),
-                        "按讚數": r.get('likes', ''),
-                        "留言數": r.get('comments', ''),
-                        "分享數": r.get('reposts', ''),
-                        "來源": r.get('source', ''),
-                        "爬取時間": r.get('extracted_at', ''),
-                        "用戶名": r.get('username', ''),
-                        "成功": "是" if r.get('success') else "否"
+                        "url": r.get('url', ''),
+                        "post_id": r.get('post_id', ''),
+                        "username": r.get('username', ''),
+                        "content": r.get('content', ''),
+                        "likes_count": r.get('likes_count', r.get('likes', '')),
+                        "comments_count": r.get('comments_count', r.get('comments', '')),
+                        "reposts_count": r.get('reposts_count', r.get('reposts', '')),
+                        "shares_count": r.get('shares_count', r.get('shares', '')),
+                        "views_count": r.get('views_count', r.get('views', '')),
+                        "calculated_score": r.get('calculated_score', ''),
+                        "created_at": r.get('created_at', ''),
+                        "post_published_at": r.get('post_published_at', ''),
+                        "tags": tags_str,
+                        "images": images_str,
+                        "videos": videos_str,
+                        "source": r.get('source', 'playwright_agent'),
+                        "crawler_type": r.get('crawler_type', 'playwright'),
+                        "crawl_id": r.get('crawl_id', ''),
+                        "extracted_at": r.get('extracted_at', ''),
+                        "success": r.get('success', True)
                     })
                 
                 df = pd.DataFrame(csv_data)
-                output = io.StringIO()
+                # 修復 CSV 編碼問題 - 使用字節流確保正確編碼
+                import io
+                output = io.BytesIO()
                 df.to_csv(output, index=False, encoding='utf-8-sig')
                 csv_content = output.getvalue()
                 
@@ -924,22 +961,67 @@ class PlaywrightCrawlerComponentV2:
     
     def _show_history_analysis_options(self):
         """顯示歷史分析選項"""
-        if 'playwright_results' not in st.session_state:
-            st.error("❌ 請先執行爬取以獲取帳號信息")
-            return
+        # 嘗試從多個來源獲取用戶名
+        target_username = None
         
-        # 獲取當前帳號
-        results = st.session_state.playwright_results
-        if not results:
-            st.error("❌ 無法獲取帳號信息")
-            return
+        # 方法1：從當前結果獲取
+        if 'playwright_results' in st.session_state:
+            results = st.session_state.playwright_results
+            if results:
+                target_username = results.get('target_username')
         
-        target_username = results.get('target_username')
+        # 方法2：從當前爬取目標獲取
+        if not target_username and 'playwright_target' in st.session_state:
+            target = st.session_state.playwright_target
+            if target:
+                target_username = target.get('username')
+        
+        # 方法3：讓用戶手動輸入
         if not target_username:
-            st.error("❌ 無法識別目標帳號")
-            return
+            st.info("💡 請輸入要分析的帳號名稱")
+            target_username = st.text_input(
+                "帳號名稱", 
+                placeholder="例如: natgeo", 
+                key="playwright_history_username_input"
+            )
+            
+            if not target_username:
+                st.warning("⚠️ 請輸入帳號名稱以繼續歷史分析")
+                return
         
         with st.expander("📈 歷史數據導出選項", expanded=True):
+            st.write(f"**目標帳號:** @{target_username}")
+            
+            # 排序選項
+            st.subheader("📊 排序設定")
+            col_sort1, col_sort2 = st.columns(2)
+            
+            with col_sort1:
+                sort_by = st.selectbox(
+                    "排序依據",
+                    options=["fetched_at", "views_count", "likes_count", "comments_count", "calculated_score", "post_published_at"],
+                    format_func=lambda x: {
+                        "fetched_at": "爬取時間",
+                        "views_count": "觀看數",
+                        "likes_count": "按讚數", 
+                        "comments_count": "留言數",
+                        "calculated_score": "計算分數",
+                        "post_published_at": "發布時間"
+                    }.get(x, x),
+                    key="playwright_history_sort_by"
+                )
+            
+            with col_sort2:
+                sort_order = st.selectbox(
+                    "排序順序",
+                    options=["DESC", "ASC"],
+                    format_func=lambda x: "降序 (高到低)" if x == "DESC" else "升序 (低到高)",
+                    key="playwright_history_sort_order"
+                )
+            
+            st.divider()
+            
+            # 導出類型
             export_type = st.radio(
                 "選擇導出類型",
                 options=["最近數據", "全部歷史", "統計分析"],
@@ -956,83 +1038,263 @@ class PlaywrightCrawlerComponentV2:
                     limit = st.number_input("最大記錄數", min_value=10, max_value=10000, value=1000, key="playwright_limit_recent")
                 
                 if st.button("📊 導出最近數據", key="playwright_export_recent"):
-                    self._export_history_data(target_username, "recent", days_back=days_back, limit=limit)
+                    self._export_history_data(target_username, "recent", 
+                                            days_back=days_back, limit=limit, 
+                                            sort_by=sort_by, sort_order=sort_order)
             
             elif export_type == "全部歷史":
                 with col1:
                     limit = st.number_input("最大記錄數", min_value=100, max_value=50000, value=5000, key="playwright_limit_all")
                 
                 if st.button("📊 導出全部歷史", key="playwright_export_all"):
-                    self._export_history_data(target_username, "all", limit=limit)
+                    self._export_history_data(target_username, "all", 
+                                            limit=limit, sort_by=sort_by, sort_order=sort_order)
             
             elif export_type == "統計分析":
                 st.info("按日期統計的分析報告，包含平均觀看數、成功率等指標")
                 
                 if st.button("📈 導出統計分析", key="playwright_export_analysis"):
-                    self._export_history_data(target_username, "analysis")
+                    self._export_history_data(target_username, "analysis", 
+                                            sort_by=sort_by, sort_order=sort_order)
     
     def _export_history_data(self, username: str, export_type: str, **kwargs):
         """導出歷史數據"""
         try:
-            # 使用 Playwright 專用的資料庫處理器
-            if export_type == "recent":
-                # 模擬最近數據導出
-                days_back = kwargs.get('days_back', 7)
-                limit = kwargs.get('limit', 1000)
+            import asyncio
+            
+            # 獲取排序參數
+            sort_by = kwargs.get('sort_by', 'fetched_at')
+            sort_order = kwargs.get('sort_order', 'DESC')
+            
+            with st.spinner(f"🔄 正在從資料庫獲取 @{username} 的{export_type}數據..."):
+                # 異步獲取資料庫數據
+                posts_data = asyncio.run(self._fetch_history_from_db(username, export_type, **kwargs))
+            
+            if not posts_data:
+                st.warning(f"⚠️ 沒有找到用戶 @{username} 的歷史數據")
+                return
+            
+            # 排序數據
+            def get_sort_key(post):
+                value = post.get(sort_by, 0)
+                if value is None:
+                    return 0
+                if isinstance(value, str):
+                    try:
+                        return float(value)
+                    except:
+                        return 0
+                return value
+            
+            posts_data.sort(key=get_sort_key, reverse=(sort_order == 'DESC'))
+            
+            # 準備數據結構
+            data = {
+                "username": username,
+                "export_type": export_type,
+                "exported_at": datetime.now().isoformat(),
+                "sort_by": sort_by,
+                "sort_order": sort_order,
+                "total_records": len(posts_data),
+                "data": posts_data
+            }
+            
+            # 添加統計信息
+            if export_type == "analysis":
+                data["summary"] = self._calculate_stats(posts_data)
+            
+            # 同時提供 JSON 和 CSV 下載
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # JSON 下載
+                import json
+                json_content = json.dumps(data, ensure_ascii=False, indent=2)
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                json_filename = f"playwright_history_{username}_{export_type}_{timestamp}.json"
                 
-                # 從資料庫獲取最近數據
-                data = {
-                    "username": username,
-                    "export_type": "recent",
-                    "days_back": days_back,
-                    "limit": limit,
-                    "exported_at": datetime.now().isoformat(),
-                    "data": []  # 這裡應該從 playwright_post_metrics 表獲取數據
-                }
+                st.download_button(
+                    label=f"📥 下載JSON ({len(posts_data)}筆)",
+                    data=json_content,
+                    file_name=json_filename,
+                    mime="application/json",
+                    help="下載歷史數據JSON文件"
+                )
+            
+            with col2:
+                # CSV 下載
+                csv_content = self._convert_to_csv(posts_data)
+                csv_filename = f"playwright_history_{username}_{export_type}_{timestamp}.csv"
                 
-            elif export_type == "all":
-                limit = kwargs.get('limit', 5000)
-                data = {
-                    "username": username,
-                    "export_type": "all",
-                    "limit": limit,
-                    "exported_at": datetime.now().isoformat(),
-                    "data": []
-                }
-                
-            elif export_type == "analysis":
-                data = {
-                    "username": username,
-                    "export_type": "analysis",
-                    "exported_at": datetime.now().isoformat(),
-                    "summary": {
-                        "total_posts": 0,
-                        "avg_views": 0,
-                        "success_rate": 0
-                    },
-                    "data": []
-                }
+                st.download_button(
+                    label=f"📊 下載CSV ({len(posts_data)}筆)",
+                    data=csv_content,
+                    file_name=csv_filename,
+                    mime="text/csv",
+                    help="下載歷史數據CSV文件"
+                )
             
-            # 準備下載
-            import json
-            import io
-            json_content = json.dumps(data, ensure_ascii=False, indent=2)
+            # 顯示數據預覽
+            st.subheader("📊 數據預覽")
+            if export_type == "analysis" and "summary" in data:
+                col_s1, col_s2, col_s3, col_s4 = st.columns(4)
+                summary = data["summary"]
+                with col_s1:
+                    st.metric("總貼文數", summary.get("total_posts", 0))
+                with col_s2:
+                    st.metric("平均觀看數", f"{summary.get('avg_views', 0):,.0f}")
+                with col_s3:
+                    st.metric("平均按讚數", f"{summary.get('avg_likes', 0):,.0f}")
+                with col_s4:
+                    st.metric("最高分數", f"{summary.get('max_score', 0):,.0f}")
             
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            filename = f"playwright_history_{username}_{export_type}_{timestamp}.json"
+            # 顯示前10筆數據
+            if posts_data:
+                st.write("**前10筆數據：**")
+                preview_data = []
+                for i, post in enumerate(posts_data[:10], 1):
+                    preview_data.append({
+                        "#": i,
+                        "貼文ID": post.get('post_id', 'N/A')[:20] + "..." if len(post.get('post_id', '')) > 20 else post.get('post_id', 'N/A'),
+                        "內容預覽": (post.get('content', '')[:40] + "...") if post.get('content') else 'N/A',
+                        "觀看數": f"{post.get('views_count', 0):,}",
+                        "按讚數": f"{post.get('likes_count', 0):,}",
+                        "分數": f"{post.get('calculated_score', 0):,.1f}" if post.get('calculated_score') else 'N/A',
+                        "爬取時間": str(post.get('fetched_at', 'N/A'))[:19]
+                    })
+                st.dataframe(preview_data, use_container_width=True)
             
-            st.download_button(
-                label=f"📥 下載{export_type}數據",
-                data=json_content,
-                file_name=filename,
-                mime="application/json",
-                help="下載歷史數據JSON文件"
-            )
-            
-            st.success(f"✅ {export_type}數據準備完成！")
+            st.success(f"✅ {export_type}數據導出完成！共 {len(posts_data)} 筆記錄")
             
         except Exception as e:
             st.error(f"❌ 歷史數據導出失敗: {str(e)}")
+    
+    async def _fetch_history_from_db(self, username: str, export_type: str, **kwargs):
+        """從資料庫獲取歷史數據"""
+        try:
+            posts = await self.db_handler.get_user_posts_async(username)
+            
+            if export_type == "recent":
+                days_back = kwargs.get('days_back', 7)
+                limit = kwargs.get('limit', 1000)
+                
+                # 過濾最近的數據
+                from datetime import datetime, timedelta
+                cutoff_date = datetime.now() - timedelta(days=days_back)
+                
+                filtered_posts = []
+                for post in posts:
+                    try:
+                        if post.get('fetched_at'):
+                            fetch_time = datetime.fromisoformat(str(post['fetched_at']).replace('Z', '+00:00'))
+                            if fetch_time >= cutoff_date:
+                                filtered_posts.append(post)
+                    except:
+                        continue
+                
+                return filtered_posts[:limit]
+                
+            elif export_type == "all":
+                limit = kwargs.get('limit', 5000)
+                return posts[:limit]
+                
+            elif export_type == "analysis":
+                return posts
+                
+        except Exception as e:
+            st.error(f"❌ 資料庫查詢失敗: {e}")
+            return []
+    
+    def _calculate_stats(self, posts_data):
+        """計算統計數據"""
+        if not posts_data:
+            return {
+                "total_posts": 0,
+                "avg_views": 0,
+                "avg_likes": 0,
+                "avg_comments": 0,
+                "max_score": 0,
+                "min_score": 0
+            }
+        
+        total_posts = len(posts_data)
+        views = [post.get('views_count', 0) for post in posts_data if post.get('views_count')]
+        likes = [post.get('likes_count', 0) for post in posts_data if post.get('likes_count')]
+        comments = [post.get('comments_count', 0) for post in posts_data if post.get('comments_count')]
+        scores = [post.get('calculated_score', 0) for post in posts_data if post.get('calculated_score')]
+        
+        return {
+            "total_posts": total_posts,
+            "avg_views": sum(views) / len(views) if views else 0,
+            "avg_likes": sum(likes) / len(likes) if likes else 0,
+            "avg_comments": sum(comments) / len(comments) if comments else 0,
+            "max_score": max(scores) if scores else 0,
+            "min_score": min(scores) if scores else 0
+        }
+    
+    def _convert_to_csv(self, posts_data):
+        """將數據轉換為CSV格式"""
+        import pandas as pd
+        import io
+        
+        # 準備CSV數據，與主要導出格式一致
+        csv_data = []
+        for post in posts_data:
+            # 處理陣列字段
+            tags = post.get('tags', [])
+            if isinstance(tags, str):
+                try:
+                    import json
+                    tags = json.loads(tags)
+                except:
+                    tags = []
+            tags_str = "|".join(tags) if tags else ""
+            
+            images = post.get('images', [])
+            if isinstance(images, str):
+                try:
+                    import json
+                    images = json.loads(images)
+                except:
+                    images = []
+            images_str = "|".join(images) if images else ""
+            
+            videos = post.get('videos', [])
+            if isinstance(videos, str):
+                try:
+                    import json
+                    videos = json.loads(videos)
+                except:
+                    videos = []
+            videos_str = "|".join(videos) if videos else ""
+            
+            csv_data.append({
+                "url": post.get('url', ''),
+                "post_id": post.get('post_id', ''),
+                "username": post.get('username', ''),
+                "content": post.get('content', ''),
+                "likes_count": post.get('likes_count', 0),
+                "comments_count": post.get('comments_count', 0),
+                "reposts_count": post.get('reposts_count', 0),
+                "shares_count": post.get('shares_count', 0),
+                "views_count": post.get('views_count', 0),
+                "calculated_score": post.get('calculated_score', ''),
+                "created_at": post.get('created_at', ''),
+                "post_published_at": post.get('post_published_at', ''),
+                "tags": tags_str,
+                "images": images_str,
+                "videos": videos_str,
+                "source": post.get('source', 'playwright_agent'),
+                "crawler_type": post.get('crawler_type', 'playwright'),
+                "crawl_id": post.get('crawl_id', ''),
+                "fetched_at": post.get('fetched_at', '')
+            })
+        
+        # 轉換為CSV
+        df = pd.DataFrame(csv_data)
+        output = io.BytesIO()
+        df.to_csv(output, index=False, encoding='utf-8-sig')
+        return output.getvalue()
     
     def _show_advanced_export_options(self):
         """顯示進階導出選項"""
@@ -1220,23 +1482,165 @@ class PlaywrightCrawlerComponentV2:
         """載入CSV文件"""
         try:
             import pandas as pd
-            df = pd.read_csv(uploaded_file)
+            import io
+            
+            # 讀取CSV文件
+            content = uploaded_file.getvalue()
+            df = pd.read_csv(io.StringIO(content.decode('utf-8-sig')))
+            
+            # 檢查CSV格式是否正確（與 JSON 格式一致）
+            required_columns = ['url', 'post_id', 'username', 'content']
+            missing_columns = [col for col in required_columns if col not in df.columns]
+            
+            if missing_columns:
+                st.error(f"❌ CSV格式不正確，缺少欄位: {', '.join(missing_columns)}")
+                return
             
             # 轉換為結果格式
-            results = {
+            results = []
+            for _, row in df.iterrows():
+                # 處理陣列字段 (tags, images, videos)
+                tags_str = str(row.get('tags', '')).strip()
+                tags = tags_str.split('|') if tags_str else []
+                
+                images_str = str(row.get('images', '')).strip()
+                images = images_str.split('|') if images_str else []
+                
+                videos_str = str(row.get('videos', '')).strip()
+                videos = videos_str.split('|') if videos_str else []
+                
+                result = {
+                    "url": str(row.get('url', '')).strip(),
+                    "post_id": str(row.get('post_id', '')).strip(),
+                    "username": str(row.get('username', '')).strip(),
+                    "content": str(row.get('content', '')).strip(),
+                    "likes_count": row.get('likes_count', 0) if pd.notna(row.get('likes_count')) else 0,
+                    "comments_count": row.get('comments_count', 0) if pd.notna(row.get('comments_count')) else 0,
+                    "reposts_count": row.get('reposts_count', 0) if pd.notna(row.get('reposts_count')) else 0,
+                    "shares_count": row.get('shares_count', 0) if pd.notna(row.get('shares_count')) else 0,
+                    "views_count": row.get('views_count', 0) if pd.notna(row.get('views_count')) else 0,
+                    "calculated_score": row.get('calculated_score', 0) if pd.notna(row.get('calculated_score')) else 0,
+                    "created_at": str(row.get('created_at', '')).strip(),
+                    "post_published_at": str(row.get('post_published_at', '')).strip(),
+                    "tags": tags,
+                    "images": images,
+                    "videos": videos,
+                    "source": str(row.get('source', 'playwright_agent')).strip(),
+                    "crawler_type": str(row.get('crawler_type', 'playwright')).strip(),
+                    "crawl_id": str(row.get('crawl_id', '')).strip(),
+                    "extracted_at": str(row.get('extracted_at', '')).strip(),
+                    "success": row.get('success', True) if pd.notna(row.get('success')) else True
+                }
+                results.append(result)
+            
+            # 包裝為完整結果格式
+            final_results = {
                 "crawl_id": f"imported_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
                 "timestamp": datetime.now().isoformat(),
+                "target_username": results[0].get('username', '') if results else '',
                 "source": "csv_import",
                 "crawler_type": "playwright",
-                "results": df.to_dict('records')
+                "total_processed": len(results),
+                "results": results
             }
             
-            st.session_state.playwright_results = results
-            st.success(f"✅ 成功載入 {len(df)} 筆記錄")
+            st.session_state.playwright_results = final_results
+            st.success(f"✅ 成功載入 {len(results)} 筆記錄")
             st.rerun()
             
         except Exception as e:
             st.error(f"❌ 載入CSV失敗: {e}")
+    
+    def _show_user_csv_download(self, username: str):
+        """顯示用戶CSV直接下載按鈕"""
+        try:
+            # 獲取用戶貼文
+            posts = asyncio.run(self.db_handler.get_user_posts_async(username))
+            
+            if not posts:
+                st.warning(f"❌ 用戶 @{username} 沒有貼文記錄")
+                return
+            
+            import pandas as pd
+            import io
+            from datetime import datetime
+            
+            # 準備CSV數據（與 JSON 格式完全一致）
+            csv_data = []
+            for post in posts:
+                # 處理資料庫中可能存在的陣列字段（如果以 JSON 字符串存儲）
+                tags = post.get('tags', [])
+                if isinstance(tags, str):
+                    try:
+                        import json
+                        tags = json.loads(tags)
+                    except:
+                        tags = []
+                tags_str = "|".join(tags) if tags else ""
+                
+                images = post.get('images', [])
+                if isinstance(images, str):
+                    try:
+                        import json
+                        images = json.loads(images)
+                    except:
+                        images = []
+                images_str = "|".join(images) if images else ""
+                
+                videos = post.get('videos', [])
+                if isinstance(videos, str):
+                    try:
+                        import json
+                        videos = json.loads(videos)
+                    except:
+                        videos = []
+                videos_str = "|".join(videos) if videos else ""
+                
+                csv_data.append({
+                    "url": post.get('url', ''),
+                    "post_id": post.get('post_id', ''),
+                    "username": post.get('username', ''),
+                    "content": post.get('content', ''),
+                    "likes_count": post.get('likes_count', 0),
+                    "comments_count": post.get('comments_count', 0),
+                    "reposts_count": post.get('reposts_count', 0),
+                    "shares_count": post.get('shares_count', 0),
+                    "views_count": post.get('views_count', 0),
+                    "calculated_score": post.get('calculated_score', ''),
+                    "created_at": post.get('created_at', ''),
+                    "post_published_at": post.get('post_published_at', ''),
+                    "tags": tags_str,
+                    "images": images_str,
+                    "videos": videos_str,
+                    "source": post.get('source', 'playwright_agent'),
+                    "crawler_type": post.get('crawler_type', 'playwright'),
+                    "crawl_id": post.get('crawl_id', ''),
+                    "fetched_at": post.get('fetched_at', '')
+                })
+            
+            # 轉換為DataFrame
+            df = pd.DataFrame(csv_data)
+            
+            # 轉換為CSV - 使用字節流確保正確編碼
+            output = io.BytesIO()
+            df.to_csv(output, index=False, encoding='utf-8-sig')
+            csv_content = output.getvalue()
+            
+            # 直接顯示下載按鈕
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"user_posts_{username}_{timestamp}.csv"
+            
+            st.download_button(
+                label=f"📥 導出CSV ({len(posts)}筆)",
+                data=csv_content,
+                file_name=filename,
+                mime="text/csv",
+                help=f"直接下載 @{username} 的所有貼文記錄",
+                use_container_width=True
+            )
+            
+        except Exception as e:
+            st.error(f"❌ 準備CSV下載失敗: {e}")
     
     def _export_user_csv(self, username: str):
         """導出指定用戶的所有貼文為CSV"""
@@ -1274,8 +1678,8 @@ class PlaywrightCrawlerComponentV2:
             # 轉換為DataFrame
             df = pd.DataFrame(csv_data)
             
-            # 轉換為CSV
-            output = io.StringIO()
+            # 轉換為CSV - 使用字節流確保正確編碼
+            output = io.BytesIO()
             df.to_csv(output, index=False, encoding='utf-8-sig')
             csv_content = output.getvalue()
             

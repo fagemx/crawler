@@ -48,8 +48,8 @@ class ViewsExtractor:
                     
                     logging.debug(f"📄 正在處理: {post.url}")
                     
-                    # 導航到貼文頁面
-                    await page.goto(post.url, wait_until="networkidle", timeout=30000)
+                    # 導航到貼文頁面（優化版：更快的載入策略）
+                    await page.goto(post.url, wait_until="domcontentloaded", timeout=25000)
                     
                     # 檢查頁面類型（完整頁面 vs Gate 頁面）
                     page_content = await page.content()
@@ -95,8 +95,8 @@ class ViewsExtractor:
                             post.views_count = -1
                             post.views_fetched_at = datetime.utcnow()
                     
-                    # 隨機延遲避免反爬蟲
-                    delay = random.uniform(2, 4)
+                    # 保守的隨機延遲避免反爬蟲（稍微縮短但保持安全）
+                    delay = random.uniform(1.5, 3.5)  # 縮短0.5秒但保持隨機性
                     await asyncio.sleep(delay)
                     
                 except Exception as e:

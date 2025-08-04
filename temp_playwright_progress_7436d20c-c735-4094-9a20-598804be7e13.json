@@ -1,0 +1,201 @@
+{
+  "progress": 1.0,
+  "stage": "completed",
+  "current_work": "爬取完成",
+  "log_messages": [
+    "🚀 爬蟲任務已啟動...",
+    "[23:24:23] 🔧 初始化爬蟲環境...",
+    "[23:24:23] 🔐 讀取認證檔案...",
+    "[23:24:23] ✅ 認證檔案讀取成功，包含 15 個 cookies",
+    "[23:24:23] 📋 構建API請求參數...",
+    "[23:24:23] 📊 目標用戶: @netflixtw",
+    "[23:24:23] 📝 目標貼文數: 5",
+    "[23:24:23] 🚀 發送API請求到Playwright Agent...",
+    "[23:24:25] ⏳ 等待Playwright處理...",
+    "[23:24:25] 📊 啟動瀏覽器...",
+    "[23:24:33] 📊 導航到用戶頁面...",
+    "[23:24:41] 📊 等待頁面加載...",
+    "[23:24:49] 📊 開始智能滾動...",
+    "[23:24:57] 📊 收集貼文URLs...",
+    "[23:25:05] 📊 處理貼文URLs...",
+    "[23:25:13] 📊 開始補齊詳細數據...",
+    "[23:25:21] 📊 補齊貼文內容和互動數據...",
+    "[23:25:29] 📊 開始補齊觀看數...",
+    "[23:25:37] 📊 補齊觀看數據...",
+    "[23:25:45] 📊 去重處理...",
+    "[23:26:17] ✅ API請求成功，正在處理響應...",
+    "[23:26:17] 📦 獲取到 5 篇貼文",
+    "[23:26:17] 🎉 爬取任務完成！"
+  ],
+  "final_data": {
+    "posts": [
+      {
+        "post_id": "netflixtw_DM7xmXJNmcK",
+        "username": "netflixtw",
+        "url": "https://www.threads.com/@netflixtw/post/DM7xmXJNmcK",
+        "content": "我的MBTI是N人\n.\n.\n.\n每天看Netflix的人",
+        "likes_count": 698,
+        "comments_count": 11,
+        "reposts_count": 36,
+        "shares_count": 29,
+        "views_count": 48800,
+        "media_urls": [],
+        "images": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/528310730_17850511206519465_9154334648455797820_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uODI4eDg0Mi5zZHIuZjgyNzg3LmRlZmF1bHRfaW1hZ2UuYzIifQ&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=109&_nc_oc=Q6cZ2QEsw2qfamXh3daiwQJnn46f2qLFcSuuB36ZGDzeQnYRnn1d2R0FhlkHUDpyAAYJSrw&_nc_ohc=T3rO4OIJB7UQ7kNvwH4Y_KC&_nc_gid=-bmUeN9-uvimLzHzje1XwA&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MTc5NDE3NTY0NzE2MzE0MA%3D%3D.3-ccb7-5&oh=00_AfX6fC45OeYUJttng35773T3mEOyB6hyt5QO-Tze91y18Q&oe=68969639&_nc_sid=10d13b",
+          "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527598684_17854915227493583_7636026020806868593_n.webp?efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uMTQ0MHgzMjAwLnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=111&_nc_oc=Q6cZ2QEsw2qfamXh3daiwQJnn46f2qLFcSuuB36ZGDzeQnYRnn1d2R0FhlkHUDpyAAYJSrw&_nc_ohc=raOKflXLMxMQ7kNvwFnY5DH&_nc_gid=-bmUeN9-uvimLzHzje1XwA&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MTc2NDAxMjU1MzU3NDgzMw%3D%3D.3-ccb7-5&oh=00_AfVuWOnjjLLa9XYesNcumsPI9jBSsANId6QpWL1evCXWLg&oe=6896986F&_nc_sid=10d13b",
+          "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527608636_17892084276297572_682196264567284304_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uMjEzMXgxMTk5LnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=108&_nc_oc=Q6cZ2QEsw2qfamXh3daiwQJnn46f2qLFcSuuB36ZGDzeQnYRnn1d2R0FhlkHUDpyAAYJSrw&_nc_ohc=O26tX3DTp6oQ7kNvwH0baq-&_nc_gid=-bmUeN9-uvimLzHzje1XwA&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MTc4ODA1ODU2NDk4ODc2OA%3D%3D.3-ccb7-5&oh=00_AfVl9SCalh4UUt0__wWxAdIWL1-AH12balma_LKiuYyrFQ&oe=689687A6&_nc_sid=10d13b"
+        ],
+        "videos": [],
+        "created_at": "2025-08-04T15:24:34.105172",
+        "post_published_at": "2025-08-04T13:00:04Z",
+        "tags": [],
+        "fetched_at": "2025-08-04T15:24:34.105175",
+        "views_fetched_at": "2025-08-04T15:25:49.307268",
+        "source": "playwright_new",
+        "processing_stage": "details_filled_hybrid",
+        "is_complete": false,
+        "last_updated": "2025-08-04T15:24:34.105439",
+        "reader_status": "pending",
+        "dom_status": "pending",
+        "reader_processed_at": null,
+        "dom_processed_at": null
+      },
+      {
+        "post_id": "netflixtw_DM7dCJjKpQy",
+        "username": "netflixtw",
+        "url": "https://www.threads.com/@netflixtw/post/DM7dCJjKpQy",
+        "content": "穿越時空更不能黑白亂煮！\n《暴君的廚師》8月23日獨家上線\n#林潤娥 #李彩玟  \nTranslate",
+        "likes_count": 76,
+        "comments_count": 0,
+        "reposts_count": 2,
+        "shares_count": 3,
+        "views_count": 8800,
+        "media_urls": [],
+        "images": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527467072_1391133275294636_1274737242552019863_n.jpg?stp=dst-jpg_e15_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uNjQweDgwMC5zZHIuZjcxODc4LmRlZmF1bHRfY292ZXJfZnJhbWUuYzIifQ&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=108&_nc_oc=Q6cZ2QFopKq-WYDzNdTvNRoWmHzRcPxjGlG3ckHK4P1OaSbXpAE6wbMW6naJB7h4wVjqa78&_nc_ohc=ypPXhH3cc6EQ7kNvwH4N-9r&_nc_gid=s20RlwGefKr690wVRLFDsQ&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MTY3MjAxMDYwMTY5ODM1NA%3D%3D.3-ccb7-5&oh=00_AfUcon_3PrVNor14BA-uv-s64PsEpJ8-z6A0NFnOX04fxg&oe=6896948F&_nc_sid=10d13b"
+        ],
+        "videos": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/o1/v/t16/f2/m84/AQMz-ZtCNXyRjCTlZ4ZGiGTVSNlRDu1fHCYJOPCeqt4Nx8__1kMPfyXHvdo6S_RuQKd3af5jN7etsw_sxjVwo0tLS2cqrXDF4Pzglcs.mp4?_nc_cat=106&_nc_oc=AdmBBPbTeXG48nON7R18yNiWK2yCdY8nChyCjYXi425svW1wIwQrEd5haol6QupLFvQ&_nc_sid=5e9851&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_ohc=KOeFTpcuFVUQ7kNvwFr8-lj&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5JTlNUQUdSQU0uRkVFRC5DMy43MjAuZGFzaF9iYXNlbGluZV8xX3YxIiwieHB2X2Fzc2V0X2lkIjoyMjMwNTYxNTgwNzQ3MzAwLCJ2aV91c2VjYXNlX2lkIjoxMDE2NCwiZHVyYXRpb25fcyI6MzcsInVybGdlbl9zb3VyY2UiOiJ3d3cifQ%3D%3D&ccb=17-1&vs=262aef797507bdbb&_nc_vs=HBksFQIYTGlnX2JhY2tmaWxsX3RpbWVsaW5lX3ZvZC9DQzQzMjEyOTAwMjJDRDNFMzFDOUQ3QzQ2RkVENUM4RV92aWRlb19kYXNoaW5pdC5tcDQVAALIARIAFQIYOnBhc3N0aHJvdWdoX2V2ZXJzdG9yZS9HQ3plYng4SDhYZFdDY1lDQUZfSmlVUnZvckk1YmtZTEFBQUYVAgLIARIAKAAYABsCiAd1c2Vfb2lsATEScHJvZ3Jlc3NpdmVfcmVjaXBlATEVAAAmyKjc6uKr9gcVAigCQzMsF0BCxLxqfvnbGBJkYXNoX2Jhc2VsaW5lXzFfdjERAHXqB2XongEA&_nc_zt=28&oh=00_AfXVgHH12_MNotpWA7G894Eio7QSbyDUszcZPW3w0Pj7vA&oe=6892C1B2"
+        ],
+        "created_at": "2025-08-04T15:24:34.105487",
+        "post_published_at": "2025-08-04T10:00:19Z",
+        "tags": [
+          "暴君的廚師"
+        ],
+        "fetched_at": "2025-08-04T15:24:34.105488",
+        "views_fetched_at": "2025-08-04T15:25:55.102656",
+        "source": "playwright_new",
+        "processing_stage": "details_filled_hybrid",
+        "is_complete": false,
+        "last_updated": "2025-08-04T15:24:34.105506",
+        "reader_status": "pending",
+        "dom_status": "pending",
+        "reader_processed_at": null,
+        "dom_processed_at": null
+      },
+      {
+        "post_id": "netflixtw_DMzg5-_KxHE",
+        "username": "netflixtw",
+        "url": "https://www.threads.com/@netflixtw/post/DMzg5-_KxHE",
+        "content": "Sorry, we're having trouble playing this video.",
+        "likes_count": 2500,
+        "comments_count": 42,
+        "reposts_count": 71,
+        "shares_count": 187,
+        "views_count": 109000,
+        "media_urls": [],
+        "images": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/526361057_1383217752745773_189543533368302866_n.jpg?stp=dst-jpg_e15_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uNjQweDExMzYuc2RyLmY3MTg3OC5kZWZhdWx0X2NvdmVyX2ZyYW1lLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=109&_nc_oc=Q6cZ2QFfMiAVB0Eflj6nsEl5OjaaS7h0J33RoPOdsDByIS6ENS1scojzbhT5npnLvJi-ENg&_nc_ohc=8pd0gXg4XwUQ7kNvwHLBEs3&_nc_gid=ZJxEKohvGAKcqmYCPWdZXA&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY4OTQzNzI0MTg3Njg3Nzc2NA%3D%3D.3-ccb7-5&oh=00_AfWr5u73uGfskx3jvaDUUkJ8lj8PxMFi3bwJ_L78GBMR0Q&oe=6896A9D4&_nc_sid=10d13b"
+        ],
+        "videos": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/o1/v/t16/f2/m84/AQN7LXqJTeoGLCUChQnmUsjXPtzXJIjEv9HLYLAU5lTpPsu7pC8S_GuVxBI02W-8ysHP8y1yA_c2u1BU0ObZTBQGsjfDP99upsHPSUg.mp4?_nc_cat=102&_nc_oc=Adlb0eCn2z_NGdWIKct_VkpyP6g8FpPE7S-l0Su2fdq3i-MlKhPIUR3A-t4zouOcZgE&_nc_sid=5e9851&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_ohc=VwO3bjjJ6dYQ7kNvwFhuH3g&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5JTlNUQUdSQU0uRkVFRC5DMy43MjAuZGFzaF9iYXNlbGluZV8xX3YxIiwieHB2X2Fzc2V0X2lkIjo5NzcxMDMzMDQ5NjcwMDU4LCJ2aV91c2VjYXNlX2lkIjoxMDE2NCwiZHVyYXRpb25fcyI6MzksIndhdGNoX3RpbWVfcyI6MTc4MCwidXJsZ2VuX3NvdXJjZSI6Ind3dyJ9&ccb=17-1&vs=5817c14081295217&_nc_vs=HBksFQIYTGlnX2JhY2tmaWxsX3RpbWVsaW5lX3ZvZC80OTRFOTNCODQ0QjQxMEM0RkUxNUUwQzU5MUEzQ0NCRl92aWRlb19kYXNoaW5pdC5tcDQVAALIARIAFQIYOnBhc3N0aHJvdWdoX2V2ZXJzdG9yZS9HT3pWYVI3U3QySS1jS3dFQU4zcTlnTVFBZzlRYmtZTEFBQUYVAgLIARIAKAAYABsCiAd1c2Vfb2lsATEScHJvZ3Jlc3NpdmVfcmVjaXBlATEVAAAm1IadoP2s2yIVAigCQzMsF0BDoAAAAAAAGBJkYXNoX2Jhc2VsaW5lXzFfdjERAHXqB2XongEA&_nc_zt=28&oh=00_AfXwFJYVB-0Z9DuS9B0P9mV7tbZFwbWLMc20E5lfyFZPvA&oe=6892BF16"
+        ],
+        "created_at": "2025-08-04T15:24:34.105514",
+        "post_published_at": "2025-08-01T08:00:14Z",
+        "tags": [
+          "母胎單身戀愛大作戰"
+        ],
+        "fetched_at": "2025-08-04T15:24:34.105515",
+        "views_fetched_at": "2025-08-04T15:26:00.158652",
+        "source": "playwright_new",
+        "processing_stage": "details_filled_hybrid",
+        "is_complete": false,
+        "last_updated": "2025-08-04T15:24:34.105522",
+        "reader_status": "pending",
+        "dom_status": "pending",
+        "reader_processed_at": null,
+        "dom_processed_at": null
+      },
+      {
+        "post_id": "netflixtw_DMzaDvbAljC",
+        "username": "netflixtw",
+        "url": "https://www.threads.com/@netflixtw/post/DMzaDvbAljC",
+        "content": "載尹脫單大作戰😍\n碇真嗣終於找到屬於自己的綾波零  \nTranslate",
+        "likes_count": 1943,
+        "comments_count": 19,
+        "reposts_count": 23,
+        "shares_count": 58,
+        "views_count": 207000,
+        "media_urls": [],
+        "images": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527507407_17920116609108411_1536692691053983086_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uNjAweDgwMC5zZHIuZjgyNzg3LmRlZmF1bHRfaW1hZ2UuYzIifQ&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=103&_nc_oc=Q6cZ2QFR6jmGeBN6XFzgN04FVPjKVywYbHWP8fYWCSeUSxcdfIsm2N1pDdrtUUmM3g0fG9c&_nc_ohc=AJTp-AY0cTgQ7kNvwEcRKcH&_nc_gid=19afEYpamGXdDexOoqedYw&edm=AEnw0QABAAAA&ccb=7-5&ig_cache_key=MzY5MDM4MDEzOTkxNTE2MTgyNw%3D%3D.3-ccb7-5&oh=00_AfVUvRSNzWs8HrwpGt_0tRgwk4Itr5SRIyg5kZ4rstLtYQ&oe=689694F6&_nc_sid=9705cc"
+        ],
+        "videos": [],
+        "created_at": "2025-08-04T15:24:34.105527",
+        "post_published_at": "2025-08-01T07:00:24Z",
+        "tags": [
+          "母胎單身戀愛大作戰"
+        ],
+        "fetched_at": "2025-08-04T15:24:34.105527",
+        "views_fetched_at": "2025-08-04T15:26:07.609105",
+        "source": "playwright_new",
+        "processing_stage": "details_filled_hybrid",
+        "is_complete": false,
+        "last_updated": "2025-08-04T15:24:34.105536",
+        "reader_status": "pending",
+        "dom_status": "pending",
+        "reader_processed_at": null,
+        "dom_processed_at": null
+      },
+      {
+        "post_id": "netflixtw_DMzGNsJTGyc",
+        "username": "netflixtw",
+        "url": "https://www.threads.com/@netflixtw/post/DMzGNsJTGyc",
+        "content": "今天上班到目前，做過最困難的選擇：  \nTranslate",
+        "likes_count": 5899,
+        "comments_count": 12,
+        "reposts_count": 61,
+        "shares_count": 74,
+        "views_count": 110000,
+        "media_urls": [],
+        "images": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527194118_17922667836107526_5168896307570818394_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uMTAxOHg5ODcuc2RyLmY4Mjc4Ny5kZWZhdWx0X2ltYWdlLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=106&_nc_oc=Q6cZ2QGZPCiVN-eIRA0Wpckl5KMEzYihA-41Qy6qSG3SqBEgEdsCzeeh4dF1Itot7Xxog0o&_nc_ohc=1McW_VKq4qcQ7kNvwF73v-o&_nc_gid=RviW4F0hfn_5tZ6QpCHq1Q&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY4OTMxOTg0ODc3OTQ3NjEyNA%3D%3D.3-ccb7-5&oh=00_AfXOUmxGf0-S35AoWMOiX-eXhKKYkTkHe6egWcg5JCt9sw&oe=6896B876&_nc_sid=10d13b",
+          "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527472263_1974497263289247_7374569197138568237_n.jpg?stp=dst-jpg_e15_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uNjQweDExMzYuc2RyLmY3MTg3OC5kZWZhdWx0X2NvdmVyX2ZyYW1lLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=103&_nc_oc=Q6cZ2QGZPCiVN-eIRA0Wpckl5KMEzYihA-41Qy6qSG3SqBEgEdsCzeeh4dF1Itot7Xxog0o&_nc_ohc=46GpEUQt24gQ7kNvwFfzrz6&_nc_gid=RviW4F0hfn_5tZ6QpCHq1Q&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY4OTUzMTQxMDM5NTU3MjM3Mw%3D%3D.3-ccb7-5&oh=00_AfUtZ5hlPwUyu6pfS8TlIFkpgD6WaVoB_VdMa2kmI90a1Q&oe=6896A8FB&_nc_sid=10d13b",
+          "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527122811_17921115930105052_3391990397935538432_n.webp?efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uMTA4MHg2MjQuc2RyLmY4Mjc4Ny5kZWZhdWx0X2ltYWdlLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=104&_nc_oc=Q6cZ2QGZPCiVN-eIRA0Wpckl5KMEzYihA-41Qy6qSG3SqBEgEdsCzeeh4dF1Itot7Xxog0o&_nc_ohc=1N_D0Jyz5YoQ7kNvwHjc2Cf&_nc_gid=RviW4F0hfn_5tZ6QpCHq1Q&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY4OTM1NzEzNjc4ODA0MDU5NQ%3D%3D.3-ccb7-5&oh=00_AfVS2IhNUurJvcO5uYRjY1srFUSpElDPkbtjoOckD1I99g&oe=68969461&_nc_sid=10d13b"
+        ],
+        "videos": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/o1/v/t16/f2/m84/AQM4b4M4vexwFbADRfwjJdyXV7KQn2TTiZcZE2BTitNO7UVsPuT6mWFnCbV1FCF2H2uWnYNVPlk70EAbebVtk9KrqZ3TD-I6ls36Drw.mp4?_nc_cat=106&_nc_oc=AdnZZNsoCVGNJwBYZZMwl4QXrEsD7sh5lMXVqscAbMmmyfOA953Gjw_OIVZtQiAyxqw&_nc_sid=5e9851&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_ohc=oStGcHMIJUoQ7kNvwH367N2&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5JTlNUQUdSQU0uRkVFRC5DMy43MjAuZGFzaF9iYXNlbGluZV8xX3YxIiwieHB2X2Fzc2V0X2lkIjoxOTkwNzI4MDUxNzYxNzI3LCJ2aV91c2VjYXNlX2lkIjoxMDE2NCwiZHVyYXRpb25fcyI6MTEsInVybGdlbl9zb3VyY2UiOiJ3d3cifQ%3D%3D&ccb=17-1&vs=5fe353e88f91e754&_nc_vs=HBksFQIYTGlnX2JhY2tmaWxsX3RpbWVsaW5lX3ZvZC9FNzQ5MEVBNjk5QUE3ODc0RkIwQUM0QTI2QkQxRDlCM192aWRlb19kYXNoaW5pdC5tcDQVAALIARIAFQIYOnBhc3N0aHJvdWdoX2V2ZXJzdG9yZS9HSTNtVlItOGZKOUpYSmdDQUN1eXRhUUtNSEJ3YmtZTEFBQUYVAgLIARIAKAAYABsCiAd1c2Vfb2lsATEScHJvZ3Jlc3NpdmVfcmVjaXBlATEVAAAm_oj15c-jiQcVAigCQzMsF0Anj987ZFodGBJkYXNoX2Jhc2VsaW5lXzFfdjERAHXqB2XongEA&_nc_zt=28&oh=00_AfX5ICqk_ErUHmMbcGw3_v9tJwoRaKqSrPlTbVQ_-T0TnA&oe=6892BFCA"
+        ],
+        "created_at": "2025-08-04T15:24:34.105540",
+        "post_published_at": "2025-08-01T04:07:01Z",
+        "tags": [
+          "Kpop獵魔女團"
+        ],
+        "fetched_at": "2025-08-04T15:24:34.105541",
+        "views_fetched_at": "2025-08-04T15:26:15.501705",
+        "source": "playwright_new",
+        "processing_stage": "details_filled_hybrid",
+        "is_complete": false,
+        "last_updated": "2025-08-04T15:24:34.105546",
+        "reader_status": "pending",
+        "dom_status": "pending",
+        "reader_processed_at": null,
+        "dom_processed_at": null
+      }
+    ],
+    "batch_id": "2e1110a6-0c46-4f47-960b-8274eed2c524",
+    "username": "netflixtw",
+    "total_count": 5,
+    "processing_stage": "playwright_incremental_completed"
+  }
+}

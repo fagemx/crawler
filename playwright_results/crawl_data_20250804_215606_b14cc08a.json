@@ -1,0 +1,44 @@
+{
+  "crawl_id": "20250804_215606_b14cc08a",
+  "timestamp": "2025-08-04T21:56:06.472428",
+  "target_username": "latisha.2020",
+  "crawler_type": "playwright",
+  "max_posts": 1,
+  "total_processed": 1,
+  "api_success_count": 1,
+  "api_failure_count": 0,
+  "overall_success_rate": 100.0,
+  "timing": {
+    "total_time": 0,
+    "url_collection_time": 0,
+    "content_extraction_time": 0
+  },
+  "results": [
+    {
+      "post_id": "latisha.2020_DM7WqHryok_",
+      "url": "https://www.threads.com/@latisha.2020/post/DM7WqHryok_",
+      "content": "latisha.2020",
+      "views": "1100",
+      "likes": "24",
+      "comments": "",
+      "reposts": "",
+      "shares": "",
+      "source": "playwright_agent",
+      "crawler_type": "playwright",
+      "success": true,
+      "has_views": true,
+      "has_content": true,
+      "has_likes": true,
+      "has_comments": false,
+      "has_reposts": false,
+      "has_shares": false,
+      "content_length": 12,
+      "extracted_at": "2025-08-04T21:56:06.472428",
+      "created_at": "2025-08-04T13:52:32.076609",
+      "username": "latisha.2020"
+    }
+  ],
+  "source": "playwright_agent",
+  "database_saved": false,
+  "database_saved_count": 0
+}

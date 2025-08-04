@@ -28,5 +28,5 @@ ENV PYTHONPATH=/app
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8501/_stcore/health || exit 1
 
-# 啟動 Streamlit
-CMD ["streamlit", "run", "ui/streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true", "--server.enableCORS=false"]
+# 啟動 Streamlit 使用 start_streamlit_ui.py 腳本
+CMD ["python", "scripts/start_streamlit_ui.py"]

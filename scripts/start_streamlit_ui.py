@@ -35,6 +35,7 @@ def main():
             "--server.port", "8501",
             "--server.address", "0.0.0.0",
             "--server.headless", "true",
+            "--server.enableCORS", "false",
             "--theme.base", "light"
         ], env=env, cwd=project_root)
     except KeyboardInterrupt:
