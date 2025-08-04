@@ -599,9 +599,12 @@ if __name__ == "__main__":
             col1, col2 = st.columns(2)
             
             with col1:
-                if st.button("📥 導出並下載", key="export_csv_download"):
+                if st.button("📥 生成CSV", key="export_csv_generate"):
                     sort_by = sort_options[selected_sort]
                     self._export_current_to_csv(json_file_path, sort_by)
+                
+                # 檢查是否有生成好的CSV可以下載
+                self._show_csv_download_if_available()
             
             with col2:
                 st.info("💡 **CSV使用提示：**\n- 用Excel或Google Sheets打開\n- 可以進一步篩選和分析\n- 支援中文顯示")
@@ -614,24 +617,41 @@ if __name__ == "__main__":
             csv_manager = CSVExportManager()
             csv_file = csv_manager.export_current_session(json_file_path, sort_by=sort_by)
             
-            st.success(f"✅ CSV導出成功！")
+            # 保存CSV文件路徑到會話狀態
+            st.session_state.latest_csv_file = csv_file
+            
+            st.success(f"✅ CSV生成成功！")
             st.info(f"📁 文件位置: {csv_file}")
             
-            # 顯示下載連結（如果可能）
-            import os
-            if os.path.exists(csv_file):
-                with open(csv_file, 'r', encoding='utf-8-sig') as f:
-                    csv_content = f.read()
-                
-                st.download_button(
-                    label="📥 下載CSV文件",
-                    data=csv_content,
-                    file_name=os.path.basename(csv_file),
-                    mime="text/csv"
-                )
-            
         except Exception as e:
-            st.error(f"❌ CSV導出失敗: {str(e)}")
+            st.error(f"❌ CSV生成失敗: {str(e)}")
+            if 'latest_csv_file' in st.session_state:
+                del st.session_state.latest_csv_file
+    
+    def _show_csv_download_if_available(self):
+        """顯示CSV下載按鈕（如果有可用的CSV文件）"""
+        if 'latest_csv_file' in st.session_state:
+            csv_file = st.session_state.latest_csv_file
+            if csv_file and Path(csv_file).exists():
+                try:
+                    with open(csv_file, 'r', encoding='utf-8-sig') as f:
+                        csv_content = f.read()
+                    
+                    # 生成時間戳文件名
+                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                    download_filename = f"crawl_results_{timestamp}.csv"
+                    
+                    st.download_button(
+                        label="📥 下載CSV文件",
+                        data=csv_content,
+                        file_name=download_filename,
+                        mime="text/csv",
+                        help="下載CSV文件到您的下載資料夾",
+                        key="download_csv_file_btn"
+                    )
+                    
+                except Exception as e:
+                    st.error(f"❌ 準備CSV下載失敗: {e}")
     
     def _show_export_history_options(self):
         """顯示歷史導出選項"""
