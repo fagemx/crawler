@@ -305,6 +305,8 @@ class PlaywrightDatabaseHandler:
                     
                     # 將 JSON 字符串轉換回陣列
                     import json
+                    from decimal import Decimal
+                    
                     try:
                         post['tags'] = json.loads(post.get('tags', '[]')) if post.get('tags') else []
                     except:
@@ -319,6 +321,10 @@ class PlaywrightDatabaseHandler:
                         post['videos'] = json.loads(post.get('videos', '[]')) if post.get('videos') else []
                     except:
                         post['videos'] = []
+                    
+                    # 將 Decimal 類型轉換為 float 以確保 JSON 序列化相容性
+                    if isinstance(post.get('calculated_score'), Decimal):
+                        post['calculated_score'] = float(post['calculated_score'])
                     
                     posts.append(post)
                 

@@ -293,6 +293,8 @@ class PlaywrightCrawlerComponentV2:
             st.warning("沒有爬取到數據")
             if st.button("🔙 返回設定"):
                 st.session_state.playwright_crawl_status = "idle"
+                # 重置保存標記，準備下次爬取
+                st.session_state.playwright_results_saved = False
                 st.rerun()
             return
         
@@ -303,8 +305,14 @@ class PlaywrightCrawlerComponentV2:
             target = st.session_state.get('playwright_target', {})
             converted_results["target_username"] = target.get('username', 'unknown')
             
-            # 保存JSON文件
-            json_file_path = PlaywrightUtils.save_json_results(converted_results)
+            # 檢查是否已經保存過，避免重複保存
+            if not st.session_state.get('playwright_results_saved', False):
+                # 保存JSON文件
+                json_file_path = PlaywrightUtils.save_json_results(converted_results)
+                st.session_state.playwright_results_saved = True  # 標記為已保存
+            else:
+                # 如果已經保存過，不再重新保存，但仍需要顯示結果
+                json_file_path = None
             
             # 自動保存到資料庫
             try:
@@ -389,6 +397,9 @@ class PlaywrightCrawlerComponentV2:
             'username': username,
             'max_posts': max_posts
         }
+        
+        # 重置保存標記，允許新的爬取結果被保存
+        st.session_state.playwright_results_saved = False
         
         # 創建進度檔案
         task_id = str(uuid.uuid4())
@@ -1176,7 +1187,15 @@ class PlaywrightCrawlerComponentV2:
             with col1:
                 # JSON 下載
                 import json
-                json_content = json.dumps(data, ensure_ascii=False, indent=2)
+                from decimal import Decimal
+                
+                # 自定義JSON編碼器處理Decimal類型
+                def json_serializer(obj):
+                    if isinstance(obj, Decimal):
+                        return float(obj)
+                    raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
+                
+                json_content = json.dumps(data, ensure_ascii=False, indent=2, default=json_serializer)
                 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
                 json_filename = f"playwright_history_{username}_{export_type}_{timestamp}.json"
                 
@@ -1549,6 +1568,8 @@ class PlaywrightCrawlerComponentV2:
             del st.session_state.playwright_results
         if 'playwright_results_file' in st.session_state:
             del st.session_state.playwright_results_file
+        # 重置保存標記
+        st.session_state.playwright_results_saved = False
         st.success("🗑️ 結果已清除")
         st.rerun()
     
