@@ -584,6 +584,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    command: ["python", "scripts/start_streamlit_ui.py"]
 
   # Pinggy Tunnel - 外網訪問
   pinggy-tunnel:

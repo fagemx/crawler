@@ -95,14 +95,19 @@ class PlaywrightDatabaseHandler:
                                 shares_count = PlaywrightUtils.parse_number_safe(result.get('shares_count', result.get('shares', '')))
                                 calculated_score = result.get('calculated_score', 0)
                                 
-                                # 處理時間字段
-                                post_published_at = result.get('post_published_at', '')
+                                # 處理時間字段 - 轉換為台北時區
+                                post_published_at = PlaywrightUtils.convert_to_taipei_time(result.get('post_published_at', ''))
                                 
                                 # 處理陣列字段，轉換為 JSON 字符串
                                 import json
                                 tags_json = json.dumps(result.get('tags', []), ensure_ascii=False)
                                 images_json = json.dumps(result.get('images', []), ensure_ascii=False)
                                 videos_json = json.dumps(result.get('videos', []), ensure_ascii=False)
+                                
+                                # 處理創建時間 - 使用台北時區
+                                created_at = PlaywrightUtils.convert_to_taipei_time(result.get('created_at', ''))
+                                if not created_at:
+                                    created_at = PlaywrightUtils.get_current_taipei_time()
                                 
                                 # 使用 UPSERT 避免重複
                                 await conn.execute("""
@@ -111,7 +116,7 @@ class PlaywrightDatabaseHandler:
                                         views_count, likes_count, comments_count, reposts_count, shares_count,
                                         calculated_score, post_published_at, tags, images, videos,
                                         source, crawler_type, crawl_id, created_at
-                                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW())
+                                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
                                     ON CONFLICT (username, post_id, crawler_type) 
                                     DO UPDATE SET
                                         url = EXCLUDED.url,
@@ -127,6 +132,7 @@ class PlaywrightDatabaseHandler:
                                         images = EXCLUDED.images,
                                         videos = EXCLUDED.videos,
                                         crawl_id = EXCLUDED.crawl_id,
+                                        created_at = EXCLUDED.created_at,
                                         fetched_at = CURRENT_TIMESTAMP
                                 """, 
                                     target_username,
@@ -145,7 +151,8 @@ class PlaywrightDatabaseHandler:
                                     videos_json,
                                     'playwright_agent',
                                     'playwright',
-                                    crawl_id
+                                    crawl_id,
+                                    created_at
                                 )
                                 saved_count += 1
                                 
@@ -354,13 +361,9 @@ class PlaywrightDatabaseHandler:
     def save_results_to_database_sync(self, results_data: Dict[str, Any]):
         """同步保存結果到資料庫（備用功能）"""
         try:
-            import subprocess
-            import json
-            import sys
-            import os
-            import tempfile
+            import asyncio
             
-            # 檢查results的格式，如果是字典則提取results列表
+            # 檢查results的格式
             if isinstance(results_data, dict):
                 results = results_data.get('results', [])
                 target_username = results_data.get('target_username', '')
@@ -374,67 +377,34 @@ class PlaywrightDatabaseHandler:
             if not target_username:
                 return {"success": False, "error": "無法識別目標用戶名"}
             
-            # 創建保存腳本
-            save_script_content = f'''
-import asyncio
-import sys
-import os
-import json
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-from common.db_client import DatabaseClient
-
-async def save_to_database():
-    # 使用 PlaywrightDatabaseHandler 的邏輯
-    from ui.components.playwright_database_handler import PlaywrightDatabaseHandler
-    
-    handler = PlaywrightDatabaseHandler()
-    
-    # 準備結果數據
-    results_data = {json.dumps(results_data, ensure_ascii=False)}
-    
-    await handler.save_to_database_async(results_data)
-    
-    result = {{
-        "success": True,
-        "saved_count": len(results_data.get("results", [])),
-        "target_username": results_data.get("target_username", "")
-    }}
-    
-    print(json.dumps(result))
-
-if __name__ == "__main__":
-    asyncio.run(save_to_database())
-'''
-            
-            # 寫入臨時文件
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False, encoding='utf-8') as f:
-                f.write(save_script_content)
-                temp_script = f.name
-            
+            # 使用新的事件循環執行異步保存
             try:
-                # 執行保存腳本
-                result = subprocess.run(
-                    [sys.executable, temp_script],
-                    capture_output=True,
-                    text=True,
-                    encoding='utf-8',
-                    cwd=os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
-                    timeout=60
-                )
-                
-                if result.returncode == 0 and result.stdout.strip():
-                    save_result = json.loads(result.stdout.strip())
-                    return save_result
-                else:
-                    return {"success": False, "error": "保存腳本執行失敗"}
-                        
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                result = loop.run_until_complete(self._save_sync_helper(results_data))
+                return result
             finally:
-                # 清理臨時文件
-                try:
-                    os.unlink(temp_script)
-                except:
-                    pass
-                    
+                loop.close()
+                
         except Exception as e:
             return {"success": False, "error": str(e)}
+    
+    async def _save_sync_helper(self, results_data: Dict[str, Any]):
+        """同步保存的異步幫助方法"""
+        try:
+            # 直接調用異步保存方法
+            await self.save_to_database_async(results_data)
+            
+            results = results_data.get('results', [])
+            return {
+                "success": True,
+                "saved_count": len(results),
+                "target_username": results_data.get('target_username', ''),
+                "message": f"成功保存 {len(results)} 個貼文到資料庫"
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"保存失敗: {str(e)}",
+                "saved_count": 0
+            }

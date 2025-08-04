@@ -20,6 +20,7 @@ import asyncio
 
 from .playwright_utils import PlaywrightUtils
 from .playwright_database_handler import PlaywrightDatabaseHandler
+from .playwright_user_manager import PlaywrightUserManager
 
 class PlaywrightCrawlerComponentV2:
     def __init__(self):
@@ -28,6 +29,7 @@ class PlaywrightCrawlerComponentV2:
         
         # 初始化子組件
         self.db_handler = PlaywrightDatabaseHandler()
+        self.user_manager = PlaywrightUserManager()
         
         # 使用統一的配置管理
         from common.config import get_auth_file_path
@@ -167,6 +169,24 @@ class PlaywrightCrawlerComponentV2:
                     st.rerun()
             
             self._display_database_stats()
+        
+        # 顯示已載入的 CSV 結果（如果有的話）
+        if 'playwright_results' in st.session_state:
+            st.divider()
+            results = st.session_state.playwright_results
+            st.info(f"📁 已載入 CSV 文件：{results.get('total_processed', 0)} 筆記錄")
+            
+            col_view, col_clear = st.columns([1, 1])
+            with col_view:
+                if st.button("👁️ 查看載入的結果", key="view_loaded_results"):
+                    st.session_state.playwright_crawl_status = "completed"
+                    st.rerun()
+            
+            with col_clear:
+                if st.button("🗑️ 清除載入的結果", key="clear_loaded_results"):
+                    if 'playwright_results' in st.session_state:
+                        del st.session_state.playwright_results
+                    st.rerun()
     
     def _render_progress(self):
         """渲染進度頁面（新版架構）"""
@@ -287,7 +307,16 @@ class PlaywrightCrawlerComponentV2:
             json_file_path = PlaywrightUtils.save_json_results(converted_results)
             
             # 自動保存到資料庫
-            asyncio.run(self.db_handler.save_to_database_async(converted_results))
+            try:
+                asyncio.run(self.db_handler.save_to_database_async(converted_results))
+                converted_results["database_saved"] = True
+                converted_results["database_saved_count"] = len(converted_results.get("results", []))
+                st.success(f"✅ 已自動保存 {converted_results['database_saved_count']} 個貼文到資料庫")
+            except Exception as db_error:
+                converted_results["database_saved"] = False
+                converted_results["database_saved_count"] = 0
+                st.warning(f"⚠️ 自動保存到資料庫失敗: {db_error}")
+                st.info("💡 您可以稍後使用 '💾 備用保存' 按鈕重試")
             
             # 顯示結果
             self._show_results(converted_results)
@@ -682,7 +711,7 @@ class PlaywrightCrawlerComponentV2:
                         
                         with col1:
                             # 直接顯示下載按鈕（不需要分兩步）
-                            self._show_user_csv_download(selected_user)
+                            self.user_manager.show_user_csv_download(selected_user)
                         
                         with col2:
                             # 自訂紅色樣式
@@ -707,7 +736,7 @@ class PlaywrightCrawlerComponentV2:
                                 help="刪除所選用戶的所有爬蟲資料",
                                 use_container_width=True
                             ):
-                                self._delete_user_data(selected_user)
+                                self.user_manager.delete_user_data(selected_user)
                     
                     if selected_user:
                         # 顯示選中用戶的詳細信息
@@ -743,7 +772,7 @@ class PlaywrightCrawlerComponentV2:
         total_posts = len(posts)
         success_posts = sum(1 for r in posts if r.get('success', False))
         content_posts = sum(1 for r in posts if r.get('content'))
-        views_posts = sum(1 for r in posts if r.get('views') and r.get('views') != 'N/A')
+        views_posts = sum(1 for r in posts if r.get('views_count') or r.get('views'))
         
         # 統計區域
         col1, col2, col3, col4 = st.columns(4)
@@ -766,10 +795,10 @@ class PlaywrightCrawlerComponentV2:
             total_reposts = 0
             
             for r in posts:
-                views = self._safe_int(r.get('views', 0))
-                likes = self._safe_int(r.get('likes', 0))
-                comments = self._safe_int(r.get('comments', 0))
-                reposts = self._safe_int(r.get('reposts', 0))
+                views = self._safe_int(r.get('views_count', r.get('views', 0)))
+                likes = self._safe_int(r.get('likes_count', r.get('likes', 0)))
+                comments = self._safe_int(r.get('comments_count', r.get('comments', 0)))
+                reposts = self._safe_int(r.get('reposts_count', r.get('reposts', 0)))
                 
                 total_views += views
                 total_likes += likes
@@ -808,17 +837,36 @@ class PlaywrightCrawlerComponentV2:
                 created_at = r.get('created_at', '')
                 published_at = r.get('post_published_at', '')
                 
+                # 格式化計算分數
+                calc_score = r.get('calculated_score', 'N/A')
+                if calc_score != 'N/A' and calc_score is not None:
+                    try:
+                        calc_score_formatted = f"{float(calc_score):,.1f}"
+                    except:
+                        calc_score_formatted = str(calc_score)
+                else:
+                    calc_score_formatted = 'N/A'
+                
+                # 格式化數量顯示
+                def format_count(value):
+                    if value in [None, '', 'N/A']:
+                        return 'N/A'
+                    try:
+                        return f"{int(value):,}"
+                    except:
+                        return str(value)
+                
                 table_data.append({
                     "#": i,
                     "貼文ID": r.get('post_id', 'N/A')[:20] + "..." if len(r.get('post_id', '')) > 20 else r.get('post_id', 'N/A'),
                     "用戶名": r.get('username', 'N/A'),
                     "內容預覽": (r.get('content', '')[:60] + "...") if r.get('content') else 'N/A',
-                    "觀看數": r.get('views_count', r.get('views', 'N/A')),
-                    "按讚": r.get('likes_count', r.get('likes', 'N/A')),
-                    "留言": r.get('comments_count', r.get('comments', 'N/A')),
-                    "轉發": r.get('reposts_count', r.get('reposts', 'N/A')),
-                    "分享": r.get('shares_count', r.get('shares', 'N/A')),
-                    "計算分數": r.get('calculated_score', 'N/A'),
+                    "觀看數": format_count(r.get('views_count', r.get('views', 'N/A'))),
+                    "按讚": format_count(r.get('likes_count', r.get('likes', 'N/A'))),
+                    "留言": format_count(r.get('comments_count', r.get('comments', 'N/A'))),
+                    "轉發": format_count(r.get('reposts_count', r.get('reposts', 'N/A'))),
+                    "分享": format_count(r.get('shares_count', r.get('shares', 'N/A'))),
+                    "計算分數": calc_score_formatted,
                     "標籤": tags_display,
                     "圖片數": images_count,
                     "影片數": videos_count,
@@ -931,11 +979,23 @@ class PlaywrightCrawlerComponentV2:
         
         with col3:
             if st.button("📈 歷史分析", key="playwright_history_analysis_v2"):
-                self._show_history_analysis_options()
+                # 切換歷史分析面板的可見性
+                st.session_state.show_playwright_history_analysis = not st.session_state.get('show_playwright_history_analysis', False)
+                st.rerun()
+            
+        # 顯示歷史分析面板（如果啟用）
+        if st.session_state.get('show_playwright_history_analysis', False):
+            self._show_history_analysis_options()
         
         with col4:
             if st.button("🔍 更多導出", key="playwright_more_exports_v2"):
-                self._show_advanced_export_options()
+                # 切換更多導出面板的可見性
+                st.session_state.show_playwright_advanced_exports = not st.session_state.get('show_playwright_advanced_exports', False)
+                st.rerun()
+            
+        # 顯示更多導出面板（如果啟用）
+        if st.session_state.get('show_playwright_advanced_exports', False):
+            self._show_advanced_export_options()
     
     def _safe_int(self, value):
         """安全轉換為整數"""
@@ -990,7 +1050,14 @@ class PlaywrightCrawlerComponentV2:
                 return
         
         with st.expander("📈 歷史數據導出選項", expanded=True):
-            st.write(f"**目標帳號:** @{target_username}")
+            # 添加關閉按鈕
+            col_title, col_close = st.columns([4, 1])
+            with col_title:
+                st.write(f"**目標帳號:** @{target_username}")
+            with col_close:
+                if st.button("❌ 關閉", key="close_playwright_history_analysis"):
+                    st.session_state.show_playwright_history_analysis = False
+                    st.rerun()
             
             # 排序選項
             st.subheader("📊 排序設定")
@@ -1299,7 +1366,14 @@ class PlaywrightCrawlerComponentV2:
     def _show_advanced_export_options(self):
         """顯示進階導出選項"""
         with st.expander("🔍 進階導出功能", expanded=True):
-            st.markdown("**更多導出選項和批量操作**")
+            # 添加關閉按鈕
+            col_title, col_close = st.columns([4, 1])
+            with col_title:
+                st.markdown("**更多導出選項和批量操作**")
+            with col_close:
+                if st.button("❌ 關閉", key="close_playwright_advanced_exports"):
+                    st.session_state.show_playwright_advanced_exports = False
+                    st.rerun()
             
             tab1, tab2, tab3 = st.tabs(["📊 對比報告", "🔄 批量導出", "⚡ 快速工具"])
             
@@ -1545,192 +1619,9 @@ class PlaywrightCrawlerComponentV2:
             }
             
             st.session_state.playwright_results = final_results
+            st.session_state.playwright_crawl_status = "completed"  # 設置狀態為完成
             st.success(f"✅ 成功載入 {len(results)} 筆記錄")
             st.rerun()
             
         except Exception as e:
             st.error(f"❌ 載入CSV失敗: {e}")
-    
-    def _show_user_csv_download(self, username: str):
-        """顯示用戶CSV直接下載按鈕"""
-        try:
-            # 獲取用戶貼文
-            posts = asyncio.run(self.db_handler.get_user_posts_async(username))
-            
-            if not posts:
-                st.warning(f"❌ 用戶 @{username} 沒有貼文記錄")
-                return
-            
-            import pandas as pd
-            import io
-            from datetime import datetime
-            
-            # 準備CSV數據（與 JSON 格式完全一致）
-            csv_data = []
-            for post in posts:
-                # 處理資料庫中可能存在的陣列字段（如果以 JSON 字符串存儲）
-                tags = post.get('tags', [])
-                if isinstance(tags, str):
-                    try:
-                        import json
-                        tags = json.loads(tags)
-                    except:
-                        tags = []
-                tags_str = "|".join(tags) if tags else ""
-                
-                images = post.get('images', [])
-                if isinstance(images, str):
-                    try:
-                        import json
-                        images = json.loads(images)
-                    except:
-                        images = []
-                images_str = "|".join(images) if images else ""
-                
-                videos = post.get('videos', [])
-                if isinstance(videos, str):
-                    try:
-                        import json
-                        videos = json.loads(videos)
-                    except:
-                        videos = []
-                videos_str = "|".join(videos) if videos else ""
-                
-                csv_data.append({
-                    "url": post.get('url', ''),
-                    "post_id": post.get('post_id', ''),
-                    "username": post.get('username', ''),
-                    "content": post.get('content', ''),
-                    "likes_count": post.get('likes_count', 0),
-                    "comments_count": post.get('comments_count', 0),
-                    "reposts_count": post.get('reposts_count', 0),
-                    "shares_count": post.get('shares_count', 0),
-                    "views_count": post.get('views_count', 0),
-                    "calculated_score": post.get('calculated_score', ''),
-                    "created_at": post.get('created_at', ''),
-                    "post_published_at": post.get('post_published_at', ''),
-                    "tags": tags_str,
-                    "images": images_str,
-                    "videos": videos_str,
-                    "source": post.get('source', 'playwright_agent'),
-                    "crawler_type": post.get('crawler_type', 'playwright'),
-                    "crawl_id": post.get('crawl_id', ''),
-                    "fetched_at": post.get('fetched_at', '')
-                })
-            
-            # 轉換為DataFrame
-            df = pd.DataFrame(csv_data)
-            
-            # 轉換為CSV - 使用字節流確保正確編碼
-            output = io.BytesIO()
-            df.to_csv(output, index=False, encoding='utf-8-sig')
-            csv_content = output.getvalue()
-            
-            # 直接顯示下載按鈕
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            filename = f"user_posts_{username}_{timestamp}.csv"
-            
-            st.download_button(
-                label=f"📥 導出CSV ({len(posts)}筆)",
-                data=csv_content,
-                file_name=filename,
-                mime="text/csv",
-                help=f"直接下載 @{username} 的所有貼文記錄",
-                use_container_width=True
-            )
-            
-        except Exception as e:
-            st.error(f"❌ 準備CSV下載失敗: {e}")
-    
-    def _export_user_csv(self, username: str):
-        """導出指定用戶的所有貼文為CSV"""
-        try:
-            # 使用 asyncio 獲取用戶貼文
-            posts = asyncio.run(self.db_handler.get_user_posts_async(username))
-            
-            if not posts:
-                st.warning(f"❌ 用戶 @{username} 沒有找到任何貼文記錄")
-                return
-            
-            import pandas as pd
-            import io
-            
-            # 準備CSV數據
-            csv_data = []
-            for i, post in enumerate(posts, 1):
-                csv_data.append({
-                    "序號": i,
-                    "用戶名": post.get('username', ''),
-                    "貼文ID": post.get('post_id', ''),
-                    "URL": post.get('url', ''),
-                    "內容": post.get('content', ''),
-                    "觀看數": post.get('views', 0),
-                    "按讚數": post.get('likes', 0),
-                    "留言數": post.get('comments', 0),
-                    "轉發數": post.get('reposts', 0),
-                    "分享數": post.get('shares', 0),
-                    "來源": post.get('source', ''),
-                    "爬取ID": post.get('crawl_id', ''),
-                    "建立時間": post.get('created_at', ''),
-                    "爬取時間": post.get('fetched_at', '')
-                })
-            
-            # 轉換為DataFrame
-            df = pd.DataFrame(csv_data)
-            
-            # 轉換為CSV - 使用字節流確保正確編碼
-            output = io.BytesIO()
-            df.to_csv(output, index=False, encoding='utf-8-sig')
-            csv_content = output.getvalue()
-            
-            # 提供下載
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            filename = f"user_posts_{username}_{timestamp}.csv"
-            
-            st.download_button(
-                label=f"📥 下載 @{username} 的貼文CSV",
-                data=csv_content,
-                file_name=filename,
-                mime="text/csv",
-                help=f"下載用戶 @{username} 的所有貼文記錄"
-            )
-            
-            st.success(f"✅ 成功導出 @{username} 的 {len(posts)} 筆貼文記錄")
-            
-        except Exception as e:
-            st.error(f"❌ 導出用戶CSV失敗: {e}")
-    
-    def _delete_user_data(self, username: str):
-        """刪除指定用戶的所有數據"""
-        try:
-            # 二次確認
-            st.warning(f"⚠️ 確認要刪除用戶 @{username} 的所有Playwright爬蟲資料嗎？")
-            
-            col1, col2, col3 = st.columns([1, 1, 2])
-            
-            with col1:
-                if st.button("✅ 確認刪除", key=f"confirm_delete_{username}", type="primary"):
-                    # 執行刪除
-                    result = asyncio.run(self.db_handler.delete_user_data_async(username))
-                    
-                    if result.get("success"):
-                        st.success(f"✅ {result.get('message', '刪除成功')}")
-                        
-                        # 清除緩存
-                        if 'playwright_db_stats_cache' in st.session_state:
-                            del st.session_state.playwright_db_stats_cache
-                        
-                        st.rerun()
-                    else:
-                        st.error(f"❌ 刪除失敗: {result.get('error', '未知錯誤')}")
-            
-            with col2:
-                if st.button("❌ 取消", key=f"cancel_delete_{username}"):
-                    st.info("🔄 已取消刪除操作")
-                    st.rerun()
-            
-            with col3:
-                st.info("💡 提示：刪除後將無法復原，請謹慎操作")
-                
-        except Exception as e:
-            st.error(f"❌ 刪除操作失敗: {e}")

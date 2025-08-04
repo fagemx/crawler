@@ -9,13 +9,40 @@ import tempfile
 import shutil
 import uuid
 import os
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Dict, Any
 
 
 class PlaywrightUtils:
     """Playwright 爬蟲工具類"""
+    
+    @staticmethod
+    def convert_to_taipei_time(datetime_str: str) -> datetime:
+        """將 ISO 格式的日期時間字符串轉換為台北時區的 datetime 物件（無時區信息）"""
+        try:
+            if not datetime_str:
+                return None
+            
+            # 處理 ISO 格式日期字符串
+            dt = datetime.fromisoformat(datetime_str.replace('Z', '+00:00'))
+            
+            # 轉換為台北時區 (UTC+8)
+            taipei_tz = timezone(timedelta(hours=8))
+            taipei_dt = dt.astimezone(taipei_tz)
+            
+            # 返回無時區信息的台北時間，用於資料庫存儲
+            return taipei_dt.replace(tzinfo=None)
+            
+        except Exception as e:
+            print(f"⚠️ 時間轉換失敗 {datetime_str}: {e}")
+            return None
+    
+    @staticmethod
+    def get_current_taipei_time() -> datetime:
+        """獲取當前台北時間（無時區信息）"""
+        taipei_tz = timezone(timedelta(hours=8))
+        return datetime.now(taipei_tz).replace(tzinfo=None)
     
     @staticmethod
     def write_progress(path: str, data: Dict[str, Any]):
@@ -81,18 +108,35 @@ class PlaywrightUtils:
         # 轉換為 Playwright 專用格式
         converted_results = []
         for post in posts:
-            # 檢查數據格式並轉換
+            # 檢查數據格式並轉換 - 保持所有原始數據
             result = {
                 "post_id": post.get("post_id", ""),
                 "url": post.get("url", ""),
                 "content": post.get("content", ""),
+                # 數量欄位（保持原始數值格式）
+                "views_count": post.get("views_count", 0),
+                "likes_count": post.get("likes_count", 0),
+                "comments_count": post.get("comments_count", 0),
+                "reposts_count": post.get("reposts_count", 0),
+                "shares_count": post.get("shares_count", 0),
+                # 向後兼容的字符串格式
                 "views": str(post.get("views_count", "") or ""),
                 "likes": str(post.get("likes_count", "") or ""),
                 "comments": str(post.get("comments_count", "") or ""),
                 "reposts": str(post.get("reposts_count", "") or ""),
                 "shares": str(post.get("shares_count", "") or ""),
+                # 計算分數
+                "calculated_score": post.get("calculated_score", 0),
+                # 時間欄位
+                "created_at": post.get("created_at", ""),
+                "post_published_at": post.get("post_published_at", ""),
+                # 陣列欄位
+                "tags": post.get("tags", []),
+                "images": post.get("images", []),
+                "videos": post.get("videos", []),
+                # 元數據
                 "source": "playwright_agent",
-                "crawler_type": "playwright",  # 標記爬蟲類型
+                "crawler_type": "playwright",
                 "success": True,
                 "has_views": bool(post.get("views_count")),
                 "has_content": bool(post.get("content")),
@@ -102,7 +146,6 @@ class PlaywrightUtils:
                 "has_shares": bool(post.get("shares_count")),
                 "content_length": len(post.get("content", "")),
                 "extracted_at": datetime.now().isoformat(),
-                "created_at": post.get("created_at", ""),
                 "username": username
             }
             converted_results.append(result)
