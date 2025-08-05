@@ -151,7 +151,7 @@ class PlaywrightUserManager:
     
     def manage_user_data(self, user_stats: list[dict[str, Any]]):
         """整合用戶資料管理 UI，包括選擇、導出和刪除"""
-        with st.expander("🗂️ 用戶資料管理 (Playwright)", expanded=True):
+        with st.expander("🗂️ 用戶資料管理 (Playwright)", expanded=False):
             user_options = [user.get('username') for user in user_stats if user.get('username')]
             if not user_options:
                 st.warning("沒有可管理的用戶。")

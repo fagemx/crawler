@@ -1964,7 +1964,7 @@ if __name__ == "__main__":
             
             # --- 用戶資料管理 ---
             st.markdown("---")
-            with st.expander("🗂️ 用戶資料管理 (Realtime)", expanded=True):
+            with st.expander("🗂️ 用戶資料管理 (Realtime)", expanded=False):
                 user_options = [user.get('username') for user in user_stats if user.get('username')]
                 
                 # 使用 session state 持久化選擇
