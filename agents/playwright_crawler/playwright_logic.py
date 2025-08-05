@@ -7,7 +7,7 @@ import logging
 import tempfile
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Literal
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
@@ -16,6 +16,11 @@ from common.models import PostMetrics, PostMetricsBatch
 from common.nats_client import publish_progress
 from common.utils import generate_post_url, first_of, parse_thread_item
 from common.history import crawl_history
+
+def get_taipei_time():
+    """獲取當前台北時間（無時區信息）"""
+    taipei_tz = timezone(timedelta(hours=8))
+    return datetime.now(taipei_tz).replace(tzinfo=None)
 
 # 導入重構後的模組
 from .parsers.number_parser import parse_number
@@ -80,11 +85,17 @@ class PlaywrightLogic:
         if task_id is None:
             task_id = f"task_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         
+        # 內部台北時間函數
+        def get_taipei_time():
+            """獲取當前台北時間（無時區信息）"""
+            taipei_tz = timezone(timedelta(hours=8))
+            return datetime.now(taipei_tz).replace(tzinfo=None)
+        
         # 內部條件去重函數
         def conditional_deduplication(posts_list):
             """根據 enable_deduplication 參數決定是否執行去重"""
             if enable_deduplication:
-                return conditional_deduplication(posts_list)
+                return apply_deduplication(posts_list)
             else:
                 logging.info(f"⚠️ [Task: {task_id}] 去重已關閉，保留所有 {len(posts_list)} 篇貼文")
                 return posts_list
@@ -108,6 +119,13 @@ class PlaywrightLogic:
                     
                 logging.info(f"🔍 增量模式: 已爬取 {len(existing_post_ids)} 個貼文")
                 logging.info(f"📍 錨點設定: {anchor_post_id or '無'}")
+                
+                # 調試：顯示已存在的貼文ID（最多顯示10個）
+                if existing_post_ids:
+                    sample_ids = list(existing_post_ids)[:10]
+                    logging.info(f"🔍 [DEBUG] 已存在貼文範例: {sample_ids}")
+                else:
+                    logging.info(f"🔍 [DEBUG] 資料庫中無現有貼文")
             else:
                 logging.info(f"📋 全量模式: 爬取所有找到的貼文")
             
@@ -275,8 +293,8 @@ class PlaywrightLogic:
                                     username=username,
                                     url=url,
                                     content="",
-                                    created_at=datetime.utcnow(),
-                                    fetched_at=datetime.utcnow(),
+                                    created_at=get_taipei_time(),
+                                    fetched_at=get_taipei_time(),
                                     source=f"playwright_supplement_r{supplement_round}",
                                     processing_stage="urls_extracted",
                                     is_complete=False,
@@ -614,7 +632,9 @@ class PlaywrightLogic:
             
             # 去重並添加新URLs（支持增量檢測）
             for url in current_urls:
-                post_id = url.split('/')[-1] if url else None
+                # 從 URL 提取完整的 post_id (格式: username_postid)
+                raw_post_id = url.split('/')[-1] if url else None
+                post_id = f"{username}_{raw_post_id}" if raw_post_id else None
                 
                 # 跳過已收集的URL
                 if url in urls:
@@ -622,10 +642,12 @@ class PlaywrightLogic:
                     
                 # 增量模式：檢查是否已存在於資料庫
                 if incremental and post_id in existing_post_ids:
-                    logging.debug(f"   🔍 [{len(urls)+1}] 發現已爬取貼文: {post_id} - 跳過")
+                    logging.info(f"   🔍 [{len(urls)+1}] 發現已爬取貼文: {post_id} - 跳過 (增量模式)")
                     found_existing_this_round = True
                     existing_skipped_this_round += 1
                     continue
+                elif incremental:
+                    logging.info(f"   🆕 [{len(urls)+1}] 發現新貼文: {post_id} (增量模式)")
                 
                 # 檢查是否已達到目標數量
                 if len(urls) >= target_count:
@@ -700,8 +722,8 @@ class PlaywrightLogic:
                 username=username,
                 url=url,
                 content="",
-                created_at=datetime.utcnow(),
-                fetched_at=datetime.utcnow(),
+                created_at=get_taipei_time(),
+                fetched_at=get_taipei_time(),
                 source=f"playwright_{mode}",
                 processing_stage="urls_extracted",
                 is_complete=False,

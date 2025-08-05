@@ -335,33 +335,89 @@ class PlaywrightDatabaseHandler:
             return []
     
     async def delete_user_data_async(self, username: str):
-        """刪除特定用戶的所有數據"""
+        """刪除特定用戶的所有數據（增強錯誤處理和日誌記錄）"""
+        self._log(f"開始刪除用戶 @{username} 的數據")
+        
         try:
             from common.db_client import DatabaseClient
             
+            self._log("初始化資料庫客戶端...")
             db = DatabaseClient()
             await db.init_pool()
+            self._log("資料庫連接池初始化完成")
             
             async with db.get_connection() as conn:
+                self._log(f"已獲取資料庫連接，準備查詢用戶 @{username} 的記錄數量")
+                
                 # 先獲取要刪除的記錄數
                 count_query = "SELECT COUNT(*) FROM playwright_post_metrics WHERE username = $1"
                 count_result = await conn.fetchrow(count_query, username)
                 count = count_result['count'] if count_result else 0
                 
+                self._log(f"找到 {count} 筆用戶 @{username} 的記錄")
+                
+                if count == 0:
+                    self._log(f"用戶 @{username} 沒有任何記錄，跳過刪除操作")
+                    return {
+                        "success": True,
+                        "deleted_count": 0,
+                        "message": f"用戶 @{username} 沒有找到任何記錄"
+                    }
+                
                 # 刪除數據
+                self._log(f"開始刪除用戶 @{username} 的 {count} 筆記錄")
                 delete_query = "DELETE FROM playwright_post_metrics WHERE username = $1"
                 result = await conn.execute(delete_query, username)
                 
-                return {
-                    "success": True,
-                    "deleted_count": count,
-                    "message": f"成功刪除用戶 @{username} 的 {count} 筆記錄"
-                }
+                # 解析刪除結果
+                deleted_rows = int(result.split()[-1]) if result else 0
+                self._log(f"實際刪除了 {deleted_rows} 筆記錄")
+                
+                # 驗證刪除是否成功
+                verify_query = "SELECT COUNT(*) FROM playwright_post_metrics WHERE username = $1"
+                verify_result = await conn.fetchrow(verify_query, username)
+                remaining_count = verify_result['count'] if verify_result else 0
+                
+                if remaining_count == 0:
+                    self._log(f"✅ 用戶 @{username} 的數據已完全刪除")
+                    return {
+                        "success": True,
+                        "deleted_count": deleted_rows,
+                        "original_count": count,
+                        "remaining_count": remaining_count,
+                        "message": f"成功刪除用戶 @{username} 的 {deleted_rows} 筆記錄"
+                    }
+                else:
+                    self._log(f"⚠️ 刪除不完整，還剩餘 {remaining_count} 筆記錄")
+                    return {
+                        "success": False,
+                        "deleted_count": deleted_rows,
+                        "original_count": count,
+                        "remaining_count": remaining_count,
+                        "error": f"刪除不完整，預期刪除 {count} 筆，實際刪除 {deleted_rows} 筆，還剩餘 {remaining_count} 筆"
+                    }
                 
         except Exception as e:
+            error_msg = str(e)
+            self._log(f"❌ 刪除用戶 @{username} 的數據時發生錯誤: {error_msg}")
+            
+            # 提供更詳細的錯誤分類
+            if "connection" in error_msg.lower():
+                error_type = "資料庫連接錯誤"
+            elif "permission" in error_msg.lower() or "access" in error_msg.lower():
+                error_type = "權限錯誤"
+            elif "timeout" in error_msg.lower():
+                error_type = "操作超時"
+            elif "table" in error_msg.lower() or "column" in error_msg.lower():
+                error_type = "資料表結構錯誤"
+            else:
+                error_type = "未知錯誤"
+            
             return {
                 "success": False,
-                "error": str(e)
+                "error": error_msg,
+                "error_type": error_type,
+                "username": username
             }
     
     def save_results_to_database_sync(self, results_data: Dict[str, Any]):

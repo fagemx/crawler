@@ -886,11 +886,23 @@ if __name__ == "__main__":
         
         with col3:
             if st.button("📈 歷史分析", key="export_history"):
-                self._show_export_history_options()
+                # 切換歷史分析面板的可見性
+                st.session_state.show_realtime_history_analysis = not st.session_state.get('show_realtime_history_analysis', False)
+                st.rerun()
+            
+        # 顯示歷史分析面板（如果啟用）
+        if st.session_state.get('show_realtime_history_analysis', False):
+            self._show_export_history_options()
         
         with col4:
             if st.button("🔍 更多導出", key="more_exports"):
-                self._show_advanced_export_options()
+                # 切換更多導出面板的可見性
+                st.session_state.show_realtime_advanced_exports = not st.session_state.get('show_realtime_advanced_exports', False)
+                st.rerun()
+        
+        # 顯示更多導出面板（如果啟用）
+        if st.session_state.get('show_realtime_advanced_exports', False):
+            self._show_advanced_export_options()
     
     def _detect_duplicates(self):
         """檢測重複貼文"""
@@ -1080,6 +1092,15 @@ if __name__ == "__main__":
     
     def _show_export_history_options(self):
         """顯示歷史導出選項"""
+        # 添加關閉按鈕
+        col_header1, col_header2 = st.columns([4, 1])
+        with col_header1:
+            st.write("**📈 歷史數據分析**")
+        with col_header2:
+            if st.button("❌ 關閉", key="close_realtime_history_analysis"):
+                st.session_state.show_realtime_history_analysis = False
+                st.rerun()
+        
         if 'realtime_results' not in st.session_state:
             st.error("❌ 請先執行爬取以獲取帳號信息")
             return
@@ -1105,181 +1126,316 @@ if __name__ == "__main__":
             st.error("❌ 無法識別目標帳號")
             return
         
-        with st.expander("📈 歷史數據導出選項", expanded=True):
-            export_type = st.radio(
-                "選擇導出類型",
-                options=["最近數據", "全部歷史", "統計分析"],
-                help="選擇要導出的歷史數據範圍"
+        # 添加排序設定
+        st.write("**📊 排序設定**")
+        col_sort1, col_sort2 = st.columns(2)
+        
+        with col_sort1:
+            sort_by = st.selectbox(
+                "排序依據",
+                options=["fetched_at", "views_count", "likes_count", "comments_count", "calculated_score"],
+                format_func=lambda x: {
+                    "fetched_at": "爬取時間",
+                    "views_count": "觀看數", 
+                    "likes_count": "按讚數",
+                    "comments_count": "留言數",
+                    "calculated_score": "計算分數"
+                }.get(x, x),
+                key="realtime_history_sort_by",
+                help="選擇排序的依據欄位"
             )
-            
+        
+        with col_sort2:
+            sort_order = st.selectbox(
+                "排序順序",
+                options=["DESC", "ASC"],
+                format_func=lambda x: "降序 (高到低)" if x == "DESC" else "升序 (低到高)",
+                key="realtime_history_sort_order",
+                help="選擇排序順序"
+            )
+        
+        # 導出類型選擇
+        export_type = st.radio(
+            "選擇導出類型",
+            options=["最近數據", "全部歷史", "統計分析"],
+            help="選擇要導出的歷史數據範圍",
+            key="realtime_export_type"
+        )
+        
+        # 最大記錄數設定
+        max_records = st.number_input(
+            "最大記錄數",
+            min_value=100,
+            max_value=50000,
+            value=5000,
+            help="限制導出的最大記錄數",
+            key="realtime_max_records"
+        )
+        
+        # 導出按鈕和操作
+        if export_type == "最近數據":
             col1, col2 = st.columns(2)
+            with col1:
+                days_back = st.number_input("回溯天數", min_value=1, max_value=365, value=7, key="realtime_days_back")
             
-            if export_type == "最近數據":
-                with col1:
-                    days_back = st.number_input("回溯天數", min_value=1, max_value=365, value=7)
-                with col2:
-                    limit = st.number_input("最大記錄數", min_value=10, max_value=10000, value=1000)
-                
-                if st.button("📊 導出最近數據", key="export_recent"):
-                    self._export_history_data(target_username, "recent", days_back=days_back, limit=limit)
+            if st.button("📊 導出最近數據", key="realtime_export_recent"):
+                self._export_history_data(target_username, "recent", 
+                                        days_back=days_back, limit=max_records, 
+                                        sort_by=sort_by, sort_order=sort_order)
+        
+        elif export_type == "全部歷史":
+            if st.button("📊 導出全部歷史", key="realtime_export_all"):
+                self._export_history_data(target_username, "all", 
+                                        limit=max_records, sort_by=sort_by, sort_order=sort_order)
+        
+        elif export_type == "統計分析":
+            st.info("按日期統計的分析報告，包含平均觀看數、成功率等指標")
             
-            elif export_type == "全部歷史":
-                with col1:
-                    limit = st.number_input("最大記錄數", min_value=100, max_value=50000, value=5000)
-                
-                if st.button("📊 導出全部歷史", key="export_all"):
-                    self._export_history_data(target_username, "all", limit=limit)
-            
-            elif export_type == "統計分析":
-                st.info("按日期統計的分析報告，包含平均觀看數、成功率等指標")
-                
-                if st.button("📈 導出統計分析", key="export_analysis"):
-                    self._export_history_data(target_username, "analysis")
+            if st.button("📈 導出統計分析", key="realtime_export_analysis"):
+                self._export_history_data(target_username, "analysis", 
+                                        sort_by=sort_by, sort_order=sort_order)
     
     def _export_history_data(self, username: str, export_type: str, **kwargs):
         """導出歷史數據"""
         try:
-            from common.csv_export_manager import CSVExportManager
             import asyncio
+            import json
+            import pandas as pd
+            from datetime import datetime
             
-            csv_manager = CSVExportManager()
+            # 獲取排序參數
+            sort_by = kwargs.get('sort_by', 'fetched_at')
+            sort_order = kwargs.get('sort_order', 'DESC')
             
-            # 創建新的事件循環來避免衝突
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
+            with st.spinner(f"🔄 正在從資料庫獲取 @{username} 的{export_type}數據..."):
+                # 從資料庫獲取數據
+                posts_data = asyncio.run(self._fetch_realtime_history_from_db(username, export_type, **kwargs))
             
-            try:
-                if export_type == "recent":
-                    csv_file = loop.run_until_complete(
-                        csv_manager.export_database_history(
-                            username, 
-                            days_back=kwargs.get('days_back'),
-                            limit=kwargs.get('limit')
-                        )
-                    )
-                elif export_type == "all":
-                    csv_file = loop.run_until_complete(
-                        csv_manager.export_database_history(
-                            username,
-                            limit=kwargs.get('limit')
-                        )
-                    )
-                elif export_type == "analysis":
-                    csv_file = loop.run_until_complete(
-                        csv_manager.export_combined_analysis(username)
-                    )
-                else:
-                    raise ValueError(f"不支持的導出類型: {export_type}")
+            if not posts_data:
+                st.warning(f"⚠️ 沒有找到用戶 @{username} 的歷史數據")
+                return
+            
+            # 排序數據
+            def get_sort_key(post):
+                value = post.get(sort_by, 0)
+                if value is None:
+                    return 0
+                if isinstance(value, str):
+                    try:
+                        return float(value)
+                    except:
+                        return 0
+                return value
+            
+            posts_data.sort(key=get_sort_key, reverse=(sort_order == 'DESC'))
+            
+            # 添加統計信息
+            summary = self._calculate_realtime_stats(posts_data)
+            
+            # 顯示統計概覽
+            st.write("**📊 數據概覽**")
+            col_s1, col_s2, col_s3, col_s4 = st.columns(4)
+            with col_s1:
+                st.metric("總記錄數", f"{len(posts_data):,}")
+            with col_s2:
+                st.metric("平均觀看數", f"{summary.get('avg_views', 0):,.0f}")
+            with col_s3:
+                st.metric("平均按讚數", f"{summary.get('avg_likes', 0):,.0f}")
+            with col_s4:
+                st.metric("最高觀看數", f"{summary.get('max_views', 0):,.0f}")
+            
+            # 顯示前10筆數據預覽
+            if posts_data:
+                st.write("**前10筆數據：**")
+                preview_data = []
+                for i, post in enumerate(posts_data[:10], 1):
+                    content_preview = (post.get('content', '')[:40] + "...") if post.get('content') and len(post.get('content', '')) > 40 else post.get('content', 'N/A')
+                    preview_data.append({
+                        "#": i,
+                        "貼文ID": post.get('post_id', 'N/A')[:20] + "..." if len(post.get('post_id', '')) > 20 else post.get('post_id', 'N/A'),
+                        "內容預覽": content_preview,
+                        "觀看數": f"{post.get('views_count', 0):,}",
+                        "按讚數": f"{post.get('likes_count', 0):,}",
+                        "爬取時間": str(post.get('fetched_at', 'N/A'))[:19]
+                    })
+                st.dataframe(preview_data, use_container_width=True)
+            
+            st.success(f"✅ {export_type}數據導出完成！共 {len(posts_data)} 筆記錄")
+            
+            # 準備下載數據
+            data = {
+                "username": username,
+                "export_type": export_type,
+                "exported_at": datetime.now().isoformat(),
+                "sort_by": sort_by,
+                "sort_order": sort_order,
+                "total_records": len(posts_data),
+                "summary": summary,
+                "data": posts_data
+            }
+            
+            # 提供 JSON 和 CSV 下載
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # JSON 下載
+                json_data = json.dumps(data, ensure_ascii=False, indent=2, default=str)
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                json_filename = f"realtime_history_{username}_{export_type}_{timestamp}.json"
                 
-                st.success(f"✅ 歷史數據導出成功！")
-                st.info(f"📁 文件位置: {csv_file}")
+                st.download_button(
+                    label="📥 下載 JSON",
+                    data=json_data,
+                    file_name=json_filename,
+                    mime="application/json",
+                    help="下載完整的JSON格式數據",
+                    use_container_width=True
+                )
+            
+            with col2:
+                # CSV 下載
+                df = pd.DataFrame(posts_data)
+                csv_content = df.to_csv(index=False, encoding='utf-8-sig')
+                csv_filename = f"realtime_history_{username}_{export_type}_{timestamp}.csv"
                 
-                # 提供下載
-                import os
-                if os.path.exists(csv_file):
-                    with open(csv_file, 'r', encoding='utf-8-sig') as f:
-                        csv_content = f.read()
-                    
-                    st.download_button(
-                        label="📥 下載歷史CSV文件",
-                        data=csv_content,
-                        file_name=os.path.basename(csv_file),
-                        mime="text/csv"
-                    )
-                
-            finally:
-                loop.close()
+                st.download_button(
+                    label="📥 下載 CSV",
+                    data=csv_content,
+                    file_name=csv_filename,
+                    mime="text/csv",
+                    help="下載CSV格式數據（適合Excel開啟）",
+                    use_container_width=True
+                )
                 
         except Exception as e:
             st.error(f"❌ 歷史數據導出失敗: {str(e)}")
+            import traceback
+            st.error(f"詳細錯誤: {traceback.format_exc()}")
+    
+    async def _fetch_realtime_history_from_db(self, username: str, export_type: str, **kwargs):
+        """從資料庫獲取實時爬蟲的歷史數據"""
+        try:
+            from common.db_client import DatabaseClient
+            
+            db = DatabaseClient()
+            await db.init_pool()
+            
+            async with db.get_connection() as conn:
+                # 構建查詢
+                base_query = """
+                    SELECT post_id, username, content, views_count, likes_count, comments_count, 
+                           reposts_count, shares_count, calculated_score, tags, images, videos, url, 
+                           created_at, fetched_at, post_published_at
+                    FROM post_metrics_sql 
+                    WHERE username = $1
+                """
+                
+                params = [username]
+                
+                # 根據導出類型添加條件
+                if export_type == "recent":
+                    days_back = kwargs.get('days_back', 7)
+                    base_query += f" AND fetched_at >= NOW() - INTERVAL '{days_back} days'"
+                
+                # 添加排序和限制
+                sort_by = kwargs.get('sort_by', 'fetched_at')
+                sort_order = kwargs.get('sort_order', 'DESC')
+                limit = kwargs.get('limit', 5000)
+                
+                base_query += f" ORDER BY {sort_by} {sort_order} LIMIT $" + str(len(params) + 1)
+                params.append(limit)
+                
+                # 執行查詢
+                rows = await conn.fetch(base_query, *params)
+                
+                # 轉換為字典列表
+                posts = []
+                for row in rows:
+                    post_dict = dict(row)
+                    # 處理陣列字段
+                    for field in ['tags', 'images', 'videos']:
+                        if isinstance(post_dict.get(field), str):
+                            try:
+                                post_dict[field] = json.loads(post_dict[field])
+                            except:
+                                post_dict[field] = []
+                    posts.append(post_dict)
+                
+                return posts
+                
+        except Exception as e:
+            st.error(f"資料庫查詢失敗: {e}")
+            return []
+    
+    def _calculate_realtime_stats(self, posts_data):
+        """計算實時爬蟲數據的統計信息"""
+        if not posts_data:
+            return {}
+        
+        views = [post.get('views_count', 0) for post in posts_data if post.get('views_count')]
+        likes = [post.get('likes_count', 0) for post in posts_data if post.get('likes_count')]
+        comments = [post.get('comments_count', 0) for post in posts_data if post.get('comments_count')]
+        
+        return {
+            "total_posts": len(posts_data),
+            "avg_views": sum(views) / len(views) if views else 0,
+            "max_views": max(views) if views else 0,
+            "min_views": min(views) if views else 0,
+            "avg_likes": sum(likes) / len(likes) if likes else 0,
+            "max_likes": max(likes) if likes else 0,
+            "avg_comments": sum(comments) / len(comments) if comments else 0,
+            "max_comments": max(comments) if comments else 0
+        }
     
     def _show_advanced_export_options(self):
         """顯示進階導出選項"""
-        with st.expander("🔍 進階導出功能", expanded=True):
-            st.markdown("**更多導出選項和批量操作**")
+        # 添加關閉按鈕
+        col_header1, col_header2 = st.columns([4, 1])
+        with col_header1:
+            st.write("**🔍 進階導出功能**")
+        with col_header2:
+            if st.button("❌ 關閉", key="close_realtime_advanced_exports"):
+                st.session_state.show_realtime_advanced_exports = False
+                st.rerun()
+        
+        st.markdown("**更多導出選項和批量操作**")
+        
+        tab1, tab2, tab3 = st.tabs(["📊 對比報告", "🔄 批量導出", "⚡ 快速工具"])
+        
+        with tab1:
+            st.subheader("📊 多次爬取對比報告")
+            st.info("比較多次爬取結果的效能和成功率")
             
-            tab1, tab2, tab3 = st.tabs(["📊 對比報告", "🔄 批量導出", "⚡ 快速工具"])
+            # 查找所有JSON文件
+            import glob
+            import os
+            # 檢查新的資料夾位置
+            extraction_dir = Path("extraction_results")
+            if extraction_dir.exists():
+                json_files = list(extraction_dir.glob("realtime_extraction_results_*.json"))
+            else:
+                json_files = [Path(f) for f in glob.glob("realtime_extraction_results_*.json")]
             
-            with tab1:
-                st.subheader("📊 多次爬取對比報告")
-                st.info("比較多次爬取結果的效能和成功率")
+            if len(json_files) >= 2:
+                st.write(f"🔍 找到 {len(json_files)} 個爬取結果文件：")
                 
-                # 查找所有JSON文件
-                import glob
-                import os
-                # 檢查新的資料夾位置
-                extraction_dir = Path("extraction_results")
-                if extraction_dir.exists():
-                    json_files = list(extraction_dir.glob("realtime_extraction_results_*.json"))
-                else:
-                    json_files = [Path(f) for f in glob.glob("realtime_extraction_results_*.json")]
+                st.info("📊 對比報告功能：比較多次爬取結果的效能和成功率")
+                st.write(f"🔍 找到 {len(json_files)} 個結果文件")
                 
-                if len(json_files) >= 2:
-                    st.write(f"🔍 找到 {len(json_files)} 個爬取結果文件：")
-                    
-                    # 顯示文件列表 - 使用 multiselect 更直觀
-                    file_options = {}
-                    for file in sorted(json_files, reverse=True)[:10]:  # 最新的10個
-                        file_time = self._extract_time_from_filename(str(file))
-                        display_name = f"{file.name} ({file_time})"
-                        file_options[display_name] = str(file)
-                    
-                    # 初始化會話狀態
-                    if "comparison_selected_files" not in st.session_state:
-                        st.session_state.comparison_selected_files = []
-                    
-                    selected_displays = st.multiselect(
-                        "選擇要比對的文件（至少2個）：",
-                        options=list(file_options.keys()),
-                        default=[],
-                        help="選擇多個文件進行比對分析",
-                        key="comparison_file_selector"
+                # 簡化的文件選擇
+                file_names = [f.name for f in sorted(json_files, reverse=True)[:5]]
+                if file_names:
+                    selected_file = st.selectbox(
+                        "選擇一個文件查看詳情：",
+                        options=file_names,
+                        help="查看文件的基本信息"
                     )
                     
-                    selected_files = [file_options[display] for display in selected_displays]
-                    
-                    # 添加調試信息
-                    if selected_displays:
-                        st.text(f"🔍 調試: 當前選中 {len(selected_displays)} 個顯示項目")
-                        for i, display in enumerate(selected_displays):
-                            st.text(f"   {i+1}. {display}")
-                    
-                    if len(selected_files) >= 2:
-                        st.success(f"✅ 已選擇 {len(selected_files)} 個文件進行比對")
-                        
-                        # 顯示選中的文件摘要
-                        with st.expander("📄 選中文件摘要", expanded=True):
-                            for i, file_path in enumerate(selected_files):
-                                try:
-                                    with open(file_path, 'r', encoding='utf-8') as f:
-                                        data = json.load(f)
-                                    
-                                    timestamp = data.get('timestamp', 'N/A')
-                                    success_count = data.get('total_processed', 0)
-                                    success_rate = data.get('overall_success_rate', 0)
-                                    
-                                    st.markdown(f"**📁 文件 {i+1}: {Path(file_path).name}**")
-                                    col1, col2, col3 = st.columns(3)
-                                    with col1:
-                                        st.text(f"⏰ 時間: {timestamp[:16] if timestamp != 'N/A' else 'N/A'}")
-                                    with col2:
-                                        st.text(f"✅ 成功: {success_count} 個")
-                                    with col3:
-                                        st.text(f"📊 成功率: {success_rate:.1f}%")
-                                    st.divider()
-                                except Exception as e:
-                                    st.error(f"❌ 讀取 {Path(file_path).name} 失敗: {e}")
-                        
-                        if st.button("📊 生成對比報告", key="generate_comparison", type="primary"):
-                            with st.spinner("正在生成對比報告..."):
-                                self._generate_comparison_report(selected_files)
-                    elif len(selected_files) == 1:
-                        st.warning("⚠️ 已選擇1個文件，請再選擇至少1個文件進行比對")
-                        st.info("💡 提示：可以按住 Ctrl 鍵點擊其他文件來多選")
-                    else:
-                        st.info("💡 請選擇至少2個文件進行比對分析")
-                else:
-                    st.warning("⚠️ 需要至少2個爬取結果文件才能進行對比")
+                    if selected_file:
+                        st.success(f"✅ 選中文件: {selected_file}")
+                        # 這裡可以添加更多文件詳情展示
+            else:
+                st.warning("⚠️ 需要至少2個爬取結果文件才能進行對比")
             
             with tab2:
                 st.subheader("🔄 批量導出功能")

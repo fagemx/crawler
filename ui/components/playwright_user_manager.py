@@ -13,6 +13,13 @@ from typing import Any, Dict
 
 from .playwright_database_handler import PlaywrightDatabaseHandler
 
+# 添加調試用的日誌函數
+def debug_log(message: str):
+    """調試日誌函數"""
+    print(f"[PlaywrightUserManager DEBUG] {message}")
+    # 可選：也寫入到 streamlit 的側邊欄或其他地方
+    # st.sidebar.text(f"DEBUG: {message}")
+
 
 class PlaywrightUserManager:
     """Playwright 用戶數據管理器"""
@@ -142,40 +149,182 @@ class PlaywrightUserManager:
         except Exception as e:
             st.error(f"❌ 導出用戶CSV失敗: {e}")
     
-    def delete_user_data(self, username: str):
-        """刪除指定用戶的所有數據"""
-        try:
-            # 二次確認
-            st.warning(f"⚠️ 確認要刪除用戶 @{username} 的所有Playwright爬蟲資料嗎？")
+    def manage_user_data(self, user_stats: list[dict[str, Any]]):
+        """整合用戶資料管理 UI，包括選擇、導出和刪除"""
+        with st.expander("🗂️ 用戶資料管理 (Playwright)", expanded=True):
+            user_options = [user.get('username') for user in user_stats if user.get('username')]
+            if not user_options:
+                st.warning("沒有可管理的用戶。")
+                return
+
+            # 使用 session state 來持久化選擇的用戶
+            if 'playwright_selected_user' not in st.session_state:
+                st.session_state.playwright_selected_user = user_options[0]
+
+            selected_user = st.selectbox(
+                "選擇要管理的用戶:",
+                options=user_options,
+                key="playwright_user_selector_v3",
+                index=user_options.index(st.session_state.playwright_selected_user) if st.session_state.playwright_selected_user in user_options else 0,
+                help="選擇一個用戶來管理其爬蟲資料"
+            )
             
-            col1, col2, col3 = st.columns([1, 1, 2])
+            # 當選擇框改變時，更新 session_state
+            if st.session_state.playwright_selected_user != selected_user:
+                st.session_state.playwright_selected_user = selected_user
+                # 清除可能存在的舊的刪除確認狀態
+                if 'playwright_confirm_delete_user' in st.session_state:
+                    del st.session_state.playwright_confirm_delete_user
+                st.rerun()
+
+            st.markdown("---")
             
+            # 顯示詳細信息
+            selected_user_info = next((u for u in user_stats if u.get('username') == selected_user), None)
+            if selected_user_info:
+                st.info(f"""
+                **📋 用戶 @{selected_user} 的詳細信息:**
+                - 📊 貼文總數: {selected_user_info.get('post_count', 0):,} 個
+                - ⏰ 最後爬取: {str(selected_user_info.get('latest_crawl', 'N/A'))[:16] if selected_user_info.get('latest_crawl') else 'N/A'}
+                """)
+            
+            # 操作按鈕
+            col1, col2 = st.columns(2)
             with col1:
-                if st.button("✅ 確認刪除", key=f"confirm_delete_{username}", type="primary"):
-                    # 執行刪除
-                    result = asyncio.run(self.db_handler.delete_user_data_async(username))
-                    
-                    if result.get("success"):
-                        st.success(f"✅ {result.get('message', '刪除成功')}")
-                        
-                        # 清除緩存
-                        if 'playwright_db_stats_cache' in st.session_state:
-                            del st.session_state.playwright_db_stats_cache
-                        
-                        st.rerun()
-                    else:
-                        st.error(f"❌ 刪除失敗: {result.get('error', '未知錯誤')}")
-            
+                self.show_user_csv_download(selected_user)
             with col2:
-                if st.button("❌ 取消", key=f"cancel_delete_{username}"):
-                    st.info("🔄 已取消刪除操作")
-                    st.rerun()
+                # 刪除流程現在由此方法完全管理
+                self.handle_delete_button(selected_user)
+    
+    def handle_delete_button(self, username: str):
+        """管理刪除按鈕的顯示和兩步確認流程"""
+        delete_confirm_key = f"playwright_confirm_delete_user"
+
+        # 自訂紅色樣式
+        st.markdown("""
+        <style>
+        div.stButton > button[key*="playwright_delete_"] {
+            background-color: #ff4b4b !important;
+            color: white !important;
+            border-color: #ff4b4b !important;
+        }
+        div.stButton > button[key*="playwright_delete_"]:hover {
+            background-color: #ff2b2b !important;
+            border-color: #ff2b2b !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+        # 檢查是否進入了確認刪除流程
+        if st.session_state.get(delete_confirm_key) == username:
+            # 第二步：最終確認
+            st.error(f"⚠️ **最終確認: 確定刪除 @{username}?**")
             
-            with col3:
-                st.info("💡 提示：刪除後將無法復原，請謹慎操作")
+            if st.button(f"🗑️ 是，永久刪除 @{username}", key=f"playwright_delete_confirm_final_{username}", use_container_width=True):
+                self._execute_user_deletion(username)
+                del st.session_state[delete_confirm_key]
+                # 執行刪除後會自動 rerun
+            
+            if st.button("❌ 取消", key=f"playwright_delete_cancel_{username}", use_container_width=True):
+                del st.session_state[delete_confirm_key]
+                st.success("✅ 已取消刪除操作。")
+                st.rerun()
+
+        else:
+            # 第一步：觸發確認
+            if st.button("🗑️ 刪除用戶資料", key=f"playwright_delete_init_{username}", help=f"刪除 @{username} 的所有爬蟲資料", use_container_width=True):
+                st.session_state[delete_confirm_key] = username
+                st.rerun()
+    
+    def _execute_user_deletion(self, username: str):
+        """執行實際的用戶刪除操作（改善錯誤處理和日誌記錄）"""
+        try:
+            # 顯示詳細的操作進度
+            progress_placeholder = st.empty()
+            
+            with st.spinner(f"🗑️ 正在刪除用戶 @{username} 的資料..."):
+                progress_placeholder.info("📡 正在連接資料庫...")
+                debug_log(f"開始執行用戶 {username} 的刪除操作")
                 
+                # 執行資料庫刪除操作
+                import asyncio
+                import time
+                
+                start_time = time.time()
+                result = asyncio.run(self.db_handler.delete_user_data_async(username))
+                end_time = time.time()
+                
+                debug_log(f"資料庫操作完成，耗時: {end_time - start_time:.2f} 秒")
+                progress_placeholder.info(f"⏱️ 資料庫操作耗時: {end_time - start_time:.2f} 秒")
+                
+                # 顯示詳細的操作結果
+                st.info(f"🔍 **資料庫操作詳細結果:**")
+                st.json(result)
+                
+                if result and result.get("success"):
+                    deleted_count = result.get("deleted_count", 0)
+                    debug_log(f"成功刪除 {deleted_count} 筆記錄")
+                    
+                    if deleted_count > 0:
+                        st.success(f"✅ **刪除成功！** 已刪除用戶 @{username} 的 {deleted_count} 筆記錄")
+                    else:
+                        st.warning(f"⚠️ 用戶 @{username} 沒有找到任何記錄，可能已經被刪除或不存在")
+                    
+                    # 清除相關緩存
+                    progress_placeholder.info("🧹 正在清除緩存...")
+                    cache_keys_to_clear = [
+                        'playwright_db_stats_cache',
+                        'playwright_user_list_cache',
+                        f'user_posts_{username}_cache',
+                        'playwright_selected_user'  # 也清除選中的用戶
+                    ]
+                    
+                    cleared_caches = 0
+                    for cache_key in cache_keys_to_clear:
+                        if cache_key in st.session_state:
+                            del st.session_state[cache_key]
+                            cleared_caches += 1
+                    
+                    debug_log(f"已清除 {cleared_caches} 個緩存")
+                    st.info(f"🧹 已清除 {cleared_caches} 個相關緩存")
+                    
+                    # 等待一下讓用戶看到結果
+                    time.sleep(1)
+                    
+                    # 最後顯示成功消息並重新載入
+                    progress_placeholder.success(f"🎉 用戶 @{username} 的資料已完全刪除！頁面即將刷新...")
+                    time.sleep(1)
+                    st.rerun()
+                    
+                else:
+                    error_msg = result.get('error', '未知錯誤') if result else '資料庫操作返回空結果'
+                    debug_log(f"刪除失敗: {error_msg}")
+                    st.error(f"❌ **刪除失敗**: {error_msg}")
+                    
+                    # 顯示更多調試信息
+                    if result:
+                        st.error("🔍 **調試信息**: 請檢查資料庫連接和權限設置")
+                    else:
+                        st.error("🔍 **調試信息**: 資料庫操作沒有返回任何結果，可能是連接問題")
+                    
         except Exception as e:
-            st.error(f"❌ 刪除操作失敗: {e}")
+            debug_log(f"刪除操作異常: {str(e)}")
+            st.error(f"❌ **刪除操作失敗**: {str(e)}")
+            
+            # 詳細的錯誤信息
+            import traceback
+            error_details = traceback.format_exc()
+            st.error(f"🔧 **詳細錯誤信息**:")
+            st.code(error_details, language="python")
+            
+            # 提供一些調試建議
+            st.info("""
+            🔍 **可能的解決方案**:
+            1. 檢查資料庫服務是否正常運行
+            2. 檢查網路連接
+            3. 檢查資料庫連接字符串和權限
+            4. 檢查 PostgreSQL 服務狀態
+            """)
     
     def _process_array_field(self, field_value) -> list:
         """處理陣列字段（可能是 list 或 JSON 字符串）"""

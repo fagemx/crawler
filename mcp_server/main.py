@@ -14,6 +14,7 @@ import uvicorn
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
+from sqlalchemy.exc import OperationalError
 from sqlmodel import SQLModel, Session, select, create_engine
 from contextlib import asynccontextmanager
 
@@ -126,8 +127,28 @@ async def heartbeat_watcher():
 async def lifespan(app: FastAPI):
     """應用生命週期管理"""
     # 啟動時
-    SQLModel.metadata.create_all(engine)
-    log.info("database_initialized")
+    max_retries = 10
+    retry_delay = 5  # seconds
+    
+    for attempt in range(max_retries):
+        try:
+            # 嘗試初始化資料庫
+            SQLModel.metadata.create_all(engine)
+            log.info("database_initialized_successfully")
+            break  # 成功，跳出循環
+        except OperationalError as e:
+            log.warning(
+                "database_connection_failed_on_startup",
+                error=str(e),
+                attempt=attempt + 1,
+                max_attempts=max_retries,
+            )
+            if attempt + 1 == max_retries:
+                log.critical("database_initialization_failed_after_max_retries", error=str(e))
+                raise  # 重試次數用完，拋出異常
+            
+            log.info(f"retrying_database_initialization_in_{retry_delay}_seconds")
+            await asyncio.sleep(retry_delay)
     
     # 啟動心跳監控
     watcher_task = asyncio.create_task(heartbeat_watcher())

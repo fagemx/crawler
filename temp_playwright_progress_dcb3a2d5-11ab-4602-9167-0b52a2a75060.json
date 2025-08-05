@@ -1,0 +1,195 @@
+{
+  "progress": 1.0,
+  "stage": "completed",
+  "current_work": "爬取完成",
+  "log_messages": [
+    "🚀 爬蟲任務已啟動...",
+    "[08:50:25] 🔧 初始化爬蟲環境...",
+    "[08:50:25] 🔐 讀取認證檔案...",
+    "[08:50:25] ✅ 認證檔案讀取成功，包含 15 個 cookies",
+    "[08:50:25] 📋 構建API請求參數...",
+    "[08:50:25] 📊 目標用戶: @starettoday",
+    "[08:50:25] 📝 目標貼文數: 5",
+    "[08:50:25] 🔄 爬取模式: 增量模式",
+    "[08:50:25] 🧹 去重功能: 關閉",
+    "[08:50:26] 🚀 發送API請求到Playwright Agent...",
+    "[08:50:28] ⏳ 等待Playwright處理...",
+    "[08:50:28] 📊 啟動瀏覽器...",
+    "[08:50:36] 📊 導航到用戶頁面...",
+    "[08:50:44] 📊 等待頁面加載...",
+    "[08:50:52] 📊 開始智能滾動...",
+    "[08:51:00] 📊 收集貼文URLs...",
+    "[08:51:08] 📊 處理貼文URLs...",
+    "[08:51:16] 📊 開始補齊詳細數據...",
+    "[08:51:24] 📊 補齊貼文內容和互動數據...",
+    "[08:51:32] 📊 開始補齊觀看數...",
+    "[08:51:40] 📊 補齊觀看數據...",
+    "[08:51:48] 📊 去重處理...",
+    "[08:51:59] ✅ API請求成功，正在處理響應...",
+    "[08:51:59] 📦 獲取到 5 篇貼文",
+    "[08:51:59] 🎉 爬取任務完成！"
+  ],
+  "final_data": {
+    "posts": [
+      {
+        "post_id": "starettoday_DM9AKd8y0O3",
+        "username": "starettoday",
+        "url": "https://www.threads.com/@starettoday/post/DM9AKd8y0O3",
+        "content": "starettoday",
+        "likes_count": 23,
+        "comments_count": 1,
+        "reposts_count": 0,
+        "shares_count": 6,
+        "views_count": 8600,
+        "media_urls": [],
+        "images": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/526696788_17920320798107568_4943970532099938977_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uMTIwMHgxNjAwLnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=100&_nc_oc=Q6cZ2QHWQdLpQJ16cKMVD6pllJHCN8m2kNrKH4jaGqiy1ovMtoGXuApgFVKMZLz7wM7xcwI&_nc_ohc=PvKutv1Q1YUQ7kNvwEGB7BE&_nc_gid=QMEpn0qYGHofx0mbu_YuQQ&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MjEwNzk4ODg2NjkwOTExMQ%3D%3D.3-ccb7-5&oh=00_AfXvHnDtVdrW11dx433dbGZborD8Jf_WUzL2WcecHgepcQ&oe=68973682&_nc_sid=10d13b"
+        ],
+        "videos": [],
+        "created_at": "2025-08-05T00:50:37.732590",
+        "post_published_at": "2025-08-05T00:26:32Z",
+        "tags": [
+          "采子"
+        ],
+        "fetched_at": "2025-08-05T00:50:37.732594",
+        "views_fetched_at": "2025-08-05T00:51:36.845513",
+        "source": "playwright_new",
+        "processing_stage": "details_filled_hybrid",
+        "is_complete": false,
+        "last_updated": "2025-08-05T00:50:37.732810",
+        "reader_status": "pending",
+        "dom_status": "pending",
+        "reader_processed_at": null,
+        "dom_processed_at": null
+      },
+      {
+        "post_id": "starettoday_DM9AK6PSryl",
+        "username": "starettoday",
+        "url": "https://www.threads.com/@starettoday/post/DM9AK6PSryl",
+        "content": "starettoday",
+        "likes_count": 23,
+        "comments_count": 1,
+        "reposts_count": 0,
+        "shares_count": 6,
+        "views_count": 2800,
+        "media_urls": [],
+        "images": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/526696788_17920320798107568_4943970532099938977_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uMTIwMHgxNjAwLnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=100&_nc_oc=Q6cZ2QEIpumDJEJFeZr7k8CTM__QkcPxDdkeDZTQu9nURSqCeVwVma04jpKHib7UoQB2yew&_nc_ohc=PvKutv1Q1YUQ7kNvwEGB7BE&_nc_gid=L_kkcN8c9amDnUGaR9Ggsw&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MjEwNzk4ODg2NjkwOTExMQ%3D%3D.3-ccb7-5&oh=00_AfXMAS-2Z50px8g9LdSx81GWydUXCz__6kwjYNMNxx-ogQ&oe=68973682&_nc_sid=10d13b"
+        ],
+        "videos": [],
+        "created_at": "2025-08-05T00:50:37.732871",
+        "post_published_at": "2025-08-05T00:26:32Z",
+        "tags": [
+          "采子"
+        ],
+        "fetched_at": "2025-08-05T00:50:37.732871",
+        "views_fetched_at": "2025-08-05T00:51:41.589528",
+        "source": "playwright_new",
+        "processing_stage": "details_filled_hybrid",
+        "is_complete": false,
+        "last_updated": "2025-08-05T00:50:37.732885",
+        "reader_status": "pending",
+        "dom_status": "pending",
+        "reader_processed_at": null,
+        "dom_processed_at": null
+      },
+      {
+        "post_id": "starettoday_DM72sXnyfcb",
+        "username": "starettoday",
+        "url": "https://www.threads.com/@starettoday/post/DM72sXnyfcb",
+        "content": "starettoday",
+        "likes_count": 147,
+        "comments_count": 1,
+        "reposts_count": 6,
+        "shares_count": 15,
+        "views_count": 21100,
+        "media_urls": [],
+        "images": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/528316394_17920267692107568_172477403208393681_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uMTA4MHgxMzUwLnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=100&_nc_oc=Q6cZ2QHevN5wyB8JOniQKSTlc7VlZ6fAzLa72t9bPdLkNBMPbtA8vwtVQ9bF67tPebT6l7s&_nc_ohc=L10SNUtwItAQ7kNvwFcd_57&_nc_gid=xPBUSw3ULZzTH0P0gciBtw&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MTc4NDg2MzA5MjQzODgxMQ%3D%3D.3-ccb7-5&oh=00_AfV1vDXXi0XrAE_S5BO11NvKbyiBoKxnVXMe9WIY2-CS6Q&oe=68972ED0&_nc_sid=10d13b"
+        ],
+        "videos": [],
+        "created_at": "2025-08-05T00:50:37.732891",
+        "post_published_at": "2025-08-04T13:44:32Z",
+        "tags": [
+          "許光漢"
+        ],
+        "fetched_at": "2025-08-05T00:50:37.732891",
+        "views_fetched_at": "2025-08-05T00:51:47.238371",
+        "source": "playwright_new",
+        "processing_stage": "details_filled_hybrid",
+        "is_complete": false,
+        "last_updated": "2025-08-05T00:50:37.732898",
+        "reader_status": "pending",
+        "dom_status": "pending",
+        "reader_processed_at": null,
+        "dom_processed_at": null
+      },
+      {
+        "post_id": "starettoday_DM72uNIyMGb",
+        "username": "starettoday",
+        "url": "https://www.threads.com/@starettoday/post/DM72uNIyMGb",
+        "content": "starettoday",
+        "likes_count": 147,
+        "comments_count": 1,
+        "reposts_count": 6,
+        "shares_count": 15,
+        "views_count": 9400,
+        "media_urls": [],
+        "images": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/528316394_17920267692107568_172477403208393681_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uMTA4MHgxMzUwLnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=100&_nc_oc=Q6cZ2QERL7gSB_nGfgAQJUTC4qk4G32TelaBgjp32pam-S0fC9B8B6_IqfH1bntwAPKxAv0&_nc_ohc=L10SNUtwItAQ7kNvwFcd_57&_nc_gid=rjwrw9nbTkYfufLtKnO58A&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MTc4NDg2MzA5MjQzODgxMQ%3D%3D.3-ccb7-5&oh=00_AfWJr7jUs8G0FbECfRS7J5DExesRgj0zm_NgrV2S5oXkYw&oe=68972ED0&_nc_sid=10d13b"
+        ],
+        "videos": [],
+        "created_at": "2025-08-05T00:50:37.732903",
+        "post_published_at": "2025-08-04T13:44:32Z",
+        "tags": [
+          "許光漢"
+        ],
+        "fetched_at": "2025-08-05T00:50:37.732903",
+        "views_fetched_at": "2025-08-05T00:51:51.703924",
+        "source": "playwright_new",
+        "processing_stage": "details_filled_hybrid",
+        "is_complete": false,
+        "last_updated": "2025-08-05T00:50:37.732909",
+        "reader_status": "pending",
+        "dom_status": "pending",
+        "reader_processed_at": null,
+        "dom_processed_at": null
+      },
+      {
+        "post_id": "starettoday_DM7w_IDSuuI",
+        "username": "starettoday",
+        "url": "https://www.threads.com/@starettoday/post/DM7w_IDSuuI",
+        "content": "starettoday",
+        "likes_count": 299,
+        "comments_count": 13,
+        "reposts_count": 0,
+        "shares_count": 24,
+        "views_count": 52500,
+        "media_urls": [],
+        "images": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527450175_17920263216107568_1142746470801651952_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uMTA4MHgxMDgwLnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=100&_nc_oc=Q6cZ2QEepCpBIqrKMRSvunAueQyOEEX62oF_fbwYL6E4mZYFr1bDWrW6vtqVWUJn5lRCfxY&_nc_ohc=T_EHxLxFbfsQ7kNvwFjDKMl&_nc_gid=KkhbZ1jX3iHHu9fK6q2Ffw&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MTc1OTc2Mzc2NDk5NzAwMA%3D%3D.3-ccb7-5&oh=00_AfXa0nUwzrpN_IsoGC67GevYTlivxCPv8irDbqSZnWKFOQ&oe=68970D62&_nc_sid=10d13b"
+        ],
+        "videos": [],
+        "created_at": "2025-08-05T00:50:37.732913",
+        "post_published_at": "2025-08-04T12:54:40Z",
+        "tags": [
+          "蔡阿嘎 蘿拉"
+        ],
+        "fetched_at": "2025-08-05T00:50:37.732914",
+        "views_fetched_at": "2025-08-05T00:51:56.351423",
+        "source": "playwright_new",
+        "processing_stage": "details_filled_hybrid",
+        "is_complete": false,
+        "last_updated": "2025-08-05T00:50:37.732919",
+        "reader_status": "pending",
+        "dom_status": "pending",
+        "reader_processed_at": null,
+        "dom_processed_at": null
+      }
+    ],
+    "batch_id": "d10d8fe3-6ee0-48ed-abac-16ead72f9b53",
+    "username": "starettoday",
+    "total_count": 5,
+    "processing_stage": "playwright_incremental_completed"
+  }
+}

@@ -309,6 +309,11 @@ class DetailsExtractor:
                             if text.startswith("@"):
                                 continue
                             
+                            # 過濾用戶名（重要修復！）
+                            if text.strip() == username:
+                                logging.debug(f"   ⚠️ 過濾用戶名文本: {text}")
+                                continue
+                            
                             # 過濾時間相關
                             if any(time_word in text for time_word in ["小時", "分鐘", "秒前", "天前", "週前", "個月前"]):
                                 continue
@@ -381,6 +386,10 @@ class DetailsExtractor:
                             try:
                                 backup_text = await elements.nth(i).get_attribute("aria-label") or await elements.nth(i).get_attribute("title")
                                 if backup_text and len(backup_text.strip()) > 5:
+                                    # 過濾用戶名
+                                    if backup_text.strip() == username:
+                                        continue
+                                    
                                     # 同樣過濾系統錯誤信息
                                     backup_text_lower = backup_text.lower()
                                     if not any(msg.lower() in backup_text_lower for msg in [
@@ -404,6 +413,11 @@ class DetailsExtractor:
                     content = ""  # 保持空字符串而不是錯誤信息
             
             content_data["content"] = content
+            
+            # 調試信息：確認內容提取結果
+            logging.info(f"   📝 [DEBUG] 內容提取結果: content='{content}', username='{content_data.get('username', 'N/A')}'")
+            if content == content_data.get("username"):
+                logging.warning(f"   ⚠️ [DEBUG] 警告：content 與 username 相同！可能存在錯誤賦值")
             
             # 提取圖片（過濾頭像）
             images = []
@@ -699,6 +713,7 @@ class DetailsExtractor:
         
         # 更新內容數據 - 只在現有數據為空時才更新
         if content_data.get("content") and not post.content:
+            logging.info(f"   📝 [DEBUG] 更新 post.content: 從 '{post.content}' → '{content_data['content']}'")
             post.content = content_data["content"]
             updated = True
         

@@ -1,0 +1,13 @@
+
+[global]
+developmentMode = false
+
+[server]
+enableCORS = false
+enableXsrfProtection = false
+
+[browser]
+gatherUsageStats = false
+
+[client]
+caching = false

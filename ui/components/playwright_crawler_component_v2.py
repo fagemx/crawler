@@ -83,9 +83,41 @@ class PlaywrightCrawlerComponentV2:
         except Exception:
             return {}
     
+    def _cleanup_invalid_file_references(self):
+        """清理無效的文件引用，避免 MediaFileStorageError"""
+        try:
+            # 清理可能導致 MediaFileStorageError 的舊文件引用
+            keys_to_check = list(st.session_state.keys())
+            for key in keys_to_check:
+                # 跳過重要的狀態
+                if key in ['playwright_results', 'playwright_crawl_status', 'show_playwright_history_analysis', 
+                          'show_playwright_advanced_exports', 'playwright_results_saved']:
+                    continue
+                
+                # 檢查是否是文件相關的key，但保留當前上傳器
+                if ('file' in key.lower() or 'upload' in key.lower()) and key != "playwright_csv_uploader_v2":
+                    try:
+                        # 嘗試訪問這個值，如果有問題就刪除
+                        value = st.session_state[key]
+                        # 如果是文件對象且已經無效，清理它
+                        if hasattr(value, 'file_id') or str(value).startswith('UploadedFile'):
+                            del st.session_state[key]
+                    except:
+                        # 如果訪問時出錯，直接刪除
+                        try:
+                            del st.session_state[key]
+                        except:
+                            pass
+        except Exception:
+            # 如果清理過程出錯，忽略
+            pass
+    
     # ---------- 2. 主渲染方法 ----------
     def render(self):
         """渲染Playwright爬蟲組件"""
+        # 初始化時清理無效的文件引用，避免 MediaFileStorageError
+        self._cleanup_invalid_file_references()
+        
         st.header("🎭 Playwright 智能爬蟲 V2")
         st.markdown("**基於檔案讀寫架構 + 狀態機驅動的實時進度顯示**")
         
@@ -152,7 +184,7 @@ class PlaywrightCrawlerComponentV2:
             # 去重設定
             enable_deduplication = st.checkbox(
                 "🧹 啟用去重功能",
-                value=True,
+                value=False,
                 help="開啟時會過濾相似內容的重複貼文，保留主貼文；關閉時保留所有抓取到的貼文",
                 key="playwright_enable_dedup_v2"
             )
@@ -172,14 +204,29 @@ class PlaywrightCrawlerComponentV2:
                     self._start_crawling(username, max_posts, enable_deduplication, is_incremental)
                     
             with col2:
-                uploaded_file = st.file_uploader(
-                    "📁 載入CSV文件", 
-                    type=['csv'], 
-                    key="playwright_csv_uploader_v2",
-                    help="上傳之前導出的CSV文件來查看結果"
-                )
-                if uploaded_file is not None:
-                    self._load_csv_file(uploaded_file)
+                try:
+                    uploaded_file = st.file_uploader(
+                        "📁 載入CSV文件", 
+                        type=['csv'], 
+                        key="playwright_csv_uploader_v2",
+                        help="上傳之前導出的CSV文件來查看結果"
+                    )
+                    if uploaded_file is not None:
+                        self._load_csv_file(uploaded_file)
+                except Exception as e:
+                    # 如果文件上傳器出錯，清理並重新顯示
+                    if "MediaFileStorageError" in str(e) or "file_id" in str(e):
+                        st.warning("⚠️ 偵測到舊的文件引用，正在清理...")
+                        # 清理相關狀態
+                        for key in list(st.session_state.keys()):
+                            if 'uploader' in key.lower() or 'file' in key.lower():
+                                try:
+                                    del st.session_state[key]
+                                except:
+                                    pass
+                        st.rerun()
+                    else:
+                        st.error(f"❌ 文件上傳器錯誤: {e}")
             
             with col3:
                 if 'playwright_results' in st.session_state:
@@ -740,63 +787,7 @@ class PlaywrightCrawlerComponentV2:
                 
                 # 添加用戶資料管理功能（折疊形式）
                 st.markdown("---")
-                with st.expander("🗂️ 用戶資料管理", expanded=False):
-                    # 用戶選擇
-                    user_options = [user.get('username', 'N/A') for user in user_stats]
-                    selected_user = st.selectbox(
-                        "選擇要管理的用戶:",
-                        options=user_options,
-                        index=0 if user_options else None,
-                        help="選擇一個用戶來管理其爬蟲資料",
-                        key="playwright_user_selector"
-                    )
-                    
-                    # 操作按鈕
-                    if selected_user:
-                        col1, col2 = st.columns(2)
-                        
-                        with col1:
-                            # 直接顯示下載按鈕（不需要分兩步）
-                            self.user_manager.show_user_csv_download(selected_user)
-                        
-                        with col2:
-                            # 自訂紅色樣式
-                            st.markdown("""
-                            <style>
-                            div.stButton > button[key="playwright_delete_user_data_btn"] {
-                                background-color: #ff4b4b !important;
-                                color: white !important;
-                                border-color: #ff4b4b !important;
-                            }
-                            div.stButton > button[key="playwright_delete_user_data_btn"]:hover {
-                                background-color: #ff2b2b !important;
-                                border-color: #ff2b2b !important;
-                            }
-                            </style>
-                            """, unsafe_allow_html=True)
-                            
-                            # 刪除用戶資料按鈕（紅色）
-                            if st.button(
-                                "🗑️ 刪除用戶資料", 
-                                key="playwright_delete_user_data_btn",
-                                help="刪除所選用戶的所有爬蟲資料",
-                                use_container_width=True
-                            ):
-                                self.user_manager.delete_user_data(selected_user)
-                    
-                    if selected_user:
-                        # 顯示選中用戶的詳細信息
-                        selected_user_info = next((u for u in user_stats if u.get('username') == selected_user), None)
-                        if selected_user_info:
-                            st.info(f"""
-                            **📋 用戶 @{selected_user} 的詳細信息:**
-                            - 📊 貼文總數: {selected_user_info.get('post_count', 0):,} 個
-                            - ⏰ 最後爬取: {str(selected_user_info.get('latest_crawl', 'N/A'))[:16] if selected_user_info.get('latest_crawl') else 'N/A'}
-                            - 📈 平均觀看數: {selected_user_info.get('avg_views', 0):,}
-                            - 👍 平均按讚數: {selected_user_info.get('avg_likes', 0):,}
-                            """)
-                            
-                            st.warning("⚠️ **注意**: 刪除操作將永久移除該用戶的所有Playwright爬蟲資料，包括貼文內容、觀看數等，此操作無法復原！")
+                self.user_manager.manage_user_data(user_stats)
         else:
             st.warning("📝 Playwright 資料庫中暫無爬取記錄")
     
@@ -863,6 +854,11 @@ class PlaywrightCrawlerComponentV2:
         
         # 詳細結果表格
         if st.checkbox("📋 顯示詳細結果", key="show_playwright_detailed_results_v2"):
+            # 內容顯示選項
+            col_option1, col_option2 = st.columns([1, 1])
+            with col_option1:
+                show_full_content = st.checkbox("📖 顯示完整內容", key="show_full_content_v2", help="勾選後將顯示完整貼文內容，而非預覽")
+            
             st.write("**📋 詳細結果:**")
             
             table_data = []
@@ -913,7 +909,7 @@ class PlaywrightCrawlerComponentV2:
                     "#": i,
                     "貼文ID": r.get('post_id', 'N/A')[:20] + "..." if len(r.get('post_id', '')) > 20 else r.get('post_id', 'N/A'),
                     "用戶名": r.get('username', 'N/A'),
-                    "內容預覽": (r.get('content', '')[:60] + "...") if r.get('content') else 'N/A',
+                    "內容" if show_full_content else "內容預覽": r.get('content', 'N/A') if show_full_content else ((r.get('content', '')[:60] + "...") if r.get('content') and len(r.get('content', '')) > 60 else r.get('content', 'N/A')),
                     "觀看數": format_count(r.get('views_count', r.get('views', 'N/A'))),
                     "按讚": format_count(r.get('likes_count', r.get('likes', 'N/A'))),
                     "留言": format_count(r.get('comments_count', r.get('comments', 'N/A'))),
@@ -1290,13 +1286,21 @@ class PlaywrightCrawlerComponentV2:
             
             # 顯示前10筆數據
             if posts_data:
-                st.write("**前10筆數據：**")
+                col_preview1, col_preview2 = st.columns([1, 1])
+                with col_preview1:
+                    st.write("**前10筆數據：**")
+                with col_preview2:
+                    show_full_history_content = st.checkbox("📖 顯示完整內容", key="show_full_history_content_v2", help="勾選後將顯示完整貼文內容")
+                
                 preview_data = []
                 for i, post in enumerate(posts_data[:10], 1):
+                    content = post.get('content', '')
+                    content_display = content if show_full_history_content else ((content[:40] + "...") if content and len(content) > 40 else content or 'N/A')
+                    
                     preview_data.append({
                         "#": i,
                         "貼文ID": post.get('post_id', 'N/A')[:20] + "..." if len(post.get('post_id', '')) > 20 else post.get('post_id', 'N/A'),
-                        "內容預覽": (post.get('content', '')[:40] + "...") if post.get('content') else 'N/A',
+                        "內容" if show_full_history_content else "內容預覽": content_display,
                         "觀看數": f"{post.get('views_count', 0):,}",
                         "按讚數": f"{post.get('likes_count', 0):,}",
                         "分數": f"{post.get('calculated_score', 0):,.1f}" if post.get('calculated_score') else 'N/A',
@@ -1656,6 +1660,16 @@ class PlaywrightCrawlerComponentV2:
         try:
             import pandas as pd
             import io
+            
+            # 清理可能的舊文件引用，避免 MediaFileStorageError
+            if hasattr(st.session_state, 'get'):
+                file_related_keys = [k for k in st.session_state.keys() if 'file' in k.lower() or 'upload' in k.lower()]
+                for key in file_related_keys:
+                    if key != "playwright_csv_uploader_v2":  # 保留當前上傳器
+                        try:
+                            del st.session_state[key]
+                        except:
+                            pass
             
             # 讀取CSV文件
             content = uploaded_file.getvalue()
