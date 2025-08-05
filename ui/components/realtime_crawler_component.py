@@ -18,10 +18,67 @@ import os
 project_root = Path(__file__).parent.parent.parent
 sys.path.append(str(project_root))
 
+class RealtimeDatabaseHandler:
+    """處理 Realtime Crawler 資料庫操作的輔助類"""
+
+    def __init__(self):
+        # 延遲導入，避免循環依賴和啟動問題
+        from common.incremental_crawl_manager import IncrementalCrawlManager
+        self.crawl_manager = IncrementalCrawlManager()
+
+    async def _get_connection(self):
+        await self.crawl_manager.db.init_pool()
+        return self.crawl_manager.db.get_connection()
+
+    async def delete_user_data_async(self, username: str) -> dict:
+        """異步刪除特定用戶的所有數據並返回詳細結果"""
+        if not username:
+            return {"success": False, "error": "用戶名不能為空"}
+
+        try:
+            async with await self._get_connection() as conn:
+                async with conn.transaction():
+                    # 1. 獲取要刪除的記錄數
+                    posts_count = await conn.fetchval(
+                        "SELECT COUNT(*) FROM post_metrics_sql WHERE username = $1", username
+                    )
+                    crawl_state_count = await conn.fetchval(
+                        "SELECT COUNT(*) FROM crawl_state WHERE username = $1", username
+                    )
+
+                    # 2. 執行刪除
+                    await conn.execute("DELETE FROM post_metrics_sql WHERE username = $1", username)
+                    await conn.execute("DELETE FROM crawl_state WHERE username = $1", username)
+                    
+                    # 3. 驗證刪除
+                    remaining_posts = await conn.fetchval(
+                        "SELECT COUNT(*) FROM post_metrics_sql WHERE username = $1", username
+                    )
+                    
+                    if remaining_posts == 0:
+                        return {
+                            "success": True, 
+                            "deleted_posts": posts_count, 
+                            "deleted_states": crawl_state_count
+                        }
+                    else:
+                        return {
+                            "success": False, 
+                            "error": "刪除後驗證失敗，仍有數據殘留",
+                            "remaining_posts": remaining_posts
+                        }
+
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+        finally:
+            await self.crawl_manager.db.close_pool()
+
 class RealtimeCrawlerComponent:
     def __init__(self):
         self.is_running = False
         self.current_task = None
+        self.db_handler = RealtimeDatabaseHandler() # 初始化新的資料庫處理器
         
     def render(self):
         """渲染實時爬蟲組件"""
@@ -423,143 +480,71 @@ if __name__ == "__main__":
         except Exception as e:
             st.error(f"❌ 獲取統計信息失敗: {str(e)}")
     
-    def _delete_user_data(self, username: str):
-        """刪除指定用戶的所有爬蟲資料"""
-        if not username:
-            st.error("❌ 請選擇一個有效的用戶")
-            return
-        
-        # 使用簡化的確認邏輯，避免session state複雜性
-        import hashlib
-        username_hash = hashlib.md5(username.encode()).hexdigest()[:8]
-        
-        # 直接顯示確認按鈕，使用唯一的key
-        st.error(f"⚠️ **危險操作確認**")
-        st.markdown(f"""
-        您即將刪除用戶 **@{username}** 的所有爬蟲資料，包括：
-        - 所有貼文內容  
-        - 觀看數、按讚數、留言數等指標
-        - 爬取時間戳記錄
-        - 增量爬取檢查點
-        
-        **此操作無法復原！**
-        """)
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button(f"✅ 確認刪除 @{username}", type="primary", key=f"final_confirm_delete_{username_hash}"):
-                # 立即執行刪除
-                self._execute_user_deletion(username)
-        
-        with col2:
-            if st.button("❌ 取消操作", key=f"cancel_delete_{username_hash}"):
-                st.success("✅ 已取消刪除操作")
-                return
-    
     def _execute_user_deletion(self, username: str):
-        """執行實際的用戶刪除操作"""
+        """執行實際的用戶刪除操作，直接調用 Database Handler"""
         try:
-            import subprocess
-            import json
-            import sys
-            import os
-            import tempfile
-            import time
-            
-            # 創建簡化的刪除腳本（基於測試成功的邏輯）
-            delete_script_content = f'''
-import asyncio
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+            with st.spinner(f"🗑️ 正在刪除用戶 @{username} 的資料..."):
+                result = asyncio.run(self.db_handler.delete_user_data_async(username))
 
-from common.incremental_crawl_manager import IncrementalCrawlManager
-
-async def delete_user_data():
-    crawl_manager = IncrementalCrawlManager()
-    try:
-        await crawl_manager.db.init_pool()
-        
-        async with crawl_manager.db.get_connection() as conn:
-            # 計算要刪除的數量
-            posts_count = await conn.fetchval("""
-                SELECT COUNT(*) FROM post_metrics_sql WHERE username = $1
-            """, "{username}")
-            
-            crawl_state_count = await conn.fetchval("""
-                SELECT COUNT(*) FROM crawl_state WHERE username = $1
-            """, "{username}")
-            
-            # 執行刪除
-            async with conn.transaction():
-                await conn.execute("""
-                    DELETE FROM post_metrics_sql WHERE username = $1
-                """, "{username}")
+            if result.get("success"):
+                st.success(f"""
+                ✅ **刪除成功！**
+                用戶 @{username} 的資料已被完全刪除：
+                - 🗑️ 刪除貼文數: {result.get('deleted_posts', 0)} 個
+                - 🗑️ 刪除爬取狀態: {result.get('deleted_states', 0)} 個
+                """)
+                # 清理相關 session state
+                if 'realtime_confirm_delete_user' in st.session_state:
+                    del st.session_state['realtime_confirm_delete_user']
+                if 'db_stats_cache' in st.session_state:
+                    del st.session_state['db_stats_cache']
                 
-                await conn.execute("""
-                    DELETE FROM crawl_state WHERE username = $1
-                """, "{username}")
-            
-            print(f"SUCCESS:{posts_count}:{crawl_state_count}")
-            
-    except Exception as e:
-        print(f"ERROR:{str(e)}")
-    finally:
-        await crawl_manager.db.close_pool()
+                st.info("📊 正在刷新統計資料...")
+                time.sleep(1)
+                st.rerun()
+            else:
+                st.error(f"❌ 刪除失敗: {result.get('error', '未知錯誤')}")
 
-if __name__ == "__main__":
-    asyncio.run(delete_user_data())
-'''
-            
-            # 寫入臨時文件
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False, encoding='utf-8') as f:
-                f.write(delete_script_content)
-                temp_script = f.name
-            
-            try:
-                # 執行刪除腳本
-                with st.spinner(f"🗑️ 正在刪除用戶 @{username} 的資料..."):
-                    result = subprocess.run(
-                        [sys.executable, temp_script],
-                        capture_output=True,
-                        text=True,
-                        encoding='utf-8',
-                        cwd=os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
-                        timeout=30
-                    )
-                
-                if result.returncode == 0 and result.stdout.strip():
-                    output = result.stdout.strip()
-                    if output.startswith("SUCCESS:"):
-                        _, posts_count, crawl_state_count = output.split(":")
-                        st.success(f"""
-                        ✅ **刪除成功！**
-                        
-                        用戶 @{username} 的資料已被完全刪除：
-                        - 🗑️ 刪除貼文數: {posts_count} 個
-                        - 🗑️ 刪除爬取記錄: {crawl_state_count} 個
-                        """)
-                        
-                        # 刷新頁面以更新統計
-                        st.info("📊 正在刷新統計資料...")
-                        time.sleep(1)
-                        st.rerun()
-                    else:
-                        st.error(f"❌ 刪除失敗: {output}")
-                else:
-                    st.error(f"❌ 刪除腳本執行失敗")
-                    if result.stderr:
-                        st.text(f"錯誤詳情: {result.stderr}")
-                        
-            finally:
-                # 清理臨時文件
-                try:
-                    os.unlink(temp_script)
-                except:
-                    pass
-                    
         except Exception as e:
-            st.error(f"❌ 刪除操作失敗: {str(e)}")
+            st.error(f"❌ 刪除過程中發生嚴重錯誤: {e}")
+            import traceback
+            st.code(traceback.format_exc())
+
+    def handle_delete_button(self, username: str):
+        """管理刪除按鈕的顯示和兩步確認流程"""
+        delete_confirm_key = "realtime_confirm_delete_user"
+
+        # 自訂紅色樣式
+        st.markdown("""
+        <style>
+        div.stButton > button[key*="realtime_delete_"] {
+            background-color: #ff4b4b !important; color: white !important; border-color: #ff4b4b !important;
+        }
+        div.stButton > button[key*="realtime_delete_"]:hover {
+            background-color: #ff2b2b !important; border-color: #ff2b2b !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+        if st.session_state.get(delete_confirm_key) == username:
+            # 第二步：最終確認
+            st.error(f"⚠️ **最終確認: 確定刪除 @{username} 的所有 Realtime 資料?**")
+            
+            if st.button(f"🗑️ 是，永久刪除 @{username}", key=f"realtime_delete_confirm_final_{username}", use_container_width=True):
+                self._execute_user_deletion(username)
+                # 執行刪除後會自動 rerun
+            
+            if st.button("❌ 取消", key=f"realtime_delete_cancel_{username}", use_container_width=True):
+                del st.session_state[delete_confirm_key]
+                st.success("✅ 已取消刪除操作。")
+                st.rerun()
+        else:
+            # 第一步：觸發確認
+            if st.button("🗑️ 刪除用戶資料", key=f"realtime_delete_init_{username}", help=f"刪除 @{username} 的所有 Realtime 爬蟲資料", use_container_width=True):
+                st.session_state[delete_confirm_key] = username
+                st.rerun()
+    
+
     
     def _export_user_csv(self, username: str):
         """導出指定用戶的所有貼文為CSV格式"""
@@ -1841,121 +1826,73 @@ if __name__ == "__main__":
                 st.metric("最高按讚數", f"{max(avg_likes):.0f}")
     
     def _render_cached_stats(self, stats):
-        """渲染緩存的統計信息"""
-        # 顯示總體統計
+        """渲染緩存的統計信息，並整合新的用戶管理 UI"""
         total_stats = stats.get("total_stats", {})
         if total_stats:
             st.info(f"""
-            **📈 總體統計**
+            **📈 總體統計 (Realtime)**
             - 📊 總貼文數: {total_stats.get('total_posts', 0):,}
             - 👥 已爬取用戶: {total_stats.get('total_users', 0)} 個
             - ⏰ 最後活動: {str(total_stats.get('latest_activity', 'N/A'))[:16] if total_stats.get('latest_activity') else 'N/A'}
             """)
         
-        # 顯示用戶統計
         user_stats = stats.get("user_stats", [])
         if user_stats:
-            st.write("**👥 各用戶統計:**")
+            st.write("**👥 各用戶統計 (Realtime):**")
             
-            # 使用表格顯示
             import pandas as pd
-            df_data = []
-            for user in user_stats:
-                latest = str(user.get('latest_crawl', 'N/A'))[:16] if user.get('latest_crawl') else 'N/A'
-                df_data.append({
-                    "用戶名": f"@{user.get('username', 'N/A')}",
-                    "貼文數": f"{user.get('post_count', 0):,}",
-                    "最後爬取": latest
-                })
+            df_data = [{
+                "用戶名": f"@{user.get('username', 'N/A')}",
+                "貼文數": f"{user.get('post_count', 0):,}",
+                "最後爬取": str(user.get('latest_crawl', 'N/A'))[:16] if user.get('latest_crawl') else 'N/A'
+            } for user in user_stats]
+
+            st.dataframe(
+                pd.DataFrame(df_data),
+                use_container_width=True,
+                hide_index=True,
+                height=min(300, len(df_data) * 35 + 38)
+            )
             
-            if df_data:
-                df = pd.DataFrame(df_data)
-                st.dataframe(
-                    df, 
-                    use_container_width=True,
-                    hide_index=True,
-                    height=min(300, len(df_data) * 35 + 38)  # 動態高度
-                )
+            # --- 用戶資料管理 ---
+            st.markdown("---")
+            with st.expander("🗂️ 用戶資料管理 (Realtime)", expanded=True):
+                user_options = [user.get('username') for user in user_stats if user.get('username')]
                 
-                # 添加用戶資料管理功能（折疊形式）
-                st.markdown("---")
-                with st.expander("🗂️ 用戶資料管理", expanded=False):
-                    # 用戶選擇
-                    user_options = [user.get('username', 'N/A') for user in user_stats]
-                    selected_user = st.selectbox(
-                        "選擇要管理的用戶:",
-                        options=user_options,
-                        index=0 if user_options else None,
-                        help="選擇一個用戶來管理其爬蟲資料"
-                    )
+                # 使用 session state 持久化選擇
+                if 'realtime_selected_user' not in st.session_state or st.session_state.realtime_selected_user not in user_options:
+                    st.session_state.realtime_selected_user = user_options[0] if user_options else None
+
+                selected_user = st.selectbox(
+                    "選擇要管理的用戶:",
+                    options=user_options,
+                    key="realtime_user_selector",
+                    index=user_options.index(st.session_state.realtime_selected_user) if st.session_state.realtime_selected_user in user_options else 0,
+                )
+
+                if selected_user and st.session_state.realtime_selected_user != selected_user:
+                    st.session_state.realtime_selected_user = selected_user
+                    if 'realtime_confirm_delete_user' in st.session_state:
+                        del st.session_state['realtime_confirm_delete_user']
+                    st.rerun()
+
+                if selected_user:
+                    selected_user_info = next((u for u in user_stats if u.get('username') == selected_user), None)
+                    if selected_user_info:
+                        st.info(f"""
+                        **📋 用戶 @{selected_user} 的詳細信息:**
+                        - 📊 貼文總數: {selected_user_info.get('post_count', 0):,} 個
+                        - ⏰ 最後爬取: {str(selected_user_info.get('latest_crawl', 'N/A'))[:16] if selected_user_info.get('latest_crawl') else 'N/A'}
+                        """)
                     
-                    # 操作按鈕
-                    if selected_user:
-                        col1, col2 = st.columns(2)
-                        
-                        with col1:
-                            # 導出用戶CSV按鈕
-                            if st.button(
-                                "📊 導出CSV", 
-                                key="export_user_csv_btn",
-                                help="導出所選用戶的所有貼文為CSV格式",
-                                use_container_width=True
-                            ):
-                                self._export_user_csv(selected_user)
-                        
-                        with col2:
-                            # 使用JavaScript來精確定位並設置按鈕樣式
-                            st.markdown("""
-                            <script>
-                            setTimeout(function() {
-                                // 查找具有特定文本的按鈕
-                                const buttons = document.querySelectorAll('button');
-                                buttons.forEach(button => {
-                                    if (button.textContent.includes('🗑️ 刪除用戶資料')) {
-                                        button.style.backgroundColor = '#ff4b4b';
-                                        button.style.color = 'white';
-                                        button.style.borderColor = '#ff4b4b';
-                                        
-                                        button.addEventListener('mouseenter', function() {
-                                            this.style.backgroundColor = '#ff2b2b';
-                                            this.style.borderColor = '#ff2b2b';
-                                        });
-                                        
-                                        button.addEventListener('mouseleave', function() {
-                                            if (!this.disabled) {
-                                                this.style.backgroundColor = '#ff4b4b';
-                                                this.style.borderColor = '#ff4b4b';
-                                            }
-                                        });
-                                    }
-                                });
-                            }, 100);
-                            </script>
-                            """, unsafe_allow_html=True)
-                            
-                            # 刪除用戶資料按鈕
-                            if st.button(
-                                "🗑️ 刪除用戶資料", 
-                                key="delete_user_data_btn",
-                                help="刪除所選用戶的所有爬蟲資料",
-                                use_container_width=True
-                            ):
-                                self._delete_user_data(selected_user)
-                    
-                    if selected_user:
-                        # 顯示選中用戶的詳細信息
-                        selected_user_info = next((u for u in user_stats if u.get('username') == selected_user), None)
-                        if selected_user_info:
-                            st.info(f"""
-                            **📋 用戶 @{selected_user} 的詳細信息:**
-                            - 📊 貼文總數: {selected_user_info.get('post_count', 0):,} 個
-                            - ⏰ 最後爬取: {str(selected_user_info.get('latest_crawl', 'N/A'))[:16] if selected_user_info.get('latest_crawl') else 'N/A'}
-                            - 🕐 首次爬取: {str(selected_user_info.get('first_crawl', 'N/A'))[:16] if selected_user_info.get('first_crawl') else 'N/A'}
-                            """)
-                            
-                            st.warning("⚠️ **注意**: 刪除操作將永久移除該用戶的所有爬蟲資料，包括貼文內容、觀看數等，此操作無法復原！")
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        if st.button("📊 導出CSV", key=f"realtime_export_csv_{selected_user}", use_container_width=True):
+                            self._export_user_csv(selected_user)
+                    with col2:
+                        self.handle_delete_button(selected_user) # 呼叫新的刪除處理器
         else:
-            st.warning("📝 資料庫中暫無爬取記錄")
+            st.warning("📝 Realtime 資料庫中暫無爬取記錄")
     
     def _save_results_to_database(self):
         """將當前爬取結果保存到資料庫"""
