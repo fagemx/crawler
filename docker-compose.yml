@@ -566,7 +566,7 @@ services:
       - STREAMLIT_SERVER_PORT=8501
       - ORCHESTRATOR_URL=http://localhost:8000
       - FORM_API_URL=http://localhost:8010
-      - DATABASE_URL=postgresql://localhost:5432/social_media_db
+      - DATABASE_URL=postgresql://postgres:password@localhost:5432/social_media_db
       - REDIS_URL=redis://localhost:6379/0
     env_file:
       - .env
