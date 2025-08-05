@@ -9,6 +9,16 @@ RUN apt-get update && apt-get install -y \
     gnupg \
     ca-certificates \
     xvfb \
+    libnss3 \
+    libatk-bridge2.0-0 \
+    libdrm2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
+    libgbm1 \
+    libxss1 \
+    libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
 # 直接安裝 UI 需要的套件（包括 Playwright）
@@ -37,9 +47,8 @@ RUN pip install --no-cache-dir \
     click>=8.1.0 \
     playwright>=1.40.0
 
-# 安裝 Playwright 瀏覽器
+# 安裝 Playwright 瀏覽器（跳過系統依賴，因為已手動安裝）
 RUN playwright install chromium
-RUN playwright install-deps chromium
 
 # 複製專案檔案
 COPY . .
