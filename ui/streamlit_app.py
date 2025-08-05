@@ -59,36 +59,21 @@ class SocialMediaGeneratorApp:
         with st.sidebar:
             st.header("🎯 功能導航")
             
-            # 📊 爬蟲進度
-            self._render_sidebar_progress()
+            # 爬蟲模式說明
+            st.markdown("### 📖 爬蟲模式說明")
+            st.info("""
+            **🚀 實時智能爬蟲**
+            速度快，適合快速分析
+            """)
+            st.warning("""
+            **🎭 Playwright 爬蟲**
+            資料詳細，包含發文時間、標籤、圖片、影片 URL
+            """)
             
             st.divider()
             
-            # 📊 功能狀態
-            st.subheader("📊 功能狀態")
-            
-            # 爬蟲狀態
-            crawler_status = st.session_state.get('crawler_status', 'idle')
-            status_colors = {
-                "idle": "⚪",
-                "running": "🟡", 
-                "completed": "🟢",
-                "error": "🔴"
-            }
-            status_names = {
-                "idle": "待機中",
-                "running": "運行中",
-                "completed": "已完成", 
-                "error": "錯誤"
-            }
-            
-            st.write(f"🕷️ 爬蟲: {status_colors.get(crawler_status, '⚪')} {status_names.get(crawler_status, '未知')}")
-            
-            if crawler_status == "completed":
-                final_data = st.session_state.get('final_data')
-                if final_data:
-                    posts_count = len(final_data.get("posts", []))
-                    st.write(f"   📊 已爬取: {posts_count} 篇")
+            # 📊 爬蟲進度
+            self._render_sidebar_progress()
             
             st.divider()
             
@@ -141,37 +126,6 @@ class SocialMediaGeneratorApp:
     
     def render_main_content(self):
         """渲染主要內容"""
-        
-        # 爬蟲模式說明
-        st.markdown("### 📖 爬蟲模式說明")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.info("""
-            **🚀 實時智能爬蟲**
-            
-            ✅ **速度快** - 快速獲取基本貼文內容  
-            ✅ **效率高** - 適合大量數據爬取  
-            ✅ **即時性** - 實時顯示進度  
-            
-            **適用場景：** 快速分析、內容概覽
-            """)
-        
-        with col2:
-            st.warning("""
-            **🎭 Playwright 爬蟲**
-            
-            ✅ **資料詳細** - 包含完整貼文信息  
-            ✅ **發文時間** - 準確的時間戳記  
-            ✅ **標籤提取** - 自動識別主題標籤  
-            ✅ **多媒體** - 圖片、影片 URL  
-            
-            **適用場景：** 深度分析、完整數據收集
-            """)
-        
-        st.divider()
-        
         # 標籤頁 (暫時隱藏部分功能)
         tab1, tab2 = st.tabs([
             "🚀 實時智能爬蟲",
