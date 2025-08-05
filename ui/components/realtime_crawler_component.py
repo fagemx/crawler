@@ -914,13 +914,19 @@ if __name__ == "__main__":
         
         with col2:
             if st.button("📊 導出CSV", key="export_csv"):
-                self._show_csv_export_options(results_file)
+                # 切換CSV導出面板的可見性
+                st.session_state.show_realtime_csv_export = not st.session_state.get('show_realtime_csv_export', False)
+                st.rerun()
         
         with col3:
             if st.button("📈 歷史分析", key="export_history"):
                 # 切換歷史分析面板的可見性
                 st.session_state.show_realtime_history_analysis = not st.session_state.get('show_realtime_history_analysis', False)
                 st.rerun()
+            
+        # 顯示CSV導出面板（如果啟用）
+        if st.session_state.get('show_realtime_csv_export', False):
+            self._show_csv_export_options(results_file)
             
         # 顯示歷史分析面板（如果啟用）
         if st.session_state.get('show_realtime_history_analysis', False):
@@ -1046,7 +1052,14 @@ if __name__ == "__main__":
     def _show_csv_export_options(self, json_file_path: str):
         """顯示CSV導出選項"""
         with st.expander("📊 CSV導出選項", expanded=True):
-            st.write("**選擇排序方式（建議按觀看數排序）**")
+            # 添加關閉按鈕
+            col_header1, col_header2 = st.columns([4, 1])
+            with col_header1:
+                st.write("**選擇排序方式（建議按觀看數排序）**")
+            with col_header2:
+                if st.button("❌ 關閉", key="close_realtime_csv_export"):
+                    st.session_state.show_realtime_csv_export = False
+                    st.rerun()
             
             sort_options = {
                 "觀看數 (高→低)": "views",

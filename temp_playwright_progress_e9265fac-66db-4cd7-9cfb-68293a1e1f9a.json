@@ -1,0 +1,205 @@
+{
+  "progress": 1.0,
+  "stage": "completed",
+  "current_work": "爬取完成",
+  "log_messages": [
+    "🚀 爬蟲任務已啟動...",
+    "[17:06:08] 🔧 初始化爬蟲環境...",
+    "[17:06:08] 🔐 讀取認證檔案...",
+    "[17:06:08] ✅ 認證檔案讀取成功，包含 15 個 cookies",
+    "[17:06:09] 📋 構建API請求參數...",
+    "[17:06:09] 📊 目標用戶: @andy1994x",
+    "[17:06:09] 📝 目標貼文數: 5",
+    "[17:06:09] 🔄 爬取模式: 增量模式",
+    "[17:06:09] 🧹 去重功能: 關閉",
+    "[17:06:09] 🚀 發送API請求到Playwright Agent...",
+    "[17:06:10] ⏳ 等待Playwright處理...",
+    "[17:06:10] 📊 啟動瀏覽器...",
+    "[17:06:18] 📊 導航到用戶頁面...",
+    "[17:06:26] 📊 等待頁面加載...",
+    "[17:06:34] 📊 開始智能滾動...",
+    "[17:06:42] 📊 收集貼文URLs...",
+    "[17:06:50] 📊 處理貼文URLs...",
+    "[17:06:58] 📊 開始補齊詳細數據...",
+    "[17:07:06] 📊 補齊貼文內容和互動數據...",
+    "[17:07:15] 📊 開始補齊觀看數...",
+    "[17:07:23] 📊 補齊觀看數據...",
+    "[17:07:31] 📊 去重處理...",
+    "[17:08:03] ✅ API請求成功，正在處理響應...",
+    "[17:08:03] 📦 獲取到 5 篇貼文",
+    "[17:08:03] 🎉 爬取任務完成！總耗時: 1.9 分鐘"
+  ],
+  "start_time": 1754384768.3332074,
+  "final_data": {
+    "posts": [
+      {
+        "post_id": "andy1994x_DM7mL2XzL2L",
+        "username": "andy1994x",
+        "url": "https://www.threads.com/@andy1994x/post/DM7mL2XzL2L",
+        "content": "這是我與爺爺的故事 你呢？歡迎分享給我❤️\n留言區有完整影片，大家記得去看！  \nTranslate",
+        "likes_count": 5000,
+        "comments_count": 60,
+        "reposts_count": 41,
+        "shares_count": 19,
+        "views_count": 91700,
+        "media_urls": [],
+        "images": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/528457903_18378937120131222_3486388271365604184_n.jpg?stp=dst-jpg_e35_p1080x1080_sh0.08_tt6&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=106&_nc_oc=Q6cZ2QEi91Jc0WELx0khCip8bD0ZGjsJkRcaJclZJnmc32nfsZbEP5VHw7yExTJmauhpiVk&_nc_ohc=4wDfpn2n2U8Q7kNvwHzrcLb&_nc_gid=OuYodbLs2cXqc-aO_WOjyg&edm=AFY8k0kBAAAA&ccb=7-5&oh=00_AfWLGguWrsGffIIM7UtnqfGHONVKicKKrcJYzC76cS_TgA&oe=6897A1CE&_nc_sid=895189"
+        ],
+        "videos": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/o1/v/t16/f2/m86/AQPAhfSlWz71iqz4Mu6kNZhHFot4p4RK_f4J2MrlaVa_o1zZJITZGdaFM8FMg1tjcEvk7znLMptK43OMO-mxrfNWILnRyUQDsamK-7Y.mp4?stp=dst-mp4&efg=eyJxZV9ncm91cHMiOiJbXCJpZ193ZWJfZGVsaXZlcnlfdnRzX290ZlwiXSIsInZlbmNvZGVfdGFnIjoidnRzX3ZvZF91cmxnZW4uY2xpcHMuYzIuNzIwLmJhc2VsaW5lIn0&_nc_cat=105&vs=1085260890364298_554179051&_nc_vs=HBksFQIYUmlnX3hwdl9yZWVsc19wZXJtYW5lbnRfc3JfcHJvZC82MDRCRjU3Q0JGRUQzNEI1N0IwNzhEQUVFRDkwNTlCNF92aWRlb19kYXNoaW5pdC5tcDQVAALIARIAFQIYOnBhc3N0aHJvdWdoX2V2ZXJzdG9yZS9HRUoyZ1JfbTBta0hVcUlDQUl4cWxCQTA5eFZNYnFfRUFBQUYVAgLIARIAKAAYABsAFQAAJtSAsPKPttM%2FFQIoAkMzLBdAPndLxqfvnhgSZGFzaF9iYXNlbGluZV8xX3YxEQB1%2Fgdl5p0BAA%3D%3D&ccb=9-4&oh=00_AfVnLpetR1SGJxxFGeeYJDfe1jpWK_kUlVjCV6EaaZ5ICQ&oe=68939D4F&_nc_sid=895189"
+        ],
+        "created_at": "2025-08-05T17:06:18.617795",
+        "post_published_at": "2025-08-04T11:20:17Z",
+        "tags": [
+          "Andy老師"
+        ],
+        "fetched_at": "2025-08-05T17:06:18.617812",
+        "views_fetched_at": "2025-08-05T09:07:35.184856",
+        "source": "playwright_new",
+        "processing_stage": "details_filled_hybrid",
+        "is_complete": false,
+        "last_updated": "2025-08-05T09:06:18.617968",
+        "reader_status": "pending",
+        "dom_status": "pending",
+        "reader_processed_at": null,
+        "dom_processed_at": null
+      },
+      {
+        "post_id": "andy1994x_DM7mOAkzkRK",
+        "username": "andy1994x",
+        "url": "https://www.threads.com/@andy1994x/post/DM7mOAkzkRK",
+        "content": "這是我與爺爺的故事 你呢？歡迎分享給我❤️\n留言區有完整影片，大家記得去看！  \nTranslate",
+        "likes_count": 5000,
+        "comments_count": 60,
+        "reposts_count": 41,
+        "shares_count": 19,
+        "views_count": 46000,
+        "media_urls": [],
+        "images": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/528457903_18378937120131222_3486388271365604184_n.jpg?stp=dst-jpg_e35_p1080x1080_sh0.08_tt6&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=106&_nc_oc=Q6cZ2QHhMMH8wHT6--B_kNxj0iuqKAayAKp2WQL4j7SZ4MBrsQWA0-OnKs-pwdG8ZLvx1TE&_nc_ohc=4wDfpn2n2U8Q7kNvwHzrcLb&_nc_gid=cpkht33QBD9_bBssGlt4Xw&edm=AFY8k0kBAAAA&ccb=7-5&oh=00_AfXCiuZ5gKeSeFmR0Ln7efY50zuba_OWnrzQn4_v4YxsNA&oe=6897A1CE&_nc_sid=895189"
+        ],
+        "videos": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/o1/v/t16/f2/m86/AQPAhfSlWz71iqz4Mu6kNZhHFot4p4RK_f4J2MrlaVa_o1zZJITZGdaFM8FMg1tjcEvk7znLMptK43OMO-mxrfNWILnRyUQDsamK-7Y.mp4?stp=dst-mp4&efg=eyJxZV9ncm91cHMiOiJbXCJpZ193ZWJfZGVsaXZlcnlfdnRzX290ZlwiXSIsInZlbmNvZGVfdGFnIjoidnRzX3ZvZF91cmxnZW4uY2xpcHMuYzIuNzIwLmJhc2VsaW5lIn0&_nc_cat=105&vs=1085260890364298_554179051&_nc_vs=HBksFQIYUmlnX3hwdl9yZWVsc19wZXJtYW5lbnRfc3JfcHJvZC82MDRCRjU3Q0JGRUQzNEI1N0IwNzhEQUVFRDkwNTlCNF92aWRlb19kYXNoaW5pdC5tcDQVAALIARIAFQIYOnBhc3N0aHJvdWdoX2V2ZXJzdG9yZS9HRUoyZ1JfbTBta0hVcUlDQUl4cWxCQTA5eFZNYnFfRUFBQUYVAgLIARIAKAAYABsAFQAAJtSAsPKPttM%2FFQIoAkMzLBdAPndLxqfvnhgSZGFzaF9iYXNlbGluZV8xX3YxEQB1%2Fgdl5p0BAA%3D%3D&ccb=9-4&oh=00_AfVnLpetR1SGJxxFGeeYJDfe1jpWK_kUlVjCV6EaaZ5ICQ&oe=68939D4F&_nc_sid=895189"
+        ],
+        "created_at": "2025-08-05T17:06:18.618010",
+        "post_published_at": "2025-08-04T11:20:17Z",
+        "tags": [
+          "Andy老師"
+        ],
+        "fetched_at": "2025-08-05T17:06:18.618016",
+        "views_fetched_at": "2025-08-05T09:07:42.311735",
+        "source": "playwright_new",
+        "processing_stage": "details_filled_hybrid",
+        "is_complete": false,
+        "last_updated": "2025-08-05T09:06:18.618027",
+        "reader_status": "pending",
+        "dom_status": "pending",
+        "reader_processed_at": null,
+        "dom_processed_at": null
+      },
+      {
+        "post_id": "andy1994x_DM5VjgjTBVP",
+        "username": "andy1994x",
+        "url": "https://www.threads.com/@andy1994x/post/DM5VjgjTBVP",
+        "content": "「他讓我懂得什麼是家人」",
+        "likes_count": 4769,
+        "comments_count": 29,
+        "reposts_count": 21,
+        "shares_count": 16,
+        "views_count": 106000,
+        "media_urls": [],
+        "images": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527037803_18378843892131222_27434614871636521_n.jpg?stp=dst-jpg_e35_p1080x1080_sh0.08_tt6&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=106&_nc_oc=Q6cZ2QF1RC35xvpb5slZYeIAXcvqZ0V2vOkgjUITH5n6dwBMWp3p_FPuRrDhwG8m9_yLXnI&_nc_ohc=i1LgJwMHmJAQ7kNvwHkQim4&_nc_gid=uk9fcK63cQu7Y8w2RQ5F1w&edm=AFY8k0kBAAAA&ccb=7-5&oh=00_AfVLqOs_DqvUsbsf6vxPZ1tKBN_a6R6HJl0YdmZUhvJYOA&oe=6897ADEC&_nc_sid=895189"
+        ],
+        "videos": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/o1/v/t16/f2/m86/AQOjw6_6XIaak0httbeaF2Z_vEt9e1eAaR5PKmyTXZG9jtEZTCQ1_cXpYJM2iX0mcibhZGO97vmIRAIT-fo-ZD4m2Z7xl671kmhZMRs.mp4?stp=dst-mp4&efg=eyJxZV9ncm91cHMiOiJbXCJpZ193ZWJfZGVsaXZlcnlfdnRzX290ZlwiXSIsInZlbmNvZGVfdGFnIjoidnRzX3ZvZF91cmxnZW4uY2xpcHMuYzIuNzIwLmJhc2VsaW5lIn0&_nc_cat=103&vs=24226485713629730_1249809349&_nc_vs=HBksFQIYUmlnX3hwdl9yZWVsc19wZXJtYW5lbnRfc3JfcHJvZC9DMTRBNzcxQTE3MEEyNzM1RjAxMDI4RjAzNzUwNDZCOV92aWRlb19kYXNoaW5pdC5tcDQVAALIARIAFQIYOnBhc3N0aHJvdWdoX2V2ZXJzdG9yZS9HTnJxWlItczNyajJPOFlKQUxKR05GcTBSdGtPYnFfRUFBQUYVAgLIARIAKAAYABsAFQAAJtSd372xsNM%2FFQIoAkMzLBdANeZmZmZmZhgSZGFzaF9iYXNlbGluZV8xX3YxEQB1%2Fgdl5p0BAA%3D%3D&ccb=9-4&oh=00_AfXY8wHd88euaeYZbFpMSbxPQf6Z9pkRY5pTrPovMhkDSQ&oe=6893BF12&_nc_sid=895189"
+        ],
+        "created_at": "2025-08-05T17:06:18.618036",
+        "post_published_at": "2025-08-03T14:16:29Z",
+        "tags": [
+          "Andy老師"
+        ],
+        "fetched_at": "2025-08-05T17:06:18.618041",
+        "views_fetched_at": "2025-08-05T09:07:48.784772",
+        "source": "playwright_new",
+        "processing_stage": "details_filled_hybrid",
+        "is_complete": false,
+        "last_updated": "2025-08-05T09:06:18.618055",
+        "reader_status": "pending",
+        "dom_status": "pending",
+        "reader_processed_at": null,
+        "dom_processed_at": null
+      },
+      {
+        "post_id": "andy1994x_DM5VljKzNiD",
+        "username": "andy1994x",
+        "url": "https://www.threads.com/@andy1994x/post/DM5VljKzNiD",
+        "content": "「他讓我懂得什麼是家人」",
+        "likes_count": 4769,
+        "comments_count": 29,
+        "reposts_count": 21,
+        "shares_count": 16,
+        "views_count": 45800,
+        "media_urls": [],
+        "images": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527037803_18378843892131222_27434614871636521_n.jpg?stp=dst-jpg_e35_p1080x1080_sh0.08_tt6&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=106&_nc_oc=Q6cZ2QHzPE90XAfkqTYn7BqHIfgkgx3GYhdGEJwSmqsKhasfKtnSXX2Fcm8Exfy7VXpY_n4&_nc_ohc=i1LgJwMHmJAQ7kNvwHkQim4&_nc_gid=jm-nYQqBbGsqUOU2kILDag&edm=AFY8k0kBAAAA&ccb=7-5&oh=00_AfUpCdKulGM9cotGnsyOhZBoV7VoeAmitErcDxvoxbQquQ&oe=6897ADEC&_nc_sid=895189"
+        ],
+        "videos": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/o1/v/t16/f2/m86/AQOjw6_6XIaak0httbeaF2Z_vEt9e1eAaR5PKmyTXZG9jtEZTCQ1_cXpYJM2iX0mcibhZGO97vmIRAIT-fo-ZD4m2Z7xl671kmhZMRs.mp4?stp=dst-mp4&efg=eyJxZV9ncm91cHMiOiJbXCJpZ193ZWJfZGVsaXZlcnlfdnRzX290ZlwiXSIsInZlbmNvZGVfdGFnIjoidnRzX3ZvZF91cmxnZW4uY2xpcHMuYzIuNzIwLmJhc2VsaW5lIn0&_nc_cat=103&vs=24226485713629730_1249809349&_nc_vs=HBksFQIYUmlnX3hwdl9yZWVsc19wZXJtYW5lbnRfc3JfcHJvZC9DMTRBNzcxQTE3MEEyNzM1RjAxMDI4RjAzNzUwNDZCOV92aWRlb19kYXNoaW5pdC5tcDQVAALIARIAFQIYOnBhc3N0aHJvdWdoX2V2ZXJzdG9yZS9HTnJxWlItczNyajJPOFlKQUxKR05GcTBSdGtPYnFfRUFBQUYVAgLIARIAKAAYABsAFQAAJtSd372xsNM%2FFQIoAkMzLBdANeZmZmZmZhgSZGFzaF9iYXNlbGluZV8xX3YxEQB1%2Fgdl5p0BAA%3D%3D&ccb=9-4&oh=00_AfXY8wHd88euaeYZbFpMSbxPQf6Z9pkRY5pTrPovMhkDSQ&oe=6893BF12&_nc_sid=895189"
+        ],
+        "created_at": "2025-08-05T17:06:18.618064",
+        "post_published_at": "2025-08-03T14:16:29Z",
+        "tags": [
+          "Andy老師"
+        ],
+        "fetched_at": "2025-08-05T17:06:18.618073",
+        "views_fetched_at": "2025-08-05T09:07:54.602458",
+        "source": "playwright_new",
+        "processing_stage": "details_filled_hybrid",
+        "is_complete": false,
+        "last_updated": "2025-08-05T09:06:18.618084",
+        "reader_status": "pending",
+        "dom_status": "pending",
+        "reader_processed_at": null,
+        "dom_processed_at": null
+      },
+      {
+        "post_id": "andy1994x_DMu227xzzSS",
+        "username": "andy1994x",
+        "url": "https://www.threads.com/@andy1994x/post/DMu227xzzSS",
+        "content": "首先感謝檢調單位的辛勞與大家的支持。",
+        "likes_count": 99089,
+        "comments_count": 879,
+        "reposts_count": 796,
+        "shares_count": 1957,
+        "views_count": 1600000,
+        "media_urls": [],
+        "images": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/524947056_17904142482210682_9160757220648213946_n.jpg?se=-1&stp=dst-jpegr_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uMjU2MHgxNDQwLmhkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=110&_nc_oc=Q6cZ2QGXrK2YO-z95e0bSeMd47zwnYRlmo2elLtKofiPWi-4nhefbXsXUw_Bb02hQd1Ca44&_nc_ohc=ZsMVkDXlzzUQ7kNvwGDsPYB&_nc_gid=Cze7AazxnDIb5S37uUX1EA&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY4ODQ1MDM0NzUwMTkyODI2Mg%3D%3D.3-ccb7-5&oh=00_AfU2e2zHATYjOA2JDc_3JmdKwJQFZXulwCOsqyn6LwS0gQ&oe=689788B6&_nc_sid=10d13b"
+        ],
+        "videos": [],
+        "created_at": "2025-08-05T17:06:18.618096",
+        "post_published_at": "2025-07-30T12:35:51Z",
+        "tags": [
+          "Andy老師"
+        ],
+        "fetched_at": "2025-08-05T17:06:18.618149",
+        "views_fetched_at": "2025-08-05T09:08:00.915267",
+        "source": "playwright_new",
+        "processing_stage": "details_filled_hybrid",
+        "is_complete": false,
+        "last_updated": "2025-08-05T09:06:18.618167",
+        "reader_status": "pending",
+        "dom_status": "pending",
+        "reader_processed_at": null,
+        "dom_processed_at": null
+      }
+    ],
+    "batch_id": "660c9358-07bb-4d76-8244-34e013887351",
+    "username": "andy1994x",
+    "total_count": 5,
+    "processing_stage": "playwright_incremental_completed",
+    "crawl_duration": 115.13166642189026
+  }
+}
