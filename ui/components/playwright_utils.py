@@ -145,19 +145,19 @@ class PlaywrightUtils:
                 "has_reposts": bool(post.get("reposts_count")),
                 "has_shares": bool(post.get("shares_count")),
                 "content_length": len(post.get("content", "")),
-                "extracted_at": datetime.now().isoformat(),
+                "extracted_at": PlaywrightUtils.get_current_taipei_time().isoformat(),
                 "username": username
             }
             converted_results.append(result)
         
         # 生成唯一ID（時間戳 + 隨機字符）
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        timestamp = PlaywrightUtils.get_current_taipei_time().strftime('%Y%m%d_%H%M%S')
         unique_id = str(uuid.uuid4())[:8]
         
         # 包裝為 Playwright 專用結構
         return {
             "crawl_id": f"{timestamp}_{unique_id}",
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": PlaywrightUtils.get_current_taipei_time().isoformat(),
             "target_username": username,
             "crawler_type": "playwright",
             "max_posts": len(posts),

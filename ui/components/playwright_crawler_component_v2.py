@@ -657,7 +657,7 @@ class PlaywrightCrawlerComponentV2:
     
     def _log_to_file(self, progress_file: str, message: str):
         """將日誌寫入檔案"""
-        timestamp = datetime.now().strftime("%H:%M:%S")
+        timestamp = PlaywrightUtils.get_current_taipei_time().strftime("%H:%M:%S")
         log_msg = f"[{timestamp}] {message}"
         
         # 讀取現有數據
@@ -959,7 +959,7 @@ class PlaywrightCrawlerComponentV2:
                 raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
             
             json_content = json.dumps(results, ensure_ascii=False, indent=2, default=safe_json_serializer)
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            timestamp = PlaywrightUtils.get_current_taipei_time().strftime('%Y%m%d_%H%M%S')
             download_filename = f"playwright_crawl_results_{timestamp}.json"
             
             st.download_button(
@@ -1214,7 +1214,7 @@ class PlaywrightCrawlerComponentV2:
             data = {
                 "username": username,
                 "export_type": export_type,
-                "exported_at": datetime.now().isoformat(),
+                "exported_at": PlaywrightUtils.get_current_taipei_time().isoformat(),
                 "sort_by": sort_by,
                 "sort_order": sort_order,
                 "total_records": len(posts_data),
@@ -1243,7 +1243,7 @@ class PlaywrightCrawlerComponentV2:
                     raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
                 
                 json_content = json.dumps(data, ensure_ascii=False, indent=2, default=json_serializer)
-                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                timestamp = PlaywrightUtils.get_current_taipei_time().strftime('%Y%m%d_%H%M%S')
                 json_filename = f"playwright_history_{username}_{export_type}_{timestamp}.json"
                 
                 st.download_button(
@@ -1313,7 +1313,7 @@ class PlaywrightCrawlerComponentV2:
                 
                 # 過濾最近的數據
                 from datetime import datetime, timedelta
-                cutoff_date = datetime.now() - timedelta(days=days_back)
+                cutoff_date = PlaywrightUtils.get_current_taipei_time() - timedelta(days=days_back)
                 
                 filtered_posts = []
                 for post in posts:
@@ -1557,7 +1557,7 @@ class PlaywrightCrawlerComponentV2:
             
             # 提供下載
             csv_content = df.to_csv(index=False, encoding='utf-8-sig')
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            timestamp = PlaywrightUtils.get_current_taipei_time().strftime('%Y%m%d_%H%M%S')
             filename = f"playwright_comparison_report_{timestamp}.csv"
             
             st.download_button(
@@ -1677,8 +1677,8 @@ class PlaywrightCrawlerComponentV2:
             
             # 包裝為完整結果格式
             final_results = {
-                "crawl_id": f"imported_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-                "timestamp": datetime.now().isoformat(),
+                            "crawl_id": f"imported_{PlaywrightUtils.get_current_taipei_time().strftime('%Y%m%d_%H%M%S')}",
+            "timestamp": PlaywrightUtils.get_current_taipei_time().isoformat(),
                 "target_username": results[0].get('username', '') if results else '',
                 "source": "csv_import",
                 "crawler_type": "playwright",
