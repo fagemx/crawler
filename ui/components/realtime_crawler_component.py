@@ -242,6 +242,11 @@ class RealtimeCrawlerComponent:
             return
             
         try:
+            # 記錄開始時間
+            import time
+            start_time = time.time()
+            st.session_state.realtime_crawl_start_time = start_time
+            
             mode_text = "增量爬取" if is_incremental else "全量爬取"
             st.info(f"🔄 正在執行{mode_text}，請稍候...")
             
@@ -300,10 +305,8 @@ class RealtimeCrawlerComponent:
                 
                 # 實時讀取輸出
                 all_output = []
-                while True:
+                while process.poll() is None:
                     output = process.stdout.readline()
-                    if output == '' and process.poll() is not None:
-                        break
                     if output:
                         line = output.strip()
                         all_output.append(line)
@@ -312,8 +315,20 @@ class RealtimeCrawlerComponent:
                         # 只顯示最後30行，避免界面過長
                         display_lines = log_text[-30:] if len(log_text) > 30 else log_text
                         log_placeholder.code('\n'.join(display_lines), language='text')
+                    else:
+                        # 短暫休眠，避免主線程完全阻塞
+                        time.sleep(0.1)
+
+                # 捕獲進程結束後剩餘的輸出
+                for output in process.stdout.readlines():
+                    line = output.strip()
+                    all_output.append(line)
+                    log_text.append(line)
                 
-                # 等待進程完成
+                # 最後再更新一次UI
+                display_lines = log_text[-30:] if len(log_text) > 30 else log_text
+                log_placeholder.code('\n'.join(display_lines), language='text')
+
                 return_code = process.poll()
                 
             if return_code == 0:
@@ -342,7 +357,22 @@ class RealtimeCrawlerComponent:
                     st.session_state.realtime_results_file = latest_file
                     
                     total_processed = len(st.session_state.realtime_results)
-                    st.success(f"✅ 爬取完成！處理了 {total_processed} 篇貼文")
+                    
+                    # 計算總耗時
+                    end_time = time.time()
+                    start_time = st.session_state.get('realtime_crawl_start_time', end_time)
+                    total_duration = end_time - start_time
+                    
+                    # 將耗時信息保存到單獨的session state
+                    st.session_state.realtime_crawl_duration = total_duration
+                    
+                    # 格式化耗時顯示
+                    if total_duration < 60:
+                        duration_text = f"{total_duration:.1f} 秒"
+                    else:
+                        duration_text = f"{total_duration/60:.1f} 分鐘"
+                    
+                    st.success(f"✅ 爬取完成！處理了 {total_processed} 篇貼文，耗時: {duration_text}")
                     
                     # 清理資料庫統計緩存，下次會自動刷新
                     if 'db_stats_cache' in st.session_state:
@@ -689,7 +719,7 @@ if __name__ == "__main__":
                         
                         # 提供下載按鈕
                         if os.path.exists(csv_file_path):
-                            with open(csv_file_path, 'r', encoding='utf-8-sig') as f:
+                            with open(csv_file_path, 'rb') as f:
                                 csv_content = f.read()
                             
                             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -807,6 +837,23 @@ if __name__ == "__main__":
             st.metric("內容成功", f"{successful_content}/{total_posts}")
         with col4:
             st.metric("互動數據", f"{successful_likes}/{total_posts}")
+        
+        # 顯示爬取耗時
+        crawl_duration = st.session_state.get('realtime_crawl_duration')
+        if crawl_duration is not None:
+            st.markdown("---")
+            if crawl_duration < 60:
+                duration_display = f"{crawl_duration:.1f} 秒"
+            else:
+                duration_display = f"{crawl_duration/60:.1f} 分鐘"
+            
+            col_time = st.columns(1)[0]
+            with col_time:
+                st.metric(
+                    label="⏱️ 爬取耗時", 
+                    value=duration_display,
+                    help="從開始爬取到完成的總時間"
+                )
         
         # 成功率指標
         col1, col2, col3, col4 = st.columns(4)
@@ -1035,18 +1082,66 @@ if __name__ == "__main__":
         """導出當次結果到CSV"""
         try:
             from common.csv_export_manager import CSVExportManager
+            import os
             
             csv_manager = CSVExportManager()
-            csv_file = csv_manager.export_current_session(json_file_path, sort_by=sort_by)
+            
+            # 確保exports目錄存在（使用絕對路徑，適合Ubuntu部署）
+            import tempfile
+            
+            # 在生產環境中，優先使用 /app/exports，開發環境使用相對路徑
+            if os.path.exists('/app'):  # Docker 容器環境
+                exports_dir = "/app/exports"
+            else:  # 開發環境
+                exports_dir = os.path.abspath("exports")
+            
+            if not os.path.exists(exports_dir):
+                os.makedirs(exports_dir, mode=0o755)  # 設置適當權限
+            
+            # 生成完整的輸出路徑
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            with open(json_file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            username = data.get('target_username', 'unknown')
+            
+            csv_filename = f"export_current_{username}_{timestamp}.csv"
+            csv_output_path = os.path.join(exports_dir, csv_filename)
+            
+            # 調用CSV生成（使用絕對路徑）
+            csv_file = csv_manager.export_current_session(json_file_path, output_path=csv_output_path, sort_by=sort_by)
+            
+            # 驗證文件是否真的被創建
+            if not os.path.exists(csv_file):
+                raise FileNotFoundError(f"CSV文件創建失敗: {csv_file}")
+            
+            # 檢查文件大小
+            file_size = os.path.getsize(csv_file)
+            if file_size == 0:
+                raise ValueError(f"CSV文件為空: {csv_file}")
+            
+            # 檢查文件權限（Ubuntu環境重要）
+            if not os.access(csv_file, os.R_OK):
+                raise PermissionError(f"CSV文件無讀取權限: {csv_file}")
+            
+            # 驗證文件內容的UTF-8編碼（Ubuntu環境驗證）
+            try:
+                with open(csv_file, 'r', encoding='utf-8-sig') as test_f:
+                    test_f.read(100)  # 讀取前100個字符測試編碼
+            except UnicodeDecodeError as e:
+                raise ValueError(f"CSV文件編碼問題: {e}")
             
             # 保存CSV文件路徑到會話狀態
             st.session_state.latest_csv_file = csv_file
             
             st.success(f"✅ CSV生成成功！")
             st.info(f"📁 文件位置: {csv_file}")
+            st.info(f"📏 文件大小: {file_size} bytes")
             
         except Exception as e:
+            import traceback
+            error_details = traceback.format_exc()
             st.error(f"❌ CSV生成失敗: {str(e)}")
+            st.error(f"🔍 詳細錯誤: {error_details}")
             if 'latest_csv_file' in st.session_state:
                 del st.session_state.latest_csv_file
     
@@ -1056,7 +1151,7 @@ if __name__ == "__main__":
             csv_file = st.session_state.latest_csv_file
             if csv_file and Path(csv_file).exists():
                 try:
-                    with open(csv_file, 'r', encoding='utf-8-sig') as f:
+                    with open(csv_file, 'rb') as f:
                         csv_content = f.read()
                     
                     # 生成時間戳文件名
@@ -1280,7 +1375,7 @@ if __name__ == "__main__":
             with col2:
                 # CSV 下載
                 df = pd.DataFrame(posts_data)
-                csv_content = df.to_csv(index=False, encoding='utf-8-sig')
+                csv_content = df.to_csv(index=False, encoding='utf-8-sig').encode('utf-8-sig')
                 csv_filename = f"realtime_history_{username}_{export_type}_{timestamp}.csv"
                 
                 st.download_button(
@@ -1679,7 +1774,7 @@ if __name__ == "__main__":
                     import io
                     output = io.BytesIO()
                     df.to_csv(output, index=False, encoding='utf-8-sig')
-                    csv_content = output.getvalue()
+                    csv_content = output.getvalue().encode('utf-8-sig')
                     
                     st.download_button(
                         label="📥 下載所有帳號統計",
@@ -1698,7 +1793,7 @@ if __name__ == "__main__":
                     import io
                     output = io.BytesIO()
                     df.to_csv(output, index=False, encoding='utf-8-sig')
-                    csv_content = output.getvalue()
+                    csv_content = output.getvalue().encode('utf-8-sig')
                     st.download_button(
                         label="📥 下載帳號統計",
                         data=csv_content,

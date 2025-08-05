@@ -1,0 +1,391 @@
+{
+  "post_url": "https://www.threads.com/@ieobserve/post/DM29empBvnK",
+  "extracted_at": "2025-08-05T16:39:05.227593",
+  "original_content": "結果Q2關稅崩跌時，老巴的波克夏還是沒出手抄底，仍然站在淨賣方，也沒回購股票，已經連續四季沒回購自家股票。現在的市場環境價值投資者沒有找到真正他懂的價值的標的可以大額收購，在狂噴的都是他不懂的。 加州野火對他的保險事業造成損失，同時本記大幅減記卡夫亨氏投資價值。並說關稅會影響到他們的各個事業體獲利。老巴的集團還有投資還是傳產為主，基本上跟AI紅利大部分無關，只有公用事業的投資比較有顯著成長。 💰 投資操作與現金管理 股票投資組合： 價值2679億美元，五大持股（蘋果、美國運通、美銀、可口可樂、雪佛龍）佔比67% 淨賣出策略持續： 連續第11季為股票淨賣方，Q2賣出69.2億、買進39億，上半年已淨賣出45億 Kraft Heinz重大減記： 認列38億美元其他暫時性減記損失，投資價值從2017年底170億降至84億，5月退出董事會席位為未來減持鋪路 回購暫停： 連續4季沒有回購股票，儘管股價較5月歷史高點回落約12%\n\n📊 各部門營運表現 保險業務： 承保利潤年減271百萬至19.9億，主要受南加州野火損失8.5億影響。GEICO表現穩健，保費收入年增5.7%，損失率改善2.3個百分點至71.8%BNSF鐵路： 稅後收益年增19.5%至14.7億，營運效率提升顯著，貨運量年增1.4%，平均單位收入因燃料附加費下降而略減 BHE能源： 稅後收益年增7.2%至7.02億，美國公用事業部門強勁成長62.5%，但天然氣管線業務下滑21.8%製造服務零售： 稅後收益年增6.5%至36億，工業產品表現突出年增9.9%，但消費品業務受貿易政策不確定性衝擊⚠️ 關稅衝擊警告 波克夏在財報中發出嚴厲警告：「國際貿易政策和關稅的緊張局勢在2025年上半年加速發展，我們大部分甚至所有營運業務以及股票投資都可能受到不利影響」消費品部門已明顯感受到衝擊，Jazwares玩具業務營收暴跌38.5%，Fruit of the Loom和Garan服裝業務分別下滑11.7%和10.1%，主要因貿易政策不確定性導致訂單延遲",
+  "business_data": {
+    "company": "Berkshire Hathaway",
+    "period": "Q2 2025",
+    "investment_portfolio": {
+      "total_value": {
+        "value": 267.9,
+        "unit": "billion_usd",
+        "description": "股票投資組合總價值"
+      },
+      "top5_concentration": {
+        "value": 67,
+        "unit": "percentage",
+        "description": "五大持股佔比",
+        "companies": [
+          "蘋果",
+          "美國運通",
+          "美銀",
+          "可口可樂",
+          "雪佛龍"
+        ]
+      },
+      "trading": {
+        "q2_sold": {
+          "value": 6.92,
+          "unit": "billion_usd",
+          "description": "Q2賣出金額"
+        },
+        "q2_bought": {
+          "value": 3.9,
+          "unit": "billion_usd",
+          "description": "Q2買進金額"
+        },
+        "h1_net_sale": {
+          "value": 4.5,
+          "unit": "billion_usd",
+          "description": "上半年淨賣出"
+        }
+      },
+      "kraft_heinz": {
+        "impairment": {
+          "value": 3.8,
+          "unit": "billion_usd",
+          "description": "其他暫時性減記損失"
+        },
+        "value_decline": {
+          "from_value": 17.0,
+          "to_value": 8.4,
+          "unit": "billion_usd",
+          "period": "2017年底至現在",
+          "description": "投資價值下降"
+        }
+      }
+    },
+    "financial_metrics": {
+      "net_seller_quarters": {
+        "value": 11,
+        "unit": "quarters",
+        "description": "連續淨賣方季數"
+      },
+      "no_buyback_quarters": {
+        "value": 4,
+        "unit": "quarters",
+        "description": "連續沒有回購股票季數"
+      },
+      "stock_decline": {
+        "value": 12,
+        "unit": "percentage",
+        "description": "股價較5月歷史高點回落"
+      }
+    },
+    "operations": {
+      "insurance": {
+        "underwriting_profit": {
+          "value": 1.99,
+          "unit": "billion_usd",
+          "description": "承保利潤"
+        },
+        "wildfire_loss": {
+          "value": 0.85,
+          "unit": "billion_usd",
+          "description": "南加州野火損失"
+        },
+        "geico_premium_growth": {
+          "value": 5.7,
+          "unit": "percentage",
+          "description": "GEICO保費收入年增"
+        },
+        "geico_loss_ratio": {
+          "value": 71.8,
+          "unit": "percentage",
+          "description": "GEICO損失率"
+        }
+      },
+      "bnsf": {
+        "earnings_growth": {
+          "value": 19.5,
+          "unit": "percentage",
+          "description": "稅後收益年增"
+        },
+        "earnings_amount": {
+          "value": 1.47,
+          "unit": "billion_usd",
+          "description": "稅後收益金額"
+        },
+        "freight_volume_growth": {
+          "value": 1.4,
+          "unit": "percentage",
+          "description": "貨運量年增"
+        }
+      },
+      "bhe_energy": {
+        "earnings_growth": {
+          "value": 7.2,
+          "unit": "percentage",
+          "description": "稅後收益年增"
+        },
+        "earnings_amount": {
+          "value": 0.702,
+          "unit": "billion_usd",
+          "description": "稅後收益金額"
+        },
+        "us_utility_growth": {
+          "value": 62.5,
+          "unit": "percentage",
+          "description": "美國公用事業部門成長"
+        },
+        "pipeline_decline": {
+          "value": -21.8,
+          "unit": "percentage",
+          "description": "天然氣管線業務下滑"
+        }
+      },
+      "manufacturing_retail": {
+        "earnings_growth": {
+          "value": 6.5,
+          "unit": "percentage",
+          "description": "稅後收益年增"
+        },
+        "earnings_amount": {
+          "value": 3.6,
+          "unit": "billion_usd",
+          "description": "稅後收益金額"
+        },
+        "industrial_growth": {
+          "value": 9.9,
+          "unit": "percentage",
+          "description": "工業產品表現年增"
+        },
+        "consumer_products_impact": {
+          "jazwares_decline": {
+            "value": -38.5,
+            "unit": "percentage",
+            "description": "Jazwares玩具業務營收暴跌"
+          },
+          "fotl_decline": {
+            "value": -11.7,
+            "unit": "percentage",
+            "description": "Fruit of the Loom下滑"
+          },
+          "garan_decline": {
+            "value": -10.1,
+            "unit": "percentage",
+            "description": "Garan服裝業務下滑"
+          }
+        }
+      }
+    },
+    "warnings": [
+      {
+        "type": "tariff_risk",
+        "description": "國際貿易政策和關稅緊張局勢可能對營運業務和股票投資造成不利影響"
+      }
+    ],
+    "extracted_numbers": [
+      {
+        "value": "2",
+        "full_match": "Q2",
+        "context": "結果Q2關稅崩跌時，老巴的波克夏還是沒出手抄底，",
+        "position": 2
+      },
+      {
+        "value": "2679億",
+        "full_match": "2679億",
+        "context": "投資操作與現金管理 股票投資組合： 價值2679億美元，五大持股（蘋果、美國運通、美銀、可",
+        "position": 220
+      },
+      {
+        "value": "2679",
+        "full_match": "2679億美元",
+        "context": "投資操作與現金管理 股票投資組合： 價值2679億美元，五大持股（蘋果、美國運通、美銀、可口可",
+        "position": 220
+      },
+      {
+        "value": "67",
+        "full_match": "67%",
+        "context": "、美國運通、美銀、可口可樂、雪佛龍）佔比67% 淨賣出策略持續： 連續第11季為股票淨",
+        "position": 255
+      },
+      {
+        "value": "11",
+        "full_match": "連續第11季",
+        "context": "、雪佛龍）佔比67% 淨賣出策略持續： 連續第11季為股票淨賣方，Q2賣出69.2億、買進3",
+        "position": 268
+      },
+      {
+        "value": "2",
+        "full_match": "Q2",
+        "context": "出策略持續： 連續第11季為股票淨賣方，Q2賣出69.2億、買進39億，上半年已淨賣",
+        "position": 281
+      },
+      {
+        "value": "69.2億",
+        "full_match": "69.2億",
+        "context": "續： 連續第11季為股票淨賣方，Q2賣出69.2億、買進39億，上半年已淨賣出45億 Kr",
+        "position": 285
+      },
+      {
+        "value": "39億",
+        "full_match": "39億",
+        "context": "季為股票淨賣方，Q2賣出69.2億、買進39億，上半年已淨賣出45億 Kraft He",
+        "position": 293
+      },
+      {
+        "value": "45億",
+        "full_match": "45億",
+        "context": "出69.2億、買進39億，上半年已淨賣出45億 Kraft Heinz重大減記： 認列",
+        "position": 304
+      },
+      {
+        "value": "38億",
+        "full_match": "38億",
+        "context": "Kraft Heinz重大減記： 認列38億美元其他暫時性減記損失，投資價值從201",
+        "position": 327
+      },
+      {
+        "value": "38",
+        "full_match": "38億美元",
+        "context": "Kraft Heinz重大減記： 認列38億美元其他暫時性減記損失，投資價值從2017年",
+        "position": 327
+      },
+      {
+        "value": "2017",
+        "full_match": "2017年",
+        "context": "38億美元其他暫時性減記損失，投資價值從2017年底170億降至84億，5月退出董事會席位",
+        "position": 347
+      },
+      {
+        "value": "170億",
+        "full_match": "170億",
+        "context": "他暫時性減記損失，投資價值從2017年底170億降至84億，5月退出董事會席位為未來減持",
+        "position": 353
+      },
+      {
+        "value": "84億",
+        "full_match": "84億",
+        "context": "損失，投資價值從2017年底170億降至84億，5月退出董事會席位為未來減持鋪路 回購",
+        "position": 359
+      },
+      {
+        "value": "4",
+        "full_match": "連續4季",
+        "context": "出董事會席位為未來減持鋪路 回購暫停： 連續4季沒有回購股票，儘管股價較5月歷史高點回落",
+        "position": 386
+      },
+      {
+        "value": "4",
+        "full_match": "連續4季",
+        "context": "出董事會席位為未來減持鋪路 回購暫停： 連續4季沒有回購股票，儘管股價較5月歷史高點回落",
+        "position": 386
+      },
+      {
+        "value": "12",
+        "full_match": "12%",
+        "context": "有回購股票，儘管股價較5月歷史高點回落約12%\n\n📊 各部門營運表現 保險業務： 承保",
+        "position": 411
+      },
+      {
+        "value": "19.9億",
+        "full_match": "19.9億",
+        "context": "現 保險業務： 承保利潤年減271百萬至19.9億，主要受南加州野火損失8.5億影響。GE",
+        "position": 444
+      },
+      {
+        "value": "8.5億",
+        "full_match": "8.5億",
+        "context": "1百萬至19.9億，主要受南加州野火損失8.5億影響。GEICO表現穩健，保費收入年增5",
+        "position": 460
+      },
+      {
+        "value": "5.7",
+        "full_match": "5.7%",
+        "context": "億影響。GEICO表現穩健，保費收入年增5.7%，損失率改善2.3個百分點至71.8%B",
+        "position": 483
+      },
+      {
+        "value": "71.8",
+        "full_match": "71.8%",
+        "context": "年增5.7%，損失率改善2.3個百分點至71.8%BNSF鐵路： 稅後收益年增19.5%至",
+        "position": 501
+      },
+      {
+        "value": "19.5",
+        "full_match": "19.5%",
+        "context": "至71.8%BNSF鐵路： 稅後收益年增19.5%至14.7億，營運效率提升顯著，貨運量年",
+        "position": 520
+      },
+      {
+        "value": "14.7億",
+        "full_match": "14.7億",
+        "context": "BNSF鐵路： 稅後收益年增19.5%至14.7億，營運效率提升顯著，貨運量年增1.4%，",
+        "position": 526
+      },
+      {
+        "value": "1.4",
+        "full_match": "1.4%",
+        "context": "14.7億，營運效率提升顯著，貨運量年增1.4%，平均單位收入因燃料附加費下降而略減 B",
+        "position": 546
+      },
+      {
+        "value": "7.2",
+        "full_match": "7.2%",
+        "context": "費下降而略減 BHE能源： 稅後收益年增7.2%至7.02億，美國公用事業部門強勁成長6",
+        "position": 582
+      },
+      {
+        "value": "7.02億",
+        "full_match": "7.02億",
+        "context": "減 BHE能源： 稅後收益年增7.2%至7.02億，美國公用事業部門強勁成長62.5%，但",
+        "position": 587
+      },
+      {
+        "value": "62.5",
+        "full_match": "62.5%",
+        "context": "%至7.02億，美國公用事業部門強勁成長62.5%，但天然氣管線業務下滑21.8%製造服務",
+        "position": 605
+      },
+      {
+        "value": "21.8",
+        "full_match": "21.8%",
+        "context": "強勁成長62.5%，但天然氣管線業務下滑21.8%製造服務零售： 稅後收益年增6.5%至3",
+        "position": 621
+      },
+      {
+        "value": "6.5",
+        "full_match": "6.5%",
+        "context": "滑21.8%製造服務零售： 稅後收益年增6.5%至36億，工業產品表現突出年增9.9%，",
+        "position": 640
+      },
+      {
+        "value": "36億",
+        "full_match": "36億",
+        "context": "%製造服務零售： 稅後收益年增6.5%至36億，工業產品表現突出年增9.9%，但消費品",
+        "position": 645
+      },
+      {
+        "value": "9.9",
+        "full_match": "9.9%",
+        "context": "增6.5%至36億，工業產品表現突出年增9.9%，但消費品業務受貿易政策不確定性衝擊⚠️",
+        "position": 659
+      },
+      {
+        "value": "2025",
+        "full_match": "2025年",
+        "context": "厲警告：「國際貿易政策和關稅的緊張局勢在2025年上半年加速發展，我們大部分甚至所有營運業",
+        "position": 721
+      },
+      {
+        "value": "38.5",
+        "full_match": "38.5%",
+        "context": "到衝擊，Jazwares玩具業務營收暴跌38.5%，Fruit of the Loom和G",
+        "position": 793
+      },
+      {
+        "value": "11.7",
+        "full_match": "11.7%",
+        "context": "e Loom和Garan服裝業務分別下滑11.7%和10.1%，主要因貿易政策不確定性導致",
+        "position": 830
+      },
+      {
+        "value": "10.1",
+        "full_match": "10.1%",
+        "context": "和Garan服裝業務分別下滑11.7%和10.1%，主要因貿易政策不確定性導致訂單延遲",
+        "position": 836
+      }
+    ]
+  }
+}

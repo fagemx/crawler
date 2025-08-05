@@ -468,6 +468,10 @@ class PlaywrightCrawlerComponentV2:
     # ---------- 3. 爬蟲啟動邏輯 ----------
     def _start_crawling(self, username: str, max_posts: int, enable_deduplication: bool = True, is_incremental: bool = True):
         """啟動爬蟲"""
+        # 記錄爬取開始時間
+        start_time = time.time()
+        st.session_state.playwright_crawl_start_time = start_time
+        
         # 設定目標參數
         st.session_state.playwright_target = {
             'username': username,
@@ -490,7 +494,8 @@ class PlaywrightCrawlerComponentV2:
             "progress": 0.0,
             "stage": "initialization",
             "current_work": "正在啟動...",
-            "log_messages": ["🚀 爬蟲任務已啟動..."]
+            "log_messages": ["🚀 爬蟲任務已啟動..."],
+            "start_time": time.time()  # <--- 記錄開始時間
         })
         
         # 啟動背景線程
@@ -573,7 +578,20 @@ class PlaywrightCrawlerComponentV2:
                 self._log_to_file(progress_file, f"📦 獲取到 {posts_count} 篇貼文")
                 
                 # 階段10: 完成 (100%)
-                self._log_to_file(progress_file, "🎉 爬取任務完成！")
+                # 計算總耗時
+                end_time = time.time()
+                existing_data = self._read_progress(progress_file)
+                start_time = existing_data.get("start_time", end_time)
+                total_duration = end_time - start_time
+                
+                # 在結果中加入計時信息
+                result["crawl_duration"] = total_duration
+                
+                # 保存計時到 session state
+                st.session_state.playwright_crawl_duration = total_duration
+                
+                duration_text = f"{total_duration:.1f} 秒" if total_duration < 60 else f"{total_duration/60:.1f} 分鐘"
+                self._log_to_file(progress_file, f"🎉 爬取任務完成！總耗時: {duration_text}")
                 self._update_progress_file(progress_file, 1.0, "completed", "爬取完成", final_data=result)
                 
             except Exception as e:
@@ -822,6 +840,25 @@ class PlaywrightCrawlerComponentV2:
         with col4:
             st.metric("有觀看數", views_posts)
         
+        # 顯示爬取耗時
+        crawl_duration = results.get("crawl_duration") or st.session_state.get('playwright_crawl_duration')
+        if crawl_duration is not None:
+            st.markdown("---")
+            if crawl_duration < 60:
+                duration_display = f"{crawl_duration:.1f} 秒"
+                delta_color = "normal" if crawl_duration <= 30 else "inverse"
+            else:
+                duration_display = f"{crawl_duration/60:.1f} 分鐘"
+                delta_color = "inverse"
+            
+            col_time = st.columns(1)[0]
+            with col_time:
+                st.metric(
+                    label="⏱️ 爬取耗時", 
+                    value=duration_display,
+                    help="從開始爬取到完成的總時間"
+                )
+        
         # 互動統計
         if views_posts > 0:
             st.subheader("📈 互動統計")
@@ -1016,11 +1053,8 @@ class PlaywrightCrawlerComponentV2:
                     })
                 
                 df = pd.DataFrame(csv_data)
-                # 修復 CSV 編碼問題 - 使用字節流確保正確編碼
-                import io
-                output = io.BytesIO()
-                df.to_csv(output, index=False, encoding='utf-8-sig')
-                csv_content = output.getvalue()
+                # 修復 CSV 編碼問題 - 直接生成帶BOM的UTF-8字節內容
+                csv_content = df.to_csv(index=False, encoding='utf-8-sig').encode('utf-8-sig')
                 
                 csv_filename = f"playwright_crawl_results_{timestamp}.csv"
                 
@@ -1260,6 +1294,7 @@ class PlaywrightCrawlerComponentV2:
             with col2:
                 # CSV 下載
                 csv_content = self._convert_to_csv(posts_data)
+                # _convert_to_csv 已經返回 bytes，無需再次編碼
                 csv_filename = f"playwright_history_{username}_{export_type}_{timestamp}.csv"
                 
                 st.download_button(
@@ -1591,7 +1626,7 @@ class PlaywrightCrawlerComponentV2:
             st.dataframe(df, use_container_width=True)
             
             # 提供下載
-            csv_content = df.to_csv(index=False, encoding='utf-8-sig')
+            csv_content = df.to_csv(index=False, encoding='utf-8-sig').encode('utf-8-sig')
             timestamp = PlaywrightUtils.get_current_taipei_time().strftime('%Y%m%d_%H%M%S')
             filename = f"playwright_comparison_report_{timestamp}.csv"
             
