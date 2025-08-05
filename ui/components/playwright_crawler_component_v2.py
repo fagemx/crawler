@@ -879,9 +879,16 @@ class PlaywrightCrawlerComponentV2:
                 videos = r.get('videos', [])
                 videos_count = len(videos) if videos else 0
                 
-                # 處理時間顯示
+                # 處理時間顯示 - 轉換為台北時間
                 created_at = r.get('created_at', '')
+                if created_at:
+                    taipei_created = PlaywrightUtils.convert_to_taipei_time(created_at)
+                    created_at = taipei_created.isoformat() if taipei_created else created_at
+                
                 published_at = r.get('post_published_at', '')
+                if published_at:
+                    taipei_published = PlaywrightUtils.convert_to_taipei_time(published_at)
+                    published_at = taipei_published.isoformat() if taipei_published else published_at
                 
                 # 格式化計算分數
                 calc_score = r.get('calculated_score', 'N/A')
@@ -1307,6 +1314,14 @@ class PlaywrightCrawlerComponentV2:
         try:
             posts = await self.db_handler.get_user_posts_async(username)
             
+            # 轉換所有時間字段為台北時間
+            for post in posts:
+                for time_field in ['created_at', 'fetched_at', 'post_published_at']:
+                    if post.get(time_field):
+                        taipei_time = PlaywrightUtils.convert_to_taipei_time(post[time_field])
+                        if taipei_time:
+                            post[time_field] = taipei_time.isoformat()
+            
             if export_type == "recent":
                 days_back = kwargs.get('days_back', 7)
                 limit = kwargs.get('limit', 1000)
@@ -1401,6 +1416,22 @@ class PlaywrightCrawlerComponentV2:
                     videos = []
             videos_str = "|".join(videos) if videos else ""
             
+            # 處理時間字段 - 轉換為台北時間
+            created_at = post.get('created_at', '')
+            if created_at:
+                taipei_created = PlaywrightUtils.convert_to_taipei_time(created_at)
+                created_at = taipei_created.isoformat() if taipei_created else created_at
+            
+            post_published_at = post.get('post_published_at', '')
+            if post_published_at:
+                taipei_published = PlaywrightUtils.convert_to_taipei_time(post_published_at)
+                post_published_at = taipei_published.isoformat() if taipei_published else post_published_at
+            
+            fetched_at = post.get('fetched_at', '')
+            if fetched_at:
+                taipei_fetched = PlaywrightUtils.convert_to_taipei_time(fetched_at)
+                fetched_at = taipei_fetched.isoformat() if taipei_fetched else fetched_at
+            
             csv_data.append({
                 "url": post.get('url', ''),
                 "post_id": post.get('post_id', ''),
@@ -1412,15 +1443,15 @@ class PlaywrightCrawlerComponentV2:
                 "shares_count": post.get('shares_count', 0),
                 "views_count": post.get('views_count', 0),
                 "calculated_score": post.get('calculated_score', ''),
-                "created_at": post.get('created_at', ''),
-                "post_published_at": post.get('post_published_at', ''),
+                "created_at": created_at,
+                "post_published_at": post_published_at,
                 "tags": tags_str,
                 "images": images_str,
                 "videos": videos_str,
                 "source": post.get('source', 'playwright_agent'),
                 "crawler_type": post.get('crawler_type', 'playwright'),
                 "crawl_id": post.get('crawl_id', ''),
-                "fetched_at": post.get('fetched_at', '')
+                "fetched_at": fetched_at
             })
         
         # 轉換為CSV
