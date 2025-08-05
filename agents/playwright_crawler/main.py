@@ -70,6 +70,7 @@ class CrawlRequest(BaseModel):
     auth_json_content: Dict[str, Any] = Field(..., description="包含認證 cookies 和狀態的 auth.json 內容")
     task_id: Optional[str] = Field(default=None, description="任務 ID，用於進度追蹤")
     incremental: bool = Field(default=True, description="增量模式：只爬取新貼文")
+    enable_deduplication: bool = Field(default=True, description="啟用去重功能：過濾相似內容的重複貼文")
 
 class URLStatusItem(BaseModel):
     """單個URL的狀態信息"""
@@ -111,7 +112,8 @@ async def crawl_and_get_batch(request: CrawlRequest):
             extra_posts=request.max_posts,  # 向後兼容：max_posts作為extra_posts傳入
             auth_json_content=request.auth_json_content, # 使用傳入的認證內容
             task_id=task_id,
-            incremental=request.incremental  # 傳遞增量模式參數
+            incremental=request.incremental,  # 傳遞增量模式參數
+            enable_deduplication=request.enable_deduplication  # 傳遞去重開關參數
         )
         return batch
     except Exception as e:

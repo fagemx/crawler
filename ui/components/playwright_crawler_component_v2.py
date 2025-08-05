@@ -134,13 +134,42 @@ class PlaywrightCrawlerComponentV2:
                 key="playwright_max_posts_v2"
             )
             
+            # 爬取模式設定
+            crawl_mode = st.radio(
+                "🔄 爬取模式",
+                ["增量模式", "全量模式"],
+                index=0,  # 預設增量模式
+                help="增量模式：只爬取新貼文，跳過已存在的貼文｜全量模式：重新爬取所有貼文，更新現有資料",
+                key="playwright_crawl_mode_v2",
+                horizontal=True
+            )
+            
+            if crawl_mode == "增量模式":
+                st.info("💡 增量模式：智能跳過資料庫中已存在的貼文，只收集新內容")
+            else:
+                st.warning("⚠️ 全量模式：將重新爬取所有貼文，可能會獲得重複數據，適用於資料更新需求")
+            
+            # 去重設定
+            enable_deduplication = st.checkbox(
+                "🧹 啟用去重功能",
+                value=True,
+                help="開啟時會過濾相似內容的重複貼文，保留主貼文；關閉時保留所有抓取到的貼文",
+                key="playwright_enable_dedup_v2"
+            )
+            
+            if enable_deduplication:
+                st.info("💡 將根據觀看數、互動數、內容長度等維度保留主貼文，過濾回應")
+            else:
+                st.warning("⚠️ 關閉去重可能會獲得大量相似內容，建議僅在特殊需求時使用")
+            
             # 控制按鈕區域
             col1, col2, col3 = st.columns([1, 1, 2])
             
             with col1:
                 if st.button("🚀 開始爬取", key="start_playwright_v2"):
                     # 啟動爬蟲
-                    self._start_crawling(username, max_posts)
+                    is_incremental = (crawl_mode == "增量模式")
+                    self._start_crawling(username, max_posts, enable_deduplication, is_incremental)
                     
             with col2:
                 uploaded_file = st.file_uploader(
@@ -390,12 +419,14 @@ class PlaywrightCrawlerComponentV2:
                 st.rerun()
     
     # ---------- 3. 爬蟲啟動邏輯 ----------
-    def _start_crawling(self, username: str, max_posts: int):
+    def _start_crawling(self, username: str, max_posts: int, enable_deduplication: bool = True, is_incremental: bool = True):
         """啟動爬蟲"""
         # 設定目標參數
         st.session_state.playwright_target = {
             'username': username,
-            'max_posts': max_posts
+            'max_posts': max_posts,
+            'enable_deduplication': enable_deduplication,
+            'is_incremental': is_incremental
         }
         
         # 重置保存標記，允許新的爬取結果被保存
@@ -418,7 +449,7 @@ class PlaywrightCrawlerComponentV2:
         # 啟動背景線程
         task_thread = threading.Thread(
             target=self._background_crawler_worker,
-            args=(username, max_posts, task_id, progress_file),
+            args=(username, max_posts, enable_deduplication, is_incremental, task_id, progress_file),
             daemon=True
         )
         task_thread.start()
@@ -427,7 +458,7 @@ class PlaywrightCrawlerComponentV2:
         st.session_state.playwright_crawl_status = "running"
         st.rerun()
     
-    def _background_crawler_worker(self, username: str, max_posts: int, task_id: str, progress_file: str):
+    def _background_crawler_worker(self, username: str, max_posts: int, enable_deduplication: bool, is_incremental: bool, task_id: str, progress_file: str):
         """背景爬蟲工作線程 - 只寫檔案，不做任何 st.* 操作"""
         try:
             # 階段1: 初始化 (0-5%)
@@ -453,11 +484,15 @@ class PlaywrightCrawlerComponentV2:
             payload = {
                 "username": username,
                 "max_posts": max_posts,
-                "auth_json_content": auth_content
+                "auth_json_content": auth_content,
+                "enable_deduplication": enable_deduplication,
+                "incremental": is_incremental
             }
             
             self._log_to_file(progress_file, f"📊 目標用戶: @{username}")
             self._log_to_file(progress_file, f"📝 目標貼文數: {max_posts}")
+            self._log_to_file(progress_file, f"🔄 爬取模式: {'增量模式' if is_incremental else '全量模式'}")
+            self._log_to_file(progress_file, f"🧹 去重功能: {'啟用' if enable_deduplication else '關閉'}")
             
             # 階段4: 發送請求 (15-20%)
             self._log_to_file(progress_file, "🚀 發送API請求到Playwright Agent...")
@@ -913,8 +948,17 @@ class PlaywrightCrawlerComponentV2:
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            # 直接下載JSON
-            json_content = json.dumps(results, ensure_ascii=False, indent=2)
+            # 直接下載JSON（使用安全的序列化器）
+            def safe_json_serializer(obj):
+                from decimal import Decimal
+                from datetime import datetime, date
+                if isinstance(obj, Decimal):
+                    return float(obj)
+                elif isinstance(obj, (datetime, date)):
+                    return obj.isoformat()
+                raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
+            
+            json_content = json.dumps(results, ensure_ascii=False, indent=2, default=safe_json_serializer)
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             download_filename = f"playwright_crawl_results_{timestamp}.json"
             
@@ -1188,11 +1232,14 @@ class PlaywrightCrawlerComponentV2:
                 # JSON 下載
                 import json
                 from decimal import Decimal
+                from datetime import datetime, date
                 
-                # 自定義JSON編碼器處理Decimal類型
+                # 自定義JSON編碼器處理Decimal和datetime類型
                 def json_serializer(obj):
                     if isinstance(obj, Decimal):
                         return float(obj)
+                    elif isinstance(obj, (datetime, date)):
+                        return obj.isoformat()
                     raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
                 
                 json_content = json.dumps(data, ensure_ascii=False, indent=2, default=json_serializer)

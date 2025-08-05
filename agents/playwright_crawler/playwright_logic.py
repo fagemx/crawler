@@ -62,7 +62,8 @@ class PlaywrightLogic:
         mode: Literal["new", "hist"] = "new",  # 爬取模式
         anchor_post_id: str = None,            # 錨點貼文ID  
         max_scroll_rounds: int = 30,           # 最大滾動輪次
-        incremental: bool = True               # 新增：增量模式
+        incremental: bool = True,              # 新增：增量模式
+        enable_deduplication: bool = True      # 新增：去重開關
     ) -> PostMetricsBatch:
         """
         智能增量爬取貼文 - 支持新貼文補足和歷史回溯
@@ -78,8 +79,18 @@ class PlaywrightLogic:
         """
         if task_id is None:
             task_id = f"task_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        
+        # 內部條件去重函數
+        def conditional_deduplication(posts_list):
+            """根據 enable_deduplication 參數決定是否執行去重"""
+            if enable_deduplication:
+                return conditional_deduplication(posts_list)
+            else:
+                logging.info(f"⚠️ [Task: {task_id}] 去重已關閉，保留所有 {len(posts_list)} 篇貼文")
+                return posts_list
             
         logging.info(f"🚀 [Task: {task_id}] 開始{mode.upper()}模式爬取 @{username}，目標: {extra_posts} 篇")
+        logging.info(f"🧹 [Task: {task_id}] 去重功能: {'啟用' if enable_deduplication else '關閉'}")
         
         try:
             # 步驟1: 初始化瀏覽器和認證
@@ -192,7 +203,7 @@ class PlaywrightLogic:
                 # 合併並去重處理（重點：每輪都要去重檢查）
                 combined_posts = final_posts + batch_posts
                 before_dedup_count = len(combined_posts)
-                combined_posts = apply_deduplication(combined_posts)
+                combined_posts = conditional_deduplication(combined_posts)
                 after_dedup_count = len(combined_posts)
                 
                 added_count = after_dedup_count - len(final_posts)
@@ -278,11 +289,11 @@ class PlaywrightLogic:
                             supplement_posts = await self.views_extractor.fill_views_from_page(supplement_posts, self.context, task_id=task_id, username=username)
                             
                             # 本輪去重
-                            supplement_posts = apply_deduplication(supplement_posts)
+                            supplement_posts = conditional_deduplication(supplement_posts)
                             
                             # 與現有貼文合併去重
                             combined_posts = final_posts + supplement_posts
-                            combined_posts = apply_deduplication(combined_posts)
+                            combined_posts = conditional_deduplication(combined_posts)
                             
                             added_count = len(combined_posts) - len(final_posts)
                             final_posts = combined_posts
