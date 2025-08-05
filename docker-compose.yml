@@ -252,6 +252,8 @@ services:
       retries: 3
     networks:
       - social-media-network
+    profiles:
+      - tunnel
 
   # Content Writer Agent - 內容生成代理
   content-writer-agent:
@@ -283,6 +285,8 @@ services:
       retries: 3
     networks:
       - social-media-network
+    profiles:
+      - tunnel
 
   # Form API - 表單處理服務
   form-api:
@@ -355,6 +359,8 @@ services:
     networks:
       - social-media-network
     command: uvicorn agents.vision.main:app --host 0.0.0.0 --port 8005 --reload
+    profiles:
+      - tunnel
 
   # =============================================================================
   # Reader 服務集群 - 快速內容提取 (使用社群GHCR映像)
@@ -519,6 +525,8 @@ services:
           cpus: '2'
           memory: '4G'
     command: python -m uvicorn agents.playwright_crawler.main:app --host 0.0.0.0 --port 8006 --reload
+    profiles:
+      - tunnel
 
   # Post Analyzer Agent - 貼文分析代理
   post-analyzer-agent:
