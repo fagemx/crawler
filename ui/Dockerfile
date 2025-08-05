@@ -2,12 +2,16 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# 安裝系統依賴
+# 安裝系統依賴（包括 Playwright 需要的依賴）
 RUN apt-get update && apt-get install -y \
     curl \
+    wget \
+    gnupg \
+    ca-certificates \
+    xvfb \
     && rm -rf /var/lib/apt/lists/*
 
-# 直接安裝 UI 需要的套件
+# 直接安裝 UI 需要的套件（包括 Playwright）
 RUN pip install --no-cache-dir \
     streamlit>=1.28.0 \
     fastapi>=0.100.0 \
@@ -30,7 +34,12 @@ RUN pip install --no-cache-dir \
     beautifulsoup4>=4.12.0 \
     lxml>=4.9.0 \
     python-multipart>=0.0.6 \
-    click>=8.1.0
+    click>=8.1.0 \
+    playwright>=1.40.0
+
+# 安裝 Playwright 瀏覽器
+RUN playwright install chromium
+RUN playwright install-deps chromium
 
 # 複製專案檔案
 COPY . .
