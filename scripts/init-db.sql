@@ -516,11 +516,42 @@ CREATE TABLE IF NOT EXISTS post_metrics_sql (
     dom_processed_at TIMESTAMPTZ              -- DOM處理完成時間
 );
 
+-- Playwright 爬蟲專用貼文表
+CREATE TABLE IF NOT EXISTS playwright_post_metrics (
+    id                  SERIAL PRIMARY KEY,
+    username            VARCHAR(255) NOT NULL,
+    post_id             VARCHAR(255) NOT NULL,
+    url                 TEXT,
+    content             TEXT,
+    views_count         INTEGER,
+    likes_count         INTEGER,
+    comments_count      INTEGER,
+    reposts_count       INTEGER,
+    shares_count        INTEGER,
+    calculated_score    DECIMAL,
+    post_published_at   TIMESTAMP,
+    tags                TEXT,
+    images              TEXT,
+    videos              TEXT,
+    source              VARCHAR(100) DEFAULT 'playwright_agent',
+    crawler_type        VARCHAR(50) DEFAULT 'playwright',
+    crawl_id            VARCHAR(255),
+    created_at          TIMESTAMP,
+    fetched_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(username, post_id, crawler_type)
+);
+
 -- 性能優化索引
 CREATE INDEX IF NOT EXISTS idx_crawl_state_latest_post_id ON crawl_state(latest_post_id);
 CREATE INDEX IF NOT EXISTS idx_post_metrics_sql_username ON post_metrics_sql(username);
 CREATE INDEX IF NOT EXISTS idx_post_metrics_sql_created_at ON post_metrics_sql(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_post_metrics_sql_score ON post_metrics_sql(calculated_score DESC);
+
+-- Playwright 表索引
+CREATE INDEX IF NOT EXISTS idx_playwright_username_created ON playwright_post_metrics(username, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_playwright_crawl_id ON playwright_post_metrics(crawl_id);
+CREATE INDEX IF NOT EXISTS idx_playwright_source ON playwright_post_metrics(source);
+CREATE INDEX IF NOT EXISTS idx_playwright_crawler_type ON playwright_post_metrics(crawler_type);
 
 -- 完成初始化
 SELECT 'Database initialization completed successfully!' as status;

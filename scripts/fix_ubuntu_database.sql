@@ -4,29 +4,26 @@
 -- 1. 創建 playwright_post_metrics 表（如果不存在）
 CREATE TABLE IF NOT EXISTS playwright_post_metrics (
     id                  SERIAL PRIMARY KEY,
-    post_id             TEXT UNIQUE NOT NULL,
-    username            TEXT NOT NULL,
-    url                 TEXT NOT NULL,
+    username            VARCHAR(255) NOT NULL,
+    post_id             VARCHAR(255) NOT NULL,
+    url                 TEXT,
     content             TEXT,
-    likes_count         INTEGER DEFAULT 0,
-    comments_count      INTEGER DEFAULT 0,
-    reposts_count       INTEGER DEFAULT 0,
-    shares_count        INTEGER DEFAULT 0,
-    views_count         BIGINT DEFAULT 0,
-    calculated_score    DOUBLE PRECISION,
-    images              JSONB DEFAULT '[]',
-    videos              JSONB DEFAULT '[]',
-    created_at          TIMESTAMPTZ NOT NULL,
-    fetched_at          TIMESTAMPTZ DEFAULT NOW(),
-    crawl_id            TEXT,
-    post_published_at   TIMESTAMPTZ,
-    tags                JSONB DEFAULT '[]',
-    
-    -- Playwright 特有欄位
-    playwright_data     JSONB DEFAULT '{}',
-    extraction_status   TEXT DEFAULT 'pending',
-    retry_count         INTEGER DEFAULT 0,
-    last_error          TEXT
+    views_count         INTEGER,
+    likes_count         INTEGER,
+    comments_count      INTEGER,
+    reposts_count       INTEGER,
+    shares_count        INTEGER,
+    calculated_score    DECIMAL,
+    post_published_at   TIMESTAMP,
+    tags                TEXT,
+    images              TEXT,
+    videos              TEXT,
+    source              VARCHAR(100) DEFAULT 'playwright_agent',
+    crawler_type        VARCHAR(50) DEFAULT 'playwright',
+    crawl_id            VARCHAR(255),
+    created_at          TIMESTAMP,
+    fetched_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(username, post_id, crawler_type)
 );
 
 -- 2. 為 playwright_post_metrics 創建索引
@@ -39,8 +36,11 @@ ON playwright_post_metrics(post_id);
 CREATE INDEX IF NOT EXISTS idx_playwright_post_metrics_crawl_id 
 ON playwright_post_metrics(crawl_id);
 
-CREATE INDEX IF NOT EXISTS idx_playwright_post_metrics_status 
-ON playwright_post_metrics(extraction_status);
+CREATE INDEX IF NOT EXISTS idx_playwright_post_metrics_source 
+ON playwright_post_metrics(source);
+
+CREATE INDEX IF NOT EXISTS idx_playwright_post_metrics_crawler_type 
+ON playwright_post_metrics(crawler_type);
 
 -- 3. 確保其他必要的表也存在（來自 init-db.sql）
 -- 這些可能已經通過 alembic 創建，但以防萬一
