@@ -58,14 +58,13 @@ class SocialMediaGeneratorApp:
         """渲染側邊欄"""
         with st.sidebar:
             st.header("🎯 功能導航")
-            st.markdown("選擇你要使用的功能模組")
             
-            # 🔥 爬蟲進度區域（最重要，放在最前面）
+            # 📊 爬蟲進度
             self._render_sidebar_progress()
             
             st.divider()
             
-            # 功能狀態
+            # 📊 功能狀態
             st.subheader("📊 功能狀態")
             
             # 爬蟲狀態
@@ -91,76 +90,24 @@ class SocialMediaGeneratorApp:
                     posts_count = len(final_data.get("posts", []))
                     st.write(f"   📊 已爬取: {posts_count} 篇")
             
-            # 內容生成狀態
-            content_step = st.session_state.get('content_step', 'input')
-            step_names = {
-                'input': '輸入需求',
-                'clarification': '澄清問題',
-                'result': '查看結果'
-            }
-            st.write(f"📝 內容生成: {step_names.get(content_step, '未知')}")
-            
-            # 分析狀態
-            analysis_status = st.session_state.get('analysis_status', 'idle')
-            st.write(f"📊 內容分析: {status_colors.get(analysis_status, '⚪')} {status_names.get(analysis_status, '未知')}")
-            
-            if analysis_status == "completed":
-                analysis_username = st.session_state.get('analysis_username', '')
-                if analysis_username:
-                    st.write(f"   🎯 已分析: @{analysis_username}")
-            
-            # 監控狀態
-            if hasattr(st.session_state, 'monitoring_results'):
-                results = st.session_state.monitoring_results
-                mcp_healthy = results.get('mcp_server', False)
-                st.write(f"🔧 系統監控: {'🟢 正常' if mcp_healthy else '🔴 異常'}")
-            else:
-                st.write("🔧 系統監控: ⚪ 待檢查")
-            
             st.divider()
             
-            # 快速操作
+            # ⚡ 快速操作
             st.subheader("⚡ 快速操作")
             
             if st.button("🔄 重置所有狀態", use_container_width=True):
                 self._reset_all_states()
                 st.rerun()
             
-            # 系統信息（移到最後）
             st.divider()
-            st.subheader("🔧 系統信息")
-            st.write("**核心服務:**")
-            st.write("- 🤖 Orchestrator: 8000")
-            st.write("- 📝 Content Writer: 8003")
-            st.write("- ❓ Clarification: 8004")
-            st.write("- 📋 Form API: 8010")
             
+            # 🔧 系統信息
+            st.subheader("🔧 系統信息")
             st.write("**擴展服務:**")
             st.write("- 🕷️ Playwright: 8006")
             st.write("- 📊 Post Analyzer: 8007")
             st.write("- 👁️ Vision: 8005")
             st.write("- 📊 MCP Server: 10100")
-            
-            # 使用說明（最後）
-            with st.expander("📖 使用說明"):
-                st.markdown("""
-                **🕷️ Threads 爬蟲:**
-                1. 輸入 Threads 用戶名
-                2. 設置爬取數量
-                3. 查看實時進度
-                4. 下載 JSON 結果
-                
-                **📝 內容生成:**
-                1. 輸入想要的貼文描述
-                2. 回答澄清問題（如需要）
-                3. 獲得生成的貼文內容
-                
-                **📊 系統監控:**
-                1. 執行完整系統測試
-                2. 查看服務健康狀態
-                3. 監控性能指標
-                4. 下載測試報告
-                """)
     
     def _render_sidebar_progress(self):
         """在側邊欄渲染簡化的進度顯示"""
@@ -194,6 +141,37 @@ class SocialMediaGeneratorApp:
     
     def render_main_content(self):
         """渲染主要內容"""
+        
+        # 爬蟲模式說明
+        st.markdown("### 📖 爬蟲模式說明")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.info("""
+            **🚀 實時智能爬蟲**
+            
+            ✅ **速度快** - 快速獲取基本貼文內容  
+            ✅ **效率高** - 適合大量數據爬取  
+            ✅ **即時性** - 實時顯示進度  
+            
+            **適用場景：** 快速分析、內容概覽
+            """)
+        
+        with col2:
+            st.warning("""
+            **🎭 Playwright 爬蟲**
+            
+            ✅ **資料詳細** - 包含完整貼文信息  
+            ✅ **發文時間** - 準確的時間戳記  
+            ✅ **標籤提取** - 自動識別主題標籤  
+            ✅ **多媒體** - 圖片、影片 URL  
+            
+            **適用場景：** 深度分析、完整數據收集
+            """)
+        
+        st.divider()
+        
         # 標籤頁 (暫時隱藏部分功能)
         tab1, tab2 = st.tabs([
             "🚀 實時智能爬蟲",
