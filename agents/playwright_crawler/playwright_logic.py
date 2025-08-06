@@ -351,7 +351,7 @@ class PlaywrightLogic:
                         "comments_count": post.comments_count,
                         "reposts_count": post.reposts_count,
                         "shares_count": post.shares_count,
-                        "calculated_score": post.calculated_score,  # 🔧 添加缺失的字段
+                        "calculated_score": post.calculate_score(),  # 🔧 修復：調用方法計算分數
                         "post_published_at": post.post_published_at.isoformat() if post.post_published_at else None,  # 🔧 修復key名稱
                         "created_at": post.created_at.isoformat() if post.created_at else None,  # 🔧 添加創建時間
                         "tags": post.tags or [],  # 🔧 添加標籤
