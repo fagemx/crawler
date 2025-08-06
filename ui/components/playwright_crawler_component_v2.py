@@ -36,15 +36,17 @@ class PlaywrightCrawlerComponentV2:
         self.auth_file_path = get_auth_file_path(from_project_root=True)
     
     # ---------- 1. 進度檔案讀寫工具 ----------
-    def _write_progress(self, path: str, data: Dict[str, Any]):
+    def _write_progress(self, path, data: Dict[str, Any]):
         """
         線程安全寫入進度：
         - 使用 tempfile + shutil.move 實現原子寫入，避免讀取到不完整的檔案。
         """
+        # 處理 Path 對象
+        path_str = str(path)
         old: Dict[str, Any] = {}
-        if os.path.exists(path):
+        if os.path.exists(path_str):
             try:
-                with open(path, "r", encoding="utf-8") as f:
+                with open(path_str, "r", encoding="utf-8") as f:
                     old = json.load(f)
             except Exception:
                 pass
@@ -67,18 +69,19 @@ class PlaywrightCrawlerComponentV2:
         try:
             with os.fdopen(tmp_fd, "w", encoding="utf-8") as f:
                 json.dump(old, f, ensure_ascii=False, indent=2)
-            shutil.move(tmp_path, path)
+            shutil.move(tmp_path, path_str)
         except Exception:
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)
             raise
 
-    def _read_progress(self, path: str) -> Dict[str, Any]:
+    def _read_progress(self, path) -> Dict[str, Any]:
         """讀取進度檔案"""
-        if not os.path.exists(path):
+        path_str = str(path)
+        if not os.path.exists(path_str):
             return {}
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path_str, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception:
             return {}
@@ -483,10 +486,14 @@ class PlaywrightCrawlerComponentV2:
         # 重置保存標記，允許新的爬取結果被保存
         st.session_state.playwright_results_saved = False
         
-        # 創建進度檔案
+        # 創建進度檔案 - 使用專門的資料夾
         task_id = str(uuid.uuid4())
-        progress_file = f"temp_playwright_progress_{task_id}.json"
-        st.session_state.playwright_progress_file = progress_file
+        from pathlib import Path
+        temp_progress_dir = Path("temp_progress")
+        temp_progress_dir.mkdir(exist_ok=True)
+        progress_file = temp_progress_dir / f"playwright_progress_{task_id}.json"
+        st.session_state.playwright_progress_file = str(progress_file)
+        st.session_state.playwright_progress_file_obj = progress_file
         st.session_state.playwright_task_id = task_id
         
         # 初始化進度檔案
@@ -1649,17 +1656,41 @@ class PlaywrightCrawlerComponentV2:
         st.info("📈 帳號統計導出功能開發中...")
     
     def _cleanup_temp_files(self):
-        """清理暫存檔案"""
-        import glob
-        temp_files = glob.glob("temp_playwright_progress_*.json")
-        cleaned = 0
-        for file in temp_files:
-            try:
-                os.remove(file)
-                cleaned += 1
-            except:
-                pass
-        st.success(f"🧹 已清理 {cleaned} 個暫存檔案")
+        """清理暫存檔案 - 使用 FolderManager"""
+        try:
+            from pathlib import Path
+            from common.folder_manager import FolderManager
+            
+            # 清理舊格式的進度檔案（根目錄下的）
+            import glob
+            old_temp_files = glob.glob("temp_playwright_progress_*.json")
+            old_cleaned = 0
+            for file in old_temp_files:
+                try:
+                    os.remove(file)
+                    old_cleaned += 1
+                except:
+                    pass
+            
+            # 清理新格式的進度檔案資料夾
+            temp_progress_dir = Path("temp_progress")
+            if temp_progress_dir.exists():
+                deleted_count = FolderManager.cleanup_old_files(
+                    temp_progress_dir, 
+                    max_files=50,  # 保留最新的 50 個進度檔案
+                    pattern="*.json"
+                )
+                total_cleaned = old_cleaned + deleted_count
+                if total_cleaned > 0:
+                    st.success(f"🧹 已清理 {total_cleaned} 個暫存進度檔案 (舊格式: {old_cleaned}, 新格式: {deleted_count})")
+                else:
+                    st.info("✅ 暫存檔案已經是最新狀態")
+            
+            # 同時清理其他專案資料夾
+            FolderManager.setup_project_folders()
+            
+        except Exception as e:
+            st.warning(f"⚠️ 清理暫存檔案時發生錯誤: {e}")
     
     def _copy_results_summary(self):
         """複製結果摘要"""
