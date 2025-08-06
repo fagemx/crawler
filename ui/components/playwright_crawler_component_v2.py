@@ -209,6 +209,14 @@ class PlaywrightCrawlerComponentV2:
         else:
             self.render_status_content()
     
+    def _safe_decode(self, value, default=''):
+        """安全地將bytes或str轉換為str"""
+        if value is None:
+            return default
+        if isinstance(value, bytes):
+            return value.decode('utf-8')
+        return str(value)
+    
     def _show_existing_task_progress(self, job_id: str):
         """顯示現有任務的進度"""
         try:
@@ -219,14 +227,16 @@ class PlaywrightCrawlerComponentV2:
                 # 檢查Redis中的任務狀態
                 job_data = redis_conn.hgetall(f"job:{job_id}")
                 if job_data:
-                    status = job_data.get(b'status', b'running').decode()
-                    progress = float(job_data.get(b'progress', b'0').decode())
+                    status = self._safe_decode(job_data.get(b'status') or job_data.get('status'), 'running')
+                    progress_raw = job_data.get(b'progress') or job_data.get('progress') or '0'
+                    progress = float(self._safe_decode(progress_raw, '0'))
                     
                     if status == 'completed':
                         st.success(f"✅ 任務已完成 (進度: {progress:.1%})")
                         st.info("💡 您可以在「管理任務」中查看結果")
                     elif status == 'error':
-                        error_msg = job_data.get(b'error', b'\xe6\x9c\xaa\xe7\x9f\xa5\xe9\x8c\xaf\xe8\xaa\xa4').decode()
+                        error_raw = job_data.get(b'error') or job_data.get('error')
+                        error_msg = self._safe_decode(error_raw, '未知錯誤')
                         st.error(f"❌ 任務失敗: {error_msg}")
                     else:
                         st.info(f"🔄 任務執行中 (進度: {progress:.1%})")
@@ -572,7 +582,7 @@ class PlaywrightCrawlerComponentV2:
                                 # 任務已存在
                                 existing_job_id = redis_conn.get(f"lock:{job_key}")
                                 if existing_job_id:
-                                    existing_job_id = existing_job_id.decode()
+                                    existing_job_id = self._safe_decode(existing_job_id)
                                     st.warning(f"⏳ 相同任務正在執行中: {existing_job_id[:8]}...")
                                     st.info("💡 請等待當前任務完成或使用「管理任務」查看進度")
                                 else:
@@ -1545,9 +1555,10 @@ class PlaywrightCrawlerComponentV2:
                 if status in ['completed', 'error']:
                     lock_keys = redis_conn.keys("lock:*")
                     for lock_key in lock_keys:
-                        if redis_conn.get(lock_key) and redis_conn.get(lock_key).decode() == job_id:
+                        lock_value = redis_conn.get(lock_key)
+                        if lock_value and self._safe_decode(lock_value) == job_id:
                             redis_conn.delete(lock_key)
-                            print(f"🔓 釋放任務鎖: {lock_key.decode()}")
+                            print(f"🔓 釋放任務鎖: {self._safe_decode(lock_key)}")
                             break
                 
         except Exception as e:
