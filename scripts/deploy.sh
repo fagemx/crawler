@@ -23,12 +23,22 @@ docker-compose up -d postgres redis nats rustfs
 
 # 4. 等待服務就緒
 echo "⏳ 等待基礎設施服務就緒..."
-sleep 10
+sleep 30
 
-# 5. 確保資料庫正確設置
-echo "🔍 檢查和修復資料庫..."
-chmod +x scripts/ensure_database.sh
-./scripts/ensure_database.sh
+# 5. 驗證資料庫是否正確初始化
+echo "🔍 驗證資料庫..."
+timeout=60
+while ! docker exec social-media-postgres psql -U postgres -d social_media_db -c "SELECT 1;" > /dev/null 2>&1; do
+    echo "等待資料庫初始化完成..."
+    sleep 3
+    timeout=$((timeout-1))
+    if [ $timeout -le 0 ]; then
+        echo "❌ 資料庫初始化超時，嘗試手動修復..."
+        docker exec social-media-postgres psql -U postgres -c "CREATE DATABASE social_media_db;" || true
+        docker exec -i social-media-postgres psql -U postgres -d social_media_db < scripts/init-db.sql
+        break
+    fi
+done
 
 # 6. 啟動 MCP Server
 echo "🖥️  啟動 MCP Server..."
