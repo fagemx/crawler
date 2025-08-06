@@ -34,14 +34,15 @@ class CrawlHistoryDAO:
             async with self.db_client.get_connection() as conn:
                 # 查詢已存在的post_id（目前從JSON調試文件模擬）
                 # TODO: 後續改為從真實SQL表查詢
+                # 🔥 修復：為 Playwright 爬蟲查詢專用的表
                 result = await conn.fetch("""
-                    SELECT post_id FROM post_metrics_sql 
-                    WHERE username = $1
+                    SELECT post_id FROM playwright_post_metrics 
+                    WHERE username = $1 AND crawler_type = 'playwright'
                     ORDER BY created_at DESC
                 """, username)
                 
                 post_ids = {row['post_id'] for row in result}
-                logging.info(f"📚 {username} 已有 {len(post_ids)} 篇貼文記錄")
+                logging.info(f"📚 {username} 已有 {len(post_ids)} 篇貼文記錄 (Playwright專用表)")
                 return post_ids
                 
         except Exception as e:

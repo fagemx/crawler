@@ -102,7 +102,8 @@ class PlaywrightUtils:
     @staticmethod
     def convert_playwright_results(playwright_data: Dict[str, Any]) -> Dict[str, Any]:
         """轉換 Playwright API 結果為專用格式"""
-        posts = playwright_data.get("posts", [])
+        # 🔥 修復：支援兩種格式 - API 響應用 "posts"，Redis final_data 用 "results"
+        posts = playwright_data.get("posts", []) or playwright_data.get("results", [])
         username = playwright_data.get("username", "")
         
         # 轉換為 Playwright 專用格式

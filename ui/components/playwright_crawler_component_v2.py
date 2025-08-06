@@ -22,6 +22,15 @@ from .playwright_utils import PlaywrightUtils
 from .playwright_database_handler import PlaywrightDatabaseHandler
 from .playwright_user_manager import PlaywrightUserManager
 
+# 新增進度管理組件
+try:
+    from .progress_manager import ProgressManager
+    from .task_recovery_component import TaskRecoveryComponent
+    PROGRESS_MANAGER_AVAILABLE = True
+except ImportError:
+    PROGRESS_MANAGER_AVAILABLE = False
+    print("⚠️ 進度管理器不可用，將使用基本功能")
+
 class PlaywrightCrawlerComponentV2:
     def __init__(self):
         self.agent_url = "http://localhost:8006/v1/playwright/crawl"
@@ -31,6 +40,14 @@ class PlaywrightCrawlerComponentV2:
         self.db_handler = PlaywrightDatabaseHandler()
         self.user_manager = PlaywrightUserManager()
         
+        # 初始化進度管理組件
+        if PROGRESS_MANAGER_AVAILABLE:
+            self.progress_manager = ProgressManager()
+            self.task_recovery = TaskRecoveryComponent()
+        else:
+            self.progress_manager = None
+            self.task_recovery = None
+        
         # 使用統一的配置管理
         from common.config import get_auth_file_path
         self.auth_file_path = get_auth_file_path(from_project_root=True)
@@ -38,8 +55,9 @@ class PlaywrightCrawlerComponentV2:
     # ---------- 1. 進度檔案讀寫工具 ----------
     def _write_progress(self, path, data: Dict[str, Any]):
         """
-        線程安全寫入進度：
-        - 使用 tempfile + shutil.move 實現原子寫入，避免讀取到不完整的檔案。
+        線程安全寫入進度（增強版）：
+        - 使用 tempfile + shutil.move 實現原子寫入，避免讀取到不完整的檔案
+        - 同時寫入 Redis（如果可用）支援背景任務監控
         """
         # 處理 Path 對象
         path_str = str(path)
@@ -64,7 +82,7 @@ class PlaywrightCrawlerComponentV2:
 
         old.update(data)
 
-        # 原子寫入
+        # 原子寫入檔案
         tmp_fd, tmp_path = tempfile.mkstemp(suffix=".json")
         try:
             with os.fdopen(tmp_fd, "w", encoding="utf-8") as f:
@@ -74,6 +92,20 @@ class PlaywrightCrawlerComponentV2:
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)
             raise
+        
+        # 同時寫入 Redis（新增功能）
+        if self.progress_manager and hasattr(st.session_state, 'playwright_task_id'):
+            task_id = st.session_state.playwright_task_id
+            try:
+                # 準備 Redis 資料
+                redis_data = old.copy()
+                redis_data['timestamp'] = time.time()
+                
+                # 使用進度管理器寫入
+                self.progress_manager.write_progress(task_id, redis_data, write_both=False)  # 檔案已寫入
+            except Exception as e:
+                # Redis 寫入失敗不影響檔案功能
+                print(f"⚠️ Redis 進度寫入失敗: {e}")
 
     def _read_progress(self, path) -> Dict[str, Any]:
         """讀取進度檔案"""
@@ -136,15 +168,75 @@ class PlaywrightCrawlerComponentV2:
         if "playwright_crawl_status" not in st.session_state:
             st.session_state.playwright_crawl_status = "idle"
         
+        # 檢查是否有從背景恢復的任務需要特殊處理
+        if (st.session_state.playwright_crawl_status == "running" and 
+            hasattr(st.session_state, 'recovered_from_background') and 
+            st.session_state.recovered_from_background):
+            self._handle_recovered_task()
+        
         # 根據狀態渲染不同內容
         if st.session_state.playwright_crawl_status == "idle":
             self._render_setup()
         elif st.session_state.playwright_crawl_status == "running":
             self._render_progress()
+        elif st.session_state.playwright_crawl_status == "monitoring":
+            self._render_monitoring()
         elif st.session_state.playwright_crawl_status == "completed":
             self._render_results()
         elif st.session_state.playwright_crawl_status == "error":
             self._render_error()
+        elif st.session_state.playwright_crawl_status == "task_manager":
+            self._render_task_manager()
+    
+    # ---------- 新增的任務管理方法 ----------
+    def _handle_recovered_task(self):
+        """處理從背景恢復的任務"""
+        if not hasattr(st.session_state, 'playwright_task_id'):
+            st.error("❌ 恢復任務失敗：找不到任務 ID")
+            st.session_state.playwright_crawl_status = "idle"
+            return
+        
+        task_id = st.session_state.playwright_task_id
+        
+        if self.task_recovery:
+            # 使用任務恢復組件監控
+            if not self.task_recovery.render_task_monitor(task_id):
+                # 監控失敗，返回空閒狀態
+                st.session_state.playwright_crawl_status = "idle"
+                return
+        
+        # 清除恢復標記
+        if hasattr(st.session_state, 'recovered_from_background'):
+            del st.session_state.recovered_from_background
+    
+    def _render_task_manager(self):
+        """渲染任務管理頁面"""
+        st.header("📋 任務管理中心")
+        
+        # 返回按鈕
+        col_back, col_refresh = st.columns([1, 1])
+        with col_back:
+            if st.button("← 返回爬蟲設定", key="back_to_setup"):
+                st.session_state.playwright_crawl_status = "idle"
+                st.rerun()
+        
+        with col_refresh:
+            if st.button("🔄 重新整理", key="refresh_tasks"):
+                st.rerun()
+        
+        st.divider()
+        
+        if not self.task_recovery:
+            st.error("❌ 任務管理功能不可用")
+            return
+        
+        # 渲染任務列表
+        self.task_recovery.render_task_list()
+        
+        st.divider()
+        
+        # 渲染清理控制
+        self.task_recovery.render_cleanup_controls()
     
     def _render_setup(self):
         """渲染設定頁面"""
@@ -235,6 +327,36 @@ class PlaywrightCrawlerComponentV2:
                 if 'playwright_results' in st.session_state:
                     if st.button("🗑️ 清除結果", key="clear_playwright_results_v2", help="清除當前顯示的結果"):
                         self._clear_results()
+        
+        # 任務管理區域（新增）
+        if self.progress_manager:
+            st.divider()
+            st.subheader("📋 任務管理")
+            
+            col_tasks, col_manage = st.columns([2, 1])
+            
+            with col_tasks:
+                # 顯示任務摘要
+                try:
+                    summary = self.progress_manager.get_task_summary()
+                    if summary["total"] > 0:
+                        summary_text = f"共 {summary['total']} 個任務 | "
+                        if summary["running"] > 0:
+                            summary_text += f"🔄 {summary['running']} 執行中 "
+                        if summary["completed"] > 0:
+                            summary_text += f"✅ {summary['completed']} 已完成 "
+                        if summary["error"] > 0:
+                            summary_text += f"❌ {summary['error']} 錯誤"
+                        st.info(summary_text)
+                    else:
+                        st.info("目前沒有任務記錄")
+                except Exception as e:
+                    st.info("任務管理功能初始化中...")
+            
+            with col_manage:
+                if st.button("📊 管理任務", key="manage_tasks", help="查看和管理所有任務"):
+                    st.session_state.playwright_crawl_status = "task_manager"
+                    st.rerun()
                 
         with col_stats:
             col_title, col_refresh = st.columns([3, 1])
@@ -272,10 +394,32 @@ class PlaywrightCrawlerComponentV2:
         progress_file = st.session_state.get('playwright_progress_file', '')
         
         # -- 數據更新邏輯 --
-        if progress_file and os.path.exists(progress_file):
+        # 讀取最新進度狀態（優先從 Redis 讀取後台任務）
+        task_id = st.session_state.get('playwright_task_id')
+        progress_data = None
+        
+        # 嘗試從 Redis 獲取最新狀態（後台任務可能已完成）
+        if task_id:
+            try:
+                redis_progress = self.progress_manager.get_progress(task_id, prefer_redis=True)
+                if redis_progress and redis_progress.get("stage") in ("completed", "error"):
+                    # 如果 Redis 中任務已完成或錯誤，使用 Redis 數據
+                    progress_data = redis_progress
+                    # 更新本地進度文件以保持同步
+                    if progress_file:
+                        self._update_progress_file(progress_file, 
+                                                 redis_progress.get("progress", 100.0), 
+                                                 redis_progress.get("stage", "completed"), 
+                                                 "後台任務已完成",
+                                                 final_data=redis_progress.get("final_data", {}))
+            except Exception as e:
+                pass  # Redis 讀取失敗時靜默處理
+        
+        # 如果 Redis 沒有完成狀態，使用本地文件
+        if not progress_data and progress_file and os.path.exists(progress_file):
             progress_data = self._read_progress(progress_file)
             
-            if progress_data:
+        if progress_data:
                 # 總是以最新檔案內容更新 session state
                 st.session_state.playwright_progress = progress_data.get("progress", 0.0)
                 st.session_state.playwright_current_work = progress_data.get("current_work", "")
@@ -359,9 +503,110 @@ class PlaywrightCrawlerComponentV2:
 
         # -- 自動刷新機制 --
         # 只要還在 running 狀態，就安排一個延遲刷新
-        if st.session_state.playwright_crawl_status == 'running':
+        if st.session_state.playwright_crawl_status in ['running', 'monitoring']:
             time.sleep(1) # 降低刷新頻率
             st.rerun()
+    
+    def _render_monitoring(self):
+        """渲染任務監控頁面 - 用於超時後的任務恢復"""
+        st.subheader("🔍 後台任務監控")
+        st.info("⏰ 由於請求超時，已切換到後台任務監控模式。任務仍在後台繼續執行...")
+        
+        task_id = st.session_state.get('playwright_task_id')
+        if not task_id:
+            st.error("❌ 無法找到任務ID")
+            if st.button("🔙 返回設定"):
+                st.session_state.playwright_crawl_status = "idle"
+                st.rerun()
+            return
+        
+        # 顯示任務信息
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("任務ID", f"{task_id[:8]}...")
+        with col2:
+            monitoring_duration = time.time() - st.session_state.get('playwright_monitoring_start', time.time())
+            st.metric("監控時間", f"{monitoring_duration:.0f}秒")
+        
+        # 從 Redis 或進度管理器獲取實際進度
+        try:
+            progress_data = self.progress_manager.get_progress(task_id, prefer_redis=True)
+            
+            if progress_data:
+                stage = progress_data.get("stage", "unknown")
+                progress = progress_data.get("progress", 0)
+                username = progress_data.get("username", "unknown")
+                
+                # 顯示當前狀態
+                st.write("### 📊 當前狀態")
+                col1, col2, col3 = st.columns(3)
+                
+                with col1:
+                    st.metric("用戶", username)
+                with col2:
+                    st.metric("階段", stage)
+                with col3:
+                    st.metric("進度", f"{progress:.1f}%")
+                
+                # 進度條
+                st.progress(progress / 100.0 if progress > 0 else 0.0)
+                
+                # 檢查任務是否完成
+                if stage == "completed":
+                    st.success("🎉 任務已完成！")
+                    
+                    # 設定結果並切換到結果頁面
+                    final_data = progress_data.get("final_data", {})
+                    if final_data:
+                        st.session_state.playwright_final_data = final_data
+                        st.session_state.playwright_crawl_status = "completed"
+                        st.rerun()
+                    else:
+                        st.warning("任務完成但無法獲取結果數據")
+                
+                elif "error" in stage:
+                    st.error(f"❌ 任務執行錯誤: {progress_data.get('error', 'Unknown error')}")
+                    st.session_state.playwright_crawl_status = "error"
+                    st.session_state.playwright_error_msg = progress_data.get('error', 'Unknown error')
+                    st.rerun()
+                    
+                # 顯示詳細日誌（如果有）
+                log_messages = progress_data.get("log_messages", [])
+                if log_messages:
+                    with st.expander("📋 任務日誌", expanded=False):
+                        recent_logs = log_messages[-20:] if len(log_messages) > 20 else log_messages
+                        st.code('\n'.join(recent_logs), language='text')
+            else:
+                st.warning("⚠️ 無法獲取任務進度，任務可能已完成或發生錯誤")
+                
+                # 提供手動選項
+                if st.button("🔄 重新嘗試獲取進度"):
+                    st.rerun()
+                    
+        except Exception as e:
+            st.error(f"❌ 獲取進度時發生錯誤: {str(e)}")
+        
+        # 控制按鈕
+        st.write("### 🎛️ 控制選項")
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            if st.button("📋 任務管理"):
+                st.session_state.playwright_crawl_status = "task_manager"
+                st.rerun()
+        
+        with col2:
+            if st.button("🔙 返回設定"):
+                st.session_state.playwright_crawl_status = "idle"
+                st.rerun()
+        
+        with col3:
+            if st.button("🗑️ 停止監控"):
+                # 不刪除任務，只是停止監控
+                st.session_state.playwright_crawl_status = "idle"
+                st.info("已停止監控，任務仍在後台運行。可在任務管理中查看。")
+                time.sleep(2)
+                st.rerun()
     
     def _render_results(self):
         """渲染結果頁面"""
@@ -565,7 +810,7 @@ class PlaywrightCrawlerComponentV2:
                 # 開始API請求
                 start_time = time.time()
                 
-                with httpx.Client(timeout=600.0) as client:
+                with httpx.Client(timeout=1800.0) as client:  # 30分鐘超時，支援大型任務
                     # 階段5: 等待響應 (20-25%)
                     self._log_to_file(progress_file, "⏳ 等待Playwright處理...")
                     self._update_progress_file(progress_file, 0.20, "api_processing", "Playwright正在處理...")
@@ -601,10 +846,29 @@ class PlaywrightCrawlerComponentV2:
                 self._log_to_file(progress_file, f"🎉 爬取任務完成！總耗時: {duration_text}")
                 self._update_progress_file(progress_file, 1.0, "completed", "爬取完成", final_data=result)
                 
+                # 🔥 關鍵修復：設定 session_state 觸發結果頁面和自動保存
+                st.session_state.playwright_final_data = result
+                st.session_state.playwright_crawl_status = "completed"
+                st.rerun()
+                
             except Exception as e:
-                error_msg = f"API請求失敗: {e}"
-                self._log_to_file(progress_file, f"❌ {error_msg}")
-                self._update_progress_file(progress_file, 0.0, "error", error_msg, error=str(e))
+                # 檢查是否為超時錯誤，如果是則切換到監控模式
+                if "timeout" in str(e).lower() or "TimeoutError" in str(e):
+                    # 超時了，切換到任務監控模式
+                    self._log_to_file(progress_file, "⏰ API請求超時，切換到後台任務監控模式...")
+                    self._update_progress_file(progress_file, 0.25, "monitoring", "切換到監控模式...")
+                    
+                    # 設定為監控模式，嘗試恢復任務
+                    st.session_state.playwright_crawl_status = "monitoring"
+                    st.session_state.playwright_task_id = st.session_state.get('playwright_task_id', task_id)
+                    st.session_state.playwright_monitoring_start = time.time()
+                    st.warning("⏰ 請求超時，已切換到後台任務監控模式。任務仍在後台繼續執行...")
+                    st.rerun()
+                else:
+                    # 其他錯誤，記錄並更新狀態
+                    error_msg = f"API請求失敗: {e}"
+                    self._log_to_file(progress_file, f"❌ {error_msg}")
+                    self._update_progress_file(progress_file, 0.0, "error", error_msg, error=str(e))
                 
         except Exception as e:
             error_msg = f"背景任務失敗: {e}"
@@ -634,7 +898,7 @@ class PlaywrightCrawlerComponentV2:
             for progress, stage, description in stages:
                 elapsed = time.time() - start_time
                 # 如果API已經完成，就不再更新模擬進度
-                if elapsed > 300:  # 5分鐘後停止模擬
+                if elapsed > 900:  # 15分鐘後停止模擬（配合30分鐘超時）
                     break
                     
                 self._log_to_file(progress_file, f"📊 {description}")

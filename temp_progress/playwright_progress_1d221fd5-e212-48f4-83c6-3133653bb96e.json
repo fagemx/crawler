@@ -1,0 +1,138 @@
+{
+  "progress": 0.9,
+  "stage": "completed",
+  "current_work": "去重處理...",
+  "log_messages": [
+    "🚀 爬蟲任務已啟動...",
+    "[16:31:49] 🔧 初始化爬蟲環境...",
+    "[16:31:49] 🔐 讀取認證檔案...",
+    "[16:31:49] ✅ 認證檔案讀取成功，包含 15 個 cookies",
+    "[16:31:49] 📋 構建API請求參數...",
+    "[16:31:49] 📊 目標用戶: @netflixtw",
+    "[16:31:49] 📝 目標貼文數: 3",
+    "[16:31:49] 🔄 爬取模式: 增量模式",
+    "[16:31:49] 🧹 去重功能: 關閉",
+    "[16:31:49] 🚀 發送API請求到Playwright Agent...",
+    "[16:31:51] ⏳ 等待Playwright處理...",
+    "[16:31:51] 📊 啟動瀏覽器...",
+    "[16:31:59] 📊 導航到用戶頁面...",
+    "[16:32:07] 📊 等待頁面加載...",
+    "[16:32:15] 📊 開始智能滾動...",
+    "[16:32:23] 📊 收集貼文URLs...",
+    "[16:32:31] 📊 處理貼文URLs...",
+    "[16:32:39] 📊 開始補齊詳細數據...",
+    "[16:32:47] 📊 補齊貼文內容和互動數據...",
+    "[16:32:51] ✅ API請求成功，正在處理響應...",
+    "[16:32:51] 📦 獲取到 3 篇貼文",
+    "[16:32:51] 🎉 爬取任務完成！總耗時: 1.0 分鐘",
+    "[16:32:55] 📊 開始補齊觀看數...",
+    "[16:33:03] 📊 補齊觀看數據...",
+    "[16:33:11] 📊 去重處理..."
+  ],
+  "start_time": 1754469109.7223222,
+  "timestamp": 1754469109.725453,
+  "final_data": {
+    "posts": [
+      {
+        "post_id": "netflixtw_DNAZaSvxOvO",
+        "username": "netflixtw",
+        "url": "https://www.threads.com/@netflixtw/post/DNAZaSvxOvO",
+        "content": "戀綜裡的雙相奔Food🤤  \nTranslate",
+        "likes_count": 58,
+        "comments_count": 1,
+        "reposts_count": 1,
+        "shares_count": 12,
+        "views_count": 4700,
+        "media_urls": [],
+        "images": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/528333866_1967662047421090_7845483499666881853_n.jpg?stp=dst-jpg_e15_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uNjQweDgwMC5zZHIuZjcxODc4LmRlZmF1bHRfY292ZXJfZnJhbWUuYzIifQ&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=110&_nc_oc=Q6cZ2QFlxQglp1ED1__R067_ykd5UFHjPLc3IZ-5NsyBv2KCkFU13SJaTX_h8gzWpgmDN10&_nc_ohc=Wc4bB-zOMfsQ7kNvwHl1Puk&_nc_gid=zFtdb2SkkYBq8ygjBS7KPg&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MzA2MzQ1MjQ0MTc2Njg2Mg%3D%3D.3-ccb7-5&oh=00_AfUKjZ1wCIn8wb_slwtZfPeOFfD_j20ZciaVQCsKDivUhQ&oe=6898CEAD&_nc_sid=10d13b",
+          "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/527694609_17917114131115651_8040957664460497798_n.jpg?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uMTA5MHg3Mjcuc2RyLmY4Mjc4Ny5kZWZhdWx0X2ltYWdlLmMyIn0&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=107&_nc_oc=Q6cZ2QFlxQglp1ED1__R067_ykd5UFHjPLc3IZ-5NsyBv2KCkFU13SJaTX_h8gzWpgmDN10&_nc_ohc=pjIDmC4vBe8Q7kNvwHdmKyH&_nc_gid=zFtdb2SkkYBq8ygjBS7KPg&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MzA2OTEyNzAwODEwNjQxNQ%3D%3D.3-ccb7-5&oh=00_AfXk5oZNr-KgDlIuNv2sklwP25mUPIyXa4bTtvWPnf3jQA&oe=6898EB74&_nc_sid=10d13b"
+        ],
+        "videos": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/o1/v/t16/f2/m84/AQPgZeiKgtpIfEEdkyD2srK3WZK49CcxLDwsOdoZsRgr0PNMYhoiJNCjo9wvV_j-Q8d6q29sL6cwJgLU1TrxuFUXQGkLgvr8FgXi9sU.mp4?_nc_cat=101&_nc_oc=AdkZTxnFGoif_DrghxWFcS2Sp-Hj0T31uWh8ystOf37ZZPYNlGDQ6ym9I7_l33n427c&_nc_sid=5e9851&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_ohc=hNazQaIeaOkQ7kNvwHCGDFt&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5JTlNUQUdSQU0uRkVFRC5DMy43MjAuZGFzaF9iYXNlbGluZV8xX3YxIiwieHB2X2Fzc2V0X2lkIjo3ODg3ODIwODAyNDcxNDAsInZpX3VzZWNhc2VfaWQiOjEwMTY0LCJkdXJhdGlvbl9zIjo2NSwidXJsZ2VuX3NvdXJjZSI6Ind3dyJ9&ccb=17-1&vs=a43e8a49ae567061&_nc_vs=HBksFQIYTGlnX2JhY2tmaWxsX3RpbWVsaW5lX3ZvZC8yMTQ5QzBBOEZBMkFEN0RFQzYxMjU4QUNFMzVCRjRCMF92aWRlb19kYXNoaW5pdC5tcDQVAALIARIAFQIYOnBhc3N0aHJvdWdoX2V2ZXJzdG9yZS9HS3dCZmg5d3lVUlVXTlVEQUlzZVhqbmNzbUFDYmtZTEFBQUYVAgLIARIAKAAYABsCiAd1c2Vfb2lsATEScHJvZ3Jlc3NpdmVfcmVjaXBlATEVAAAmyJWWu5TZ5gIVAigCQzMsF0BQTCj1wo9cGBJkYXNoX2Jhc2VsaW5lXzFfdjERAHXqB2XongEA&_nc_zt=28&oh=00_AfUozQ9ay7HNcnmsThE6x4nzKCEV8_s9lu6otXuTUek9og&oe=6895082B"
+        ],
+        "created_at": "2025-08-06T16:32:00.187535",
+        "post_published_at": "2025-08-06T08:05:49Z",
+        "tags": [
+          "母胎單身戀愛大作戰"
+        ],
+        "fetched_at": "2025-08-06T16:32:00.187550",
+        "views_fetched_at": "2025-08-06T08:32:39.339901",
+        "source": "playwright_new",
+        "processing_stage": "details_filled_hybrid",
+        "is_complete": false,
+        "last_updated": "2025-08-06T08:32:00.187682",
+        "reader_status": "pending",
+        "dom_status": "pending",
+        "reader_processed_at": null,
+        "dom_processed_at": null
+      },
+      {
+        "post_id": "netflixtw_DNATlvYzw4m",
+        "username": "netflixtw",
+        "url": "https://www.threads.com/@netflixtw/post/DNATlvYzw4m",
+        "content": "星期三急著看 #星期三 ！！  \nTranslate",
+        "likes_count": 706,
+        "comments_count": 14,
+        "reposts_count": 21,
+        "shares_count": 48,
+        "views_count": 21600,
+        "media_urls": [],
+        "images": [
+          "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/528716646_17923247223107526_3221451578121097265_n.jpg?se=-1&stp=dst-jpegr_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uMTkyMHgxNDQwLmhkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=1&_nc_oc=Q6cZ2QF_IzV7-Cb77L_CGGSwOJ0Xv_nT6DMH9InHZiP3u_2ch0bfDvZbeQPi9RgUCjc3rjU&_nc_ohc=DHObu63PsKMQ7kNvwG18bh_&_nc_gid=SSwhXS8asqUFVgxiHrjq-Q&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MzAzNzg1MDgzMDI0NTQxNA%3D%3D.3-ccb7-5&oh=00_AfUuZtiGM8asjQVpxhmehoDnTj2A4jKetEYdfL15MzKFaA&oe=6898D71C&_nc_sid=10d13b",
+          "https://instagram.fkhh5-1.fna.fbcdn.net/v/t51.2885-15/528294580_17924352099098573_6147900442249187149_n.webp?efg=eyJ2ZW5jb2RlX3RhZyI6InRocmVhZHMuRkVFRC5pbWFnZV91cmxnZW4uMTkyMHgxMDgwLnNkci5mODI3ODcuZGVmYXVsdF9pbWFnZS5jMiJ9&_nc_ht=instagram.fkhh5-1.fna.fbcdn.net&_nc_cat=105&_nc_oc=Q6cZ2QF_IzV7-Cb77L_CGGSwOJ0Xv_nT6DMH9InHZiP3u_2ch0bfDvZbeQPi9RgUCjc3rjU&_nc_ohc=v5hQehMcp-cQ7kNvwGQDsBg&_nc_gid=SSwhXS8asqUFVgxiHrjq-Q&edm=APs17CUBAAAA&ccb=7-5&ig_cache_key=MzY5MzA3MzA2NTc3ODQ0MTA4NA%3D%3D.3-ccb7-5&oh=00_AfUJl7wttYTWu1zxP6-Pf4jGDgo31HW77r0-g-5J30tAeA&oe=6898E8C2&_nc_sid=10d13b"
+        ],
+        "videos": [],
+        "created_at": "2025-08-06T16:32:00.187708",
+        "post_published_at": "2025-08-06T07:14:00Z",
+        "tags": [
+          "星期三"
+        ],
+        "fetched_at": "2025-08-06T16:32:00.187713",
+        "views_fetched_at": "2025-08-06T08:32:43.504133",
+        "source": "playwright_new",
+        "processing_stage": "details_filled_hybrid",
+        "is_complete": false,
+        "last_updated": "2025-08-06T08:32:00.187728",
+        "reader_status": "pending",
+        "dom_status": "pending",
+        "reader_processed_at": null,
+        "dom_processed_at": null
+      },
+      {
+        "post_id": "netflixtw_DM_9ebSBlTh",
+        "username": "netflixtw",
+        "url": "https://www.threads.com/@netflixtw/post/DM_9ebSBlTh",
+        "content": "TENBLANK 跟 OVER CHROME 不是說今天要發新歌，請問去哪聽🎤🎵🎸🥁✨🧑‍🎤  \nTranslate",
+        "likes_count": 711,
+        "comments_count": 25,
+        "reposts_count": 23,
+        "shares_count": 45,
+        "views_count": 72900,
+        "media_urls": [],
+        "images": [],
+        "videos": [],
+        "created_at": "2025-08-06T16:32:00.191542",
+        "post_published_at": "2025-08-06T04:00:45Z",
+        "tags": [
+          "玻璃之心"
+        ],
+        "fetched_at": "2025-08-06T16:32:00.191559",
+        "views_fetched_at": "2025-08-06T08:32:47.628458",
+        "source": "playwright_new",
+        "processing_stage": "details_filled_hybrid",
+        "is_complete": false,
+        "last_updated": "2025-08-06T08:32:00.191598",
+        "reader_status": "pending",
+        "dom_status": "pending",
+        "reader_processed_at": null,
+        "dom_processed_at": null
+      }
+    ],
+    "batch_id": "28ebc0e7-95b7-4c87-9e6a-31404b257a67",
+    "username": "netflixtw",
+    "total_count": 3,
+    "processing_stage": "playwright_incremental_completed",
+    "crawl_duration": 61.56558680534363
+  }
+}

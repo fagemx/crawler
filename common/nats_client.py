@@ -42,23 +42,55 @@ async def get_nats_client() -> Optional[NATS]:
     return _nats_client
 
 async def publish_progress(task_id: str, stage: str, **kwargs):
-    """發布進度訊息到 NATS"""
+    """發布進度訊息到 NATS 和 Redis"""
+    message = {
+        "task_id": task_id,
+        "stage": stage,
+        "timestamp": asyncio.get_event_loop().time(),
+        **kwargs
+    }
+    
+    # 1. 嘗試發布到 NATS（原有邏輯）
     try:
         nc = await get_nats_client()
-        if nc is None:
-            logging.warning("📡 NATS not available, skipping progress publish")
-            return
-            
-        message = {
-            "task_id": task_id,
-            "stage": stage,
-            "timestamp": asyncio.get_event_loop().time(),
-            **kwargs
-        }
-        await nc.publish("crawler.progress", json.dumps(message).encode())
-        logging.info(f"📡 Published progress: {stage} for {task_id}")
+        if nc is not None:
+            await nc.publish("crawler.progress", json.dumps(message).encode())
+            logging.info(f"📡 Published to NATS: {stage} for {task_id}")
     except Exception as e:
-        logging.error(f"❌ Failed to publish progress: {e}")
+        logging.warning(f"⚠️ NATS publish failed: {e}")
+    
+    # 2. 同時寫入 Redis（新增功能）
+    try:
+        from .redis_client import get_redis_client
+        redis_client = get_redis_client()
+        
+        # 計算進度百分比（如果有相關資訊）
+        progress_data = {"stage": stage, "timestamp": message["timestamp"]}
+        
+        # 嘗試解析進度百分比
+        if "done" in kwargs and "total" in kwargs and kwargs["total"] > 0:
+            progress_data["progress"] = round(kwargs["done"] / kwargs["total"] * 100, 1)
+        elif "completed" in stage:
+            progress_data["progress"] = 100.0
+        elif "start" in stage:
+            progress_data["progress"] = 0.0
+        elif "error" in stage:
+            progress_data["status"] = "error"
+            progress_data["error"] = kwargs.get("error", "Unknown error")
+        
+        # 添加其他有用的資訊
+        for key in ["username", "posts_count", "message", "error", "final_data"]:
+            if key in kwargs:
+                progress_data[key] = kwargs[key]
+        
+        redis_client.set_task_status(task_id, progress_data)
+        logging.info(f"💾 Saved to Redis: {stage} for {task_id}")
+        
+    except Exception as e:
+        logging.warning(f"⚠️ Redis save failed: {e}")
+    
+    # 原有的日誌
+    logging.info(f"📊 Progress update: {stage} for {task_id}")
 
 async def close_nats_client():
     """關閉 NATS 客戶端"""

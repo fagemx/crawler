@@ -334,7 +334,32 @@ class PlaywrightLogic:
 
             # 步驟5: 保存調試數據
             await self._save_debug_data(task_id, username, len(all_collected_urls), final_posts)
-            await publish_progress(task_id, "completed", username=username, posts_count=len(final_posts))
+            
+            # 準備完整的最終結果數據
+            final_data = {
+                "total_processed": len(final_posts),
+                "username": username,
+                "need_to_fetch": need_to_fetch,
+                "success": True,
+                "results": [
+                    {
+                        "post_id": post.post_id,
+                        "url": post.url,
+                        "content": post.content,
+                        "views": post.views_count,
+                        "likes": post.likes_count,
+                        "comments": post.comments_count,
+                        "reposts": post.reposts_count,
+                        "shares": post.shares_count,
+                        "publish_time": post.post_published_at.isoformat() if post.post_published_at else None,
+                        "is_complete": post.is_complete
+                    }
+                    for post in final_posts
+                ]
+            }
+            
+            # 發布完成狀態和完整結果到 Redis
+            await publish_progress(task_id, "completed", username=username, posts_count=len(final_posts), final_data=final_data)
 
             # 步驟9: 標記DOM處理狀態並保存到數據庫
             # 為所有完整處理的貼文標記DOM狀態為success

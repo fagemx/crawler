@@ -42,7 +42,7 @@ class PlaywrightSSEHandler:
         self._log(f"🔥 SSE監聽啟動: {url}")
         
         try:
-            with requests.get(url, stream=True, timeout=600) as response:  # 與原版相同的10分鐘超時
+            with requests.get(url, stream=True, timeout=1800) as response:  # 30分鐘超時，支援大型任務
                 print(f"🔥 SSE連接成功，狀態碼: {response.status_code}")
                 
                 current_cnt = 0
@@ -193,7 +193,7 @@ class PlaywrightSSEHandler:
     async def execute_async_api_request(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """異步發送API請求（不等待完成）"""
         try:
-            timeout = httpx.Timeout(600.0)  # 10分鐘超時，與原版一致
+            timeout = httpx.Timeout(1800.0)  # 30分鐘超時，支援大型任務
             
             async with httpx.AsyncClient(timeout=timeout) as client:
                 self._log("🚀 已發送異步API請求，等待SSE回應...")
