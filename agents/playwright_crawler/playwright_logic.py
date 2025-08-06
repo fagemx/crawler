@@ -496,10 +496,8 @@ class PlaywrightLogic:
                 "--disable-features=VizDisplayCompositor"
             ]
         )
-        # 創建context並啟用自動播放權限
-        self.context = await self.browser.new_context(
-            permissions=["autoplay"]
-        )
+        # 創建context（自動播放通過launch args控制）
+        self.context = await self.browser.new_context()
         
         # 設置認證
         auth_file = Path(tempfile.gettempdir()) / f"{task_id}_auth.json"
