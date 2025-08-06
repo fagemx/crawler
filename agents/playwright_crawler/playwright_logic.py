@@ -346,12 +346,17 @@ class PlaywrightLogic:
                         "post_id": post.post_id,
                         "url": post.url,
                         "content": post.content,
-                        "views": post.views_count,
-                        "likes": post.likes_count,
-                        "comments": post.comments_count,
-                        "reposts": post.reposts_count,
-                        "shares": post.shares_count,
-                        "publish_time": post.post_published_at.isoformat() if post.post_published_at else None,
+                        "views_count": post.views_count,  # 🔧 修復：使用正確的key名稱
+                        "likes_count": post.likes_count,
+                        "comments_count": post.comments_count,
+                        "reposts_count": post.reposts_count,
+                        "shares_count": post.shares_count,
+                        "calculated_score": post.calculated_score,  # 🔧 添加缺失的字段
+                        "post_published_at": post.post_published_at.isoformat() if post.post_published_at else None,  # 🔧 修復key名稱
+                        "created_at": post.created_at.isoformat() if post.created_at else None,  # 🔧 添加創建時間
+                        "tags": post.tags or [],  # 🔧 添加標籤
+                        "images": post.images or [],  # 🔧 添加圖片
+                        "videos": post.videos or [],  # 🔧 添加影片
                         "is_complete": post.is_complete
                     }
                     for post in final_posts

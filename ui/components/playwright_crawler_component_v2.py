@@ -626,8 +626,14 @@ class PlaywrightCrawlerComponentV2:
         try:
             # 轉換結果格式
             converted_results = PlaywrightUtils.convert_playwright_results(final_data)
-            target = st.session_state.get('playwright_target', {})
-            converted_results["target_username"] = target.get('username', 'unknown')
+            
+            # 🔧 修復：優先使用轉換後的用戶名，避免覆蓋正確數據
+            if not converted_results.get("target_username"):
+                # 只有當轉換後沒有用戶名時才從其他地方獲取
+                target = st.session_state.get('playwright_target', {})
+                session_username = target.get('username')
+                final_data_username = final_data.get('username')
+                converted_results["target_username"] = session_username or final_data_username or 'unknown'
             
             # 檢查是否已經保存過，避免重複保存
             if not st.session_state.get('playwright_results_saved', False):
@@ -742,12 +748,16 @@ class PlaywrightCrawlerComponentV2:
         st.session_state.playwright_task_id = task_id
         
         # 初始化進度檔案
+        target = st.session_state.get('playwright_target', {})
+        username = target.get('username', 'unknown')
+        
         self._write_progress(progress_file, {
             "progress": 0.0,
             "stage": "initialization",
             "current_work": "正在啟動...",
             "log_messages": ["🚀 爬蟲任務已啟動..."],
-            "start_time": time.time()  # <--- 記錄開始時間
+            "start_time": time.time(),
+            "username": username  # 🔧 修復：添加用戶名，避免創建@unknown任務
         })
         
         # 啟動背景線程
@@ -790,7 +800,8 @@ class PlaywrightCrawlerComponentV2:
                 "max_posts": max_posts,
                 "auth_json_content": auth_content,
                 "enable_deduplication": enable_deduplication,
-                "incremental": is_incremental
+                "incremental": is_incremental,
+                "task_id": task_id  # 🔧 修復：傳遞task_id給後端，避免重複創建任務
             }
             
             self._log_to_file(progress_file, f"📊 目標用戶: @{username}")
