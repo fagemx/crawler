@@ -191,12 +191,29 @@ class PlaywrightDatabaseHandler:
                     
                     self._log(f"💾 已保存 {saved_count} 個貼文到 Playwright 專用資料表")
                     
+                    # 🔧 重要：返回保存結果
+                    return {
+                        "success": True,
+                        "saved_count": saved_count,
+                        "message": f"已保存 {saved_count} 個貼文"
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "saved_count": 0,
+                        "message": "沒有有效數據需要保存"
+                    }
+                    
             finally:
                 await db.close_pool()
                 
         except Exception as e:
-            self._log(f"⚠️ 資料庫保存警告: {e}")
-            # 不阻止主要流程，但記錄警告
+            self._log(f"⚠️ 資料庫保存失敗: {e}")
+            return {
+                "success": False,
+                "saved_count": 0,
+                "message": f"保存失敗: {str(e)}"
+            }
     
     def get_database_stats(self):
         """獲取 Playwright 專用資料庫統計"""

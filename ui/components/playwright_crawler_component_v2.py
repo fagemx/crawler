@@ -199,12 +199,55 @@ class PlaywrightCrawlerComponentV2:
             st.session_state.recovered_from_background):
             self._handle_recovered_task()
         
+        # 🔥 簡化：移除複雜的佇列自動啟動邏輯
+        
+        # 🔧 Redis鎖機制：不需要複雜的殭屍檢測了
+        
         # 根據狀態渲染不同內容
         if st.session_state.playwright_crawl_status == "idle":
             self._render_setup()
-        elif st.session_state.playwright_crawl_status == "queued":
-            self._render_queued_status()
-        elif st.session_state.playwright_crawl_status == "running":
+        else:
+            self.render_status_content()
+    
+    def _show_existing_task_progress(self, job_id: str):
+        """顯示現有任務的進度"""
+        try:
+            from common.redis_client import get_redis_connection
+            redis_conn = get_redis_connection()
+            
+            if redis_conn:
+                # 檢查Redis中的任務狀態
+                job_data = redis_conn.hgetall(f"job:{job_id}")
+                if job_data:
+                    status = job_data.get(b'status', b'running').decode()
+                    progress = float(job_data.get(b'progress', b'0').decode())
+                    
+                    if status == 'completed':
+                        st.success(f"✅ 任務已完成 (進度: {progress:.1%})")
+                        st.info("💡 您可以在「管理任務」中查看結果")
+                    elif status == 'error':
+                        error_msg = job_data.get(b'error', b'\xe6\x9c\xaa\xe7\x9f\xa5\xe9\x8c\xaf\xe8\xaa\xa4').decode()
+                        st.error(f"❌ 任務失敗: {error_msg}")
+                    else:
+                        st.info(f"🔄 任務執行中 (進度: {progress:.1%})")
+                        st.info("💡 頁面會自動更新進度")
+                        
+                    # 設置session state以顯示進度
+                    st.session_state.playwright_task_id = job_id
+                    st.session_state.playwright_crawl_status = "running"
+                    st.rerun()
+                else:
+                    st.warning("⚠️ 找不到任務進度信息")
+            else:
+                st.error("❌ Redis連接失敗")
+                
+        except Exception as e:
+            st.error(f"❌ 檢查任務狀態失敗: {e}")
+
+    # 根據狀態渲染不同內容的其餘部分
+    def render_status_content(self):
+        """渲染狀態相關內容"""
+        if st.session_state.playwright_crawl_status == "running":
             self._render_progress()
         elif st.session_state.playwright_crawl_status == "monitoring":
             self._render_monitoring()
@@ -214,10 +257,52 @@ class PlaywrightCrawlerComponentV2:
             self._render_error()
         elif st.session_state.playwright_crawl_status == "task_manager":
             self._render_task_manager()
-        elif st.session_state.playwright_crawl_status == "queue_manager":
-            self._render_queue_manager()
+
     
     # ---------- 新增的任務管理方法 ----------
+    def _check_and_cleanup_zombie_state(self):
+        """檢查並清理殭屍狀態，防止UI陷入不可恢復狀態"""
+        try:
+            # 只在 running 狀態下檢查
+            if st.session_state.playwright_crawl_status != "running":
+                return
+            
+            current_task_id = st.session_state.get('playwright_task_id')
+            if not current_task_id:
+                return
+            
+            # 檢查當前任務是否在佇列中且已失敗
+            if self.queue_manager:
+                queue_status = self.queue_manager.get_queue_status()
+                for task in queue_status.get('queue', []):
+                    if task.task_id == current_task_id and task.status.value == "error":
+                        # 任務已失敗，但UI還在 running 狀態
+                        st.warning(f"🔧 檢測到失敗任務 {current_task_id[:8]}，正在清理UI狀態...")
+                        
+                        # 重置UI狀態
+                        st.session_state.playwright_crawl_status = "idle"
+                        
+                        # 清理相關session state
+                        cleanup_keys = [
+                            'playwright_task_id', 
+                            'playwright_progress_file',
+                            'playwright_target',
+                            'playwright_auto_start_from_queue',
+                            'from_task_manager'
+                        ]
+                        for key in cleanup_keys:
+                            if key in st.session_state:
+                                del st.session_state[key]
+                        
+                        st.error(f"❌ 任務 {current_task_id[:8]} 已失敗，已重置為可用狀態")
+                        st.info("💡 您現在可以重新開始新的爬取任務")
+                        st.rerun()
+                        return
+                        
+        except Exception as e:
+            # 靜默處理錯誤，避免影響主流程
+            pass
+    
     def _handle_recovered_task(self):
         """處理從背景恢復的任務"""
         if not hasattr(st.session_state, 'playwright_task_id'):
@@ -240,18 +325,23 @@ class PlaywrightCrawlerComponentV2:
     
     def _render_task_manager(self):
         """渲染任務管理頁面"""
-        st.header("📋 任務管理中心")
+        st.header("📋 任務管理")
         
-        # 返回按鈕
-        col_back, col_refresh = st.columns([1, 1])
+        # 控制按鈕區域
+        col_back, col_refresh, col_clear_all = st.columns([1, 1, 1])
+        
         with col_back:
-            if st.button("← 返回爬蟲設定", key="back_to_setup"):
+            if st.button("← 返回設定", key="back_to_setup"):
                 st.session_state.playwright_crawl_status = "idle"
                 st.rerun()
         
         with col_refresh:
             if st.button("🔄 重新整理", key="refresh_tasks"):
                 st.rerun()
+        
+        with col_clear_all:
+            if st.button("🗑️ 全部清空", key="clear_all_tasks", help="清空所有任務和佇列，重置到最乾淨狀態", type="primary"):
+                self._show_clear_all_confirmation()
         
         st.divider()
         
@@ -266,6 +356,142 @@ class PlaywrightCrawlerComponentV2:
         
         # 渲染清理控制
         self.task_recovery.render_cleanup_controls()
+        
+        # 處理全部清空確認
+        if st.session_state.get('show_clear_all_confirmation', False):
+            self._render_clear_all_confirmation()
+    
+    def _show_clear_all_confirmation(self):
+        """顯示全部清空確認對話框"""
+        st.session_state.show_clear_all_confirmation = True
+        st.rerun()
+    
+    def _render_clear_all_confirmation(self):
+        """渲染全部清空確認對話框"""
+        st.warning("⚠️ 全部清空操作")
+        st.markdown("""
+        **此操作將會：**
+        - 🗑️ 清空所有歷史任務記錄
+        - 📋 清空任務佇列
+        - 🔄 重置所有UI狀態
+        - 🧹 清理所有進度檔案
+        - 💾 重置系統到最乾淨狀態
+        
+        **⚠️ 注意：此操作不可逆！**
+        """)
+        
+        col_confirm, col_cancel = st.columns([1, 1])
+        
+        with col_confirm:
+            if st.button("✅ 確認清空", key="confirm_clear_all", type="primary"):
+                self._execute_clear_all()
+                
+        with col_cancel:
+            if st.button("❌ 取消", key="cancel_clear_all"):
+                st.session_state.show_clear_all_confirmation = False
+                st.rerun()
+    
+    def _execute_clear_all(self):
+        """執行全部清空操作"""
+        try:
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+            
+            # 1. 清空佇列系統 (20%)
+            status_text.text("🗑️ 正在清空任務佇列...")
+            progress_bar.progress(0.2)
+            if self.queue_manager:
+                # 清空佇列檔案
+                queue_file = self.queue_manager.queue_file
+                if os.path.exists(queue_file):
+                    os.remove(queue_file)
+                    print("✅ 佇列檔案已清除")
+            
+            # 2. 清空歷史任務 (40%)
+            status_text.text("📋 正在清空歷史任務...")
+            progress_bar.progress(0.4)
+            if self.task_recovery:
+                # 清空任務記錄
+                temp_progress_dir = self.task_recovery.progress_manager.temp_progress_dir
+                if os.path.exists(temp_progress_dir):
+                    import shutil
+                    shutil.rmtree(temp_progress_dir)
+                    os.makedirs(temp_progress_dir, exist_ok=True)
+                    print("✅ 歷史任務已清除")
+            
+            # 3. 清理Redis緩存 (60%)
+            status_text.text("🔄 正在清理Redis緩存...")
+            progress_bar.progress(0.6)
+            try:
+                if hasattr(self, 'progress_manager') and self.progress_manager:
+                    # 清理Redis中的所有進度數據
+                    import common.redis_client as redis_client
+                    redis_conn = redis_client.get_redis_connection()
+                    if redis_conn:
+                        # 刪除所有playwright相關的keys
+                        keys = redis_conn.keys("playwright:*")
+                        if keys:
+                            redis_conn.delete(*keys)
+                            print(f"✅ 已清理 {len(keys)} 個Redis鍵")
+            except Exception as e:
+                print(f"⚠️ Redis清理警告: {e}")
+            
+            # 4. 重置UI狀態 (80%)
+            status_text.text("🎛️ 正在重置UI狀態...")
+            progress_bar.progress(0.8)
+            
+            # 清理所有playwright相關的session state
+            playwright_keys = [key for key in st.session_state.keys() if key.startswith('playwright')]
+            for key in playwright_keys:
+                del st.session_state[key]
+            
+            # 清理其他相關狀態
+            cleanup_keys = [
+                'show_clear_all_confirmation',
+                'from_task_manager',
+                'recovered_from_background'
+            ]
+            for key in cleanup_keys:
+                if key in st.session_state:
+                    del st.session_state[key]
+            
+            # 5. 完成 (100%)
+            status_text.text("✅ 清空完成！")
+            progress_bar.progress(1.0)
+            
+            # 重置到最乾淨狀態
+            st.session_state.playwright_crawl_status = "idle"
+            
+            # 驗證清空效果
+            status_text.text("🔍 正在驗證清空效果...")
+            
+            # 檢查佇列是否為空
+            queue_empty = True
+            if self.queue_manager:
+                queue_status = self.queue_manager.get_queue_status()
+                queue_empty = queue_status['total'] == 0
+            
+            # 檢查進度目錄是否為空
+            progress_empty = True
+            if self.task_recovery:
+                temp_progress_dir = self.task_recovery.progress_manager.temp_progress_dir
+                if os.path.exists(temp_progress_dir):
+                    progress_files = os.listdir(temp_progress_dir)
+                    progress_empty = len(progress_files) == 0
+            
+            if queue_empty and progress_empty:
+                st.success("🎉 系統已重置到最乾淨狀態！")
+                st.success("✅ 驗證通過：佇列已清空，歷史任務已清除")
+                st.info("💡 您現在可以正常使用爬蟲功能了")
+            else:
+                st.warning("⚠️ 部分清空可能不完整，但基本功能應該可用")
+            
+            time.sleep(2)  # 讓用戶看到完成信息
+            st.rerun()
+            
+        except Exception as e:
+            st.error(f"❌ 清空操作失敗: {e}")
+            st.session_state.show_clear_all_confirmation = False
     
     def _render_setup(self):
         """渲染設定頁面"""
@@ -319,24 +545,49 @@ class PlaywrightCrawlerComponentV2:
                 st.warning("⚠️ 關閉去重可能會獲得大量相似內容，建議僅在特殊需求時使用")
             
             # 控制按鈕區域（佇列版本）
-            col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+            col1, col2, col3 = st.columns([1, 1, 1])
             
             with col1:
-                # 檢查佇列是否可用
-                queue_available = self.queue_component.is_queue_available() if self.queue_component else True
-                
-                if st.button("🚀 加入佇列", key="queue_playwright_v2", 
-                           help="將任務加入佇列等待執行" if queue_available else "佇列中有任務執行，新任務將排隊"):
-                    # 加入佇列
+                if st.button("🚀 開始爬取", key="start_playwright_v2", help="開始爬取任務"):
+                    # 🔥 Redis鎖機制：防重複+排隊
                     is_incremental = (crawl_mode == "增量模式")
-                    self._add_to_queue(username, max_posts, enable_deduplication, is_incremental)
-            
-            with col2:
-                if st.button("📋 佇列管理", key="manage_queue_v2", help="查看和管理任務佇列"):
-                    st.session_state.playwright_crawl_status = "queue_manager"
-                    st.rerun()
                     
-            with col3:
+                    try:
+                        # 生成任務唯一鍵
+                        import hashlib
+                        job_key = hashlib.sha256(f"{username}:{max_posts}:{is_incremental}".encode()).hexdigest()[:16]
+                        job_id = str(uuid.uuid4())
+                        
+                        # 嘗試獲取鎖
+                        try:
+                            from common.redis_client import get_redis_connection
+                            redis_conn = get_redis_connection()
+                            
+                            if redis_conn and redis_conn.set(f"lock:{job_key}", job_id, nx=True, ex=7200):
+                                # 獲得鎖，啟動新任務
+                                st.info("✅ 任務鎖定成功，正在啟動...")
+                                self._start_crawling(username, max_posts, enable_deduplication, is_incremental, job_id)
+                                st.success("🚀 任務已啟動")
+                            else:
+                                # 任務已存在
+                                existing_job_id = redis_conn.get(f"lock:{job_key}")
+                                if existing_job_id:
+                                    existing_job_id = existing_job_id.decode()
+                                    st.warning(f"⏳ 相同任務正在執行中: {existing_job_id[:8]}...")
+                                    st.info("💡 請等待當前任務完成或使用「管理任務」查看進度")
+                                else:
+                                    st.warning("⚠️ 獲取鎖失敗，可能有其他任務執行中")
+                        except Exception as redis_error:
+                            # Redis連接失敗，降級為直接執行
+                            st.warning(f"⚠️ Redis不可用({redis_error})，直接執行")
+                            self._start_crawling(username, max_posts, enable_deduplication, is_incremental)
+                                
+                    except Exception as e:
+                        st.error(f"❌ 啟動失敗: {e}")
+                        import traceback
+                        st.code(traceback.format_exc())
+                    
+            with col2:
                 try:
                     uploaded_file = st.file_uploader(
                         "📁 載入CSV文件", 
@@ -345,7 +596,7 @@ class PlaywrightCrawlerComponentV2:
                         help="上傳之前導出的CSV文件來查看結果"
                     )
                     if uploaded_file is not None:
-                        self._load_csv_file(uploaded_file)
+                        self.export_handler.load_csv_file(uploaded_file)
                 except Exception as e:
                     # 如果文件上傳器出錯，清理並重新顯示
                     if "MediaFileStorageError" in str(e) or "file_id" in str(e):
@@ -361,10 +612,10 @@ class PlaywrightCrawlerComponentV2:
                     else:
                         st.error(f"❌ 文件上傳器錯誤: {e}")
             
-            with col4:
+            with col3:
                 if 'playwright_results' in st.session_state:
                     if st.button("🗑️ 清除結果", key="clear_playwright_results_v2", help="清除當前顯示的結果"):
-                        self._clear_results()
+                        self.export_handler.clear_results()
         
         # 任務管理區域（新增）
         if self.progress_manager:
@@ -392,9 +643,32 @@ class PlaywrightCrawlerComponentV2:
                     st.info("任務管理功能初始化中...")
             
             with col_manage:
-                if st.button("📊 管理任務", key="manage_tasks", help="查看和管理所有任務"):
-                    st.session_state.playwright_crawl_status = "task_manager"
-                    st.rerun()
+                col_manage_task, col_reset = st.columns([2, 1])
+                
+                with col_manage_task:
+                    if st.button("📊 管理任務", key="manage_tasks", help="查看和管理歷史任務"):
+                        st.session_state.playwright_crawl_status = "task_manager"
+                        st.rerun()
+                
+                with col_reset:
+                    if st.button("🔄 重置", key="force_reset", help="強制重置系統狀態", type="secondary"):
+                        # 強制清理所有狀態
+                        cleanup_keys = [
+                            'playwright_task_id', 
+                            'playwright_progress_file',
+                            'playwright_target',
+                            'playwright_auto_start_from_queue',
+                            'from_task_manager',
+                            'playwright_db_saved',
+                            'playwright_results_saved'
+                        ]
+                        for key in cleanup_keys:
+                            if key in st.session_state:
+                                del st.session_state[key]
+                        
+                        st.session_state.playwright_crawl_status = "idle"
+                        st.success("✅ 系統狀態已重置")
+                        st.rerun()
                 
         with col_stats:
             col_title, col_refresh = st.columns([3, 1])
@@ -479,7 +753,21 @@ class PlaywrightCrawlerComponentV2:
         progress = st.session_state.get('playwright_progress', 0.0)
         current_work = st.session_state.get('playwright_current_work', '')
 
-        st.info(f"🔄 正在爬取 @{username} 的貼文...")
+        # 添加導航按鈕
+        col_back, col_title = st.columns([1, 4])
+        with col_back:
+            if st.button("← 返回", key="back_from_progress", help="返回上一頁"):
+                # 檢查是否從管理任務頁面進入
+                if st.session_state.get('from_task_manager', False):
+                    st.session_state.playwright_crawl_status = "task_manager"
+                    st.session_state.from_task_manager = False
+                else:
+                    st.session_state.playwright_crawl_status = "idle"
+                st.rerun()
+        
+        with col_title:
+            st.info(f"🔄 正在爬取 @{username} 的貼文...")
+        
         st.progress(max(0.0, min(1.0, progress)), text=f"{progress:.1%} - {current_work}")
         
         # 顯示詳細階段信息
@@ -488,6 +776,10 @@ class PlaywrightCrawlerComponentV2:
             if progress_data:
                 stage = progress_data.get("stage", "unknown")
                 stage_names = {
+                    # 排隊等待階段
+                    "waiting_queue": "⏳ 等待排隊中",
+                    "queued": "📋 已排隊等待",
+                    
                     # 初始階段
                     "initialization": "🔧 初始化爬蟲環境",
                     "auth_loading": "🔐 載入認證檔案",
@@ -654,7 +946,12 @@ class PlaywrightCrawlerComponentV2:
         if not final_data:
             st.warning("沒有爬取到數據")
             if st.button("🔙 返回設定"):
-                st.session_state.playwright_crawl_status = "idle"
+                # 檢查是否從管理任務頁面進入
+                if st.session_state.get('from_task_manager', False):
+                    st.session_state.playwright_crawl_status = "task_manager"
+                    st.session_state.from_task_manager = False
+                else:
+                    st.session_state.playwright_crawl_status = "idle"
                 # 重置保存標記，準備下次爬取
                 st.session_state.playwright_results_saved = False
                 st.rerun()
@@ -683,16 +980,37 @@ class PlaywrightCrawlerComponentV2:
                 json_file_path = None
             
             # 自動保存到資料庫
+            save_attempted = False
             try:
-                asyncio.run(self.db_handler.save_to_database_async(converted_results))
-                converted_results["database_saved"] = True
-                converted_results["database_saved_count"] = len(converted_results.get("results", []))
-                st.success(f"✅ 已自動保存 {converted_results['database_saved_count']} 個貼文到資料庫")
+                # 檢查是否已經保存過到資料庫
+                if not st.session_state.get('playwright_db_saved', False):
+                    st.info("🔄 正在保存到資料庫...")
+                    result = asyncio.run(self.db_handler.save_to_database_async(converted_results))
+                    
+                    if result and result.get("success", False):
+                        converted_results["database_saved"] = True
+                        converted_results["database_saved_count"] = result.get("saved_count", len(converted_results.get("results", [])))
+                        st.session_state.playwright_db_saved = True  # 標記資料庫已保存
+                        
+                        # 🔧 重要：清除資料庫統計緩存，確保數據更新
+                        if 'playwright_db_stats_cache' in st.session_state:
+                            del st.session_state.playwright_db_stats_cache
+                        
+                        st.success(f"✅ 已自動保存 {converted_results['database_saved_count']} 個貼文到資料庫")
+                        st.info("📊 統計數據將在下次查看時更新")
+                    else:
+                        raise Exception(f"保存失敗: {result}")
+                else:
+                    converted_results["database_saved"] = True
+                    converted_results["database_saved_count"] = len(converted_results.get("results", []))
+                    st.info("✅ 資料庫保存已完成（避免重複保存）")
+                
             except Exception as db_error:
                 converted_results["database_saved"] = False
                 converted_results["database_saved_count"] = 0
                 st.warning(f"⚠️ 自動保存到資料庫失敗: {db_error}")
                 st.info("💡 您可以稍後使用 '💾 備用保存' 按鈕重試")
+                st.error(f"🔍 詳細錯誤: {str(db_error)}")  # 顯示詳細錯誤供調試
             
             # 顯示結果
             self._show_results(converted_results)
@@ -743,7 +1061,12 @@ class PlaywrightCrawlerComponentV2:
                         os.remove(progress_file)
                     except:
                         pass
-                st.session_state.playwright_crawl_status = "idle"
+                # 檢查是否從管理任務頁面進入
+                if st.session_state.get('from_task_manager', False):
+                    st.session_state.playwright_crawl_status = "task_manager"
+                    st.session_state.from_task_manager = False
+                else:
+                    st.session_state.playwright_crawl_status = "idle"
                 st.rerun()
         
         with col2:
@@ -758,7 +1081,126 @@ class PlaywrightCrawlerComponentV2:
                 st.rerun()
     
     # ---------- 3. 爬蟲啟動邏輯 ----------
-    def _start_crawling(self, username: str, max_posts: int, enable_deduplication: bool = True, is_incremental: bool = True):
+    def _start_waiting_mode(self, username: str, max_posts: int, enable_deduplication: bool = True, is_incremental: bool = True):
+        """啟動等待模式 - 有其他任務執行時"""
+        # 設定目標參數
+        st.session_state.playwright_target = {
+            'username': username,
+            'max_posts': max_posts,
+            'enable_deduplication': enable_deduplication,
+            'is_incremental': is_incremental
+        }
+        
+        # 重置保存標記
+        st.session_state.playwright_results_saved = False
+        st.session_state.playwright_db_saved = False
+        
+        # 創建等待狀態的進度檔案
+        task_id = str(uuid.uuid4())
+        from pathlib import Path
+        temp_progress_dir = Path("temp_progress")
+        temp_progress_dir.mkdir(exist_ok=True)
+        progress_file = temp_progress_dir / f"playwright_progress_{task_id}.json"
+        st.session_state.playwright_progress_file = str(progress_file)
+        st.session_state.playwright_task_id = task_id
+        
+        # 初始化等待狀態的進度檔案
+        self._write_progress(progress_file, {
+            "progress": 0.0,
+            "stage": "waiting_queue",
+            "current_work": "等待前面的任務完成...",
+            "log_messages": [
+                "🚀 任務已建立...",
+                "⏳ 檢測到有其他任務正在執行",
+                "📋 將在5秒後自動加入排隊系統",
+                "💡 請稍候，無需手動操作"
+            ],
+            "start_time": time.time(),
+            "username": username,
+            "waiting_for_queue": True  # 標記為等待排隊狀態
+        })
+        
+        # 啟動背景延遲線程，5秒後加入排隊
+        import threading
+        delay_thread = threading.Thread(
+            target=self._delayed_queue_add,
+            args=(username, max_posts, enable_deduplication, is_incremental, task_id, progress_file),
+            daemon=True
+        )
+        delay_thread.start()
+        
+        # 切換到進度頁面（顯示等待狀態）
+        st.session_state.playwright_crawl_status = "running"
+        st.rerun()
+    
+    def _delayed_queue_add(self, username: str, max_posts: int, enable_deduplication: bool, is_incremental: bool, task_id: str, progress_file: str):
+        """延遲5秒後加入排隊系統"""
+        import time
+        
+        # 等待5秒
+        for i in range(5, 0, -1):
+            self._log_to_file(progress_file, f"⏳ {i}秒後自動加入排隊...")
+            self._update_progress_file(progress_file, 0.0, "waiting_queue", f"⏳ {i}秒後加入排隊...")
+            time.sleep(1)
+        
+        # 5秒後，加入排隊系統
+        try:
+            self._log_to_file(progress_file, "📋 正在加入任務排隊...")
+            self._update_progress_file(progress_file, 0.0, "waiting_queue", "正在加入排隊系統...")
+            
+            if self.queue_manager:
+                mode = "new" if is_incremental else "hist"
+                success = self.queue_manager.add_task(task_id, username, max_posts, mode)
+                
+                if success:
+                    self._log_to_file(progress_file, "✅ 已成功加入任務排隊")
+                    self._update_progress_file(progress_file, 0.0, "queued", "已加入排隊，等待執行...")
+                else:
+                    self._log_to_file(progress_file, "❌ 加入排隊失敗")
+                    self._update_progress_file(progress_file, 0.0, "error", "加入排隊失敗", error="無法加入排隊系統")
+            else:
+                # 如果沒有排隊系統，直接啟動
+                self._log_to_file(progress_file, "🚀 排隊系統不可用，直接啟動任務...")
+                self._background_crawler_worker(username, max_posts, enable_deduplication, is_incremental, task_id, progress_file)
+                
+        except Exception as e:
+            self._log_to_file(progress_file, f"❌ 處理排隊時發生錯誤: {e}")
+            self._update_progress_file(progress_file, 0.0, "error", f"排隊處理錯誤: {e}", error=str(e))
+    def _start_from_queue(self):
+        """從排隊系統啟動下一個任務"""
+        if not self.queue_manager:
+            st.error("❌ 排隊管理器不可用")
+            return
+            
+        # 獲取下一個等待中的任務
+        next_task = self.queue_manager.get_next_waiting_task()
+        if next_task:
+            try:
+                st.info(f"🚀 正在從佇列啟動任務: {next_task.username} (ID: {next_task.task_id[:8]}...)")
+                
+                # 標記任務為執行中
+                success = self.queue_manager.start_task(next_task.task_id)
+                if not success:
+                    st.error(f"❌ 無法標記任務為執行中: {next_task.task_id[:8]}")
+                    return
+                
+                # 啟動任務
+                self._start_crawl_from_queue_task(next_task)
+                st.success(f"✅ 任務已啟動: {next_task.username}")
+                
+            except Exception as e:
+                st.error(f"❌ 啟動佇列任務失敗: {e}")
+                # 將任務標記為失敗
+                if self.queue_manager:
+                    self.queue_manager.complete_task(next_task.task_id, False, str(e))
+        else:
+            # 沒有等待任務時，確保UI狀態正確
+            if st.session_state.playwright_crawl_status == "running":
+                st.info("📋 佇列為空，返回設定頁面")
+                st.session_state.playwright_crawl_status = "idle"
+                st.rerun()
+    
+    def _start_crawling(self, username: str, max_posts: int, enable_deduplication: bool = True, is_incremental: bool = True, task_id: str = None):
         """啟動爬蟲"""
         # 記錄爬取開始時間
         start_time = time.time()
@@ -774,9 +1216,12 @@ class PlaywrightCrawlerComponentV2:
         
         # 重置保存標記，允許新的爬取結果被保存
         st.session_state.playwright_results_saved = False
+        st.session_state.playwright_db_saved = False  # 🔧 重置資料庫保存標記
         
         # 創建進度檔案 - 使用專門的資料夾
-        task_id = str(uuid.uuid4())
+        # 🔧 重要修復：支援外部提供的 task_id（用於佇列任務）
+        if task_id is None:
+            task_id = str(uuid.uuid4())
         from pathlib import Path
         temp_progress_dir = Path("temp_progress")
         temp_progress_dir.mkdir(exist_ok=True)
@@ -799,12 +1244,17 @@ class PlaywrightCrawlerComponentV2:
         })
         
         # 啟動背景線程
+        print(f"🚀 正在啟動背景線程: {username} (ID: {task_id[:8]}...)")
+        print(f"📂 進度檔案: {progress_file}")
+        
         task_thread = threading.Thread(
             target=self._background_crawler_worker,
             args=(username, max_posts, enable_deduplication, is_incremental, task_id, progress_file),
             daemon=True
         )
         task_thread.start()
+        
+        print(f"✅ 背景線程已啟動: {task_thread.name}")
         
         # 切換到進度頁面
         st.session_state.playwright_crawl_status = "running"
@@ -813,9 +1263,13 @@ class PlaywrightCrawlerComponentV2:
     def _background_crawler_worker(self, username: str, max_posts: int, enable_deduplication: bool, is_incremental: bool, task_id: str, progress_file: str):
         """背景爬蟲工作線程 - 只寫檔案，不做任何 st.* 操作"""
         try:
+            print(f"🔥 背景線程開始執行: {username} (ID: {task_id[:8]}...)")
+            print(f"📂 進度檔案路徑: {progress_file}")
+            
             # 階段1: 初始化 (0-5%)
             self._log_to_file(progress_file, "🔧 初始化爬蟲環境...")
             self._update_progress_file(progress_file, 0.02, "initialization", "初始化爬蟲環境...")
+            print(f"✅ 初始化階段完成: {task_id[:8]}")
             
             # 階段2: 讀取認證 (5-10%)
             self._log_to_file(progress_file, "🔐 讀取認證檔案...")
@@ -914,10 +1368,17 @@ class PlaywrightCrawlerComponentV2:
                     st.warning("⏰ 請求超時，已切換到後台任務監控模式。任務仍在後台繼續執行...")
                     st.rerun()
                 else:
-                    # 其他錯誤，記錄並更新狀態
-                    error_msg = f"API請求失敗: {e}"
-                    self._log_to_file(progress_file, f"❌ {error_msg}")
-                    self._update_progress_file(progress_file, 0.0, "error", error_msg, error=str(e))
+                    # 檢查是否為並發執行錯誤
+                    error_str = str(e).lower()
+                    if "busy" in error_str or "running" in error_str or "concurrent" in error_str:
+                        error_msg = "已有任務正在執行中，請等待完成後再試"
+                        self._log_to_file(progress_file, f"⚠️ {error_msg}")
+                        self._update_progress_file(progress_file, 0.0, "error", error_msg, error=str(e))
+                    else:
+                        # 其他錯誤，記錄並更新狀態
+                        error_msg = f"API請求失敗: {e}"
+                        self._log_to_file(progress_file, f"❌ {error_msg}")
+                        self._update_progress_file(progress_file, 0.0, "error", error_msg, error=str(e))
                 
         except Exception as e:
             error_msg = f"背景任務失敗: {e}"
@@ -1027,7 +1488,7 @@ class PlaywrightCrawlerComponentV2:
                 break
     
     def _update_progress_file(self, progress_file: str, progress: float, stage: str, current_work: str, final_data: Dict = None, error: str = None):
-        """更新進度檔案"""
+        """更新進度檔案 + Redis狀態"""
         data = {
             "progress": progress,
             "stage": stage,
@@ -1038,7 +1499,58 @@ class PlaywrightCrawlerComponentV2:
         if error:
             data["error"] = error
         
+        # 1. 更新本地檔案
         self._write_progress(progress_file, data)
+        
+        # 2. 同步更新Redis
+        self._update_redis_progress(progress_file, progress, stage, current_work, final_data, error)
+    
+    def _update_redis_progress(self, progress_file: str, progress: float, stage: str, current_work: str = "", final_data: Dict = None, error: str = None):
+        """更新Redis中的任務進度"""
+        try:
+            # 從進度檔案路徑提取 job_id
+            job_id = progress_file.split('_')[-1].replace('.json', '')
+            
+            from common.redis_client import get_redis_connection
+            redis_conn = get_redis_connection()
+            
+            if redis_conn:
+                # 確定任務狀態
+                if error:
+                    status = 'error'
+                elif stage in ['completed', 'api_completed'] or progress >= 1.0:
+                    status = 'completed'
+                else:
+                    status = 'running'
+                
+                # 更新Redis hash
+                redis_data = {
+                    'progress': str(progress),
+                    'stage': stage,
+                    'current_work': current_work,
+                    'status': status,
+                    'updated': str(time.time())
+                }
+                
+                if error:
+                    redis_data['error'] = error
+                if final_data:
+                    redis_data['final_data'] = json.dumps(final_data)
+                
+                redis_conn.hset(f"job:{job_id}", mapping=redis_data)
+                print(f"📊 Redis進度更新: {job_id[:8]} - {progress:.1%} - {stage}")
+                
+                # 如果任務完成或失敗，釋放鎖
+                if status in ['completed', 'error']:
+                    lock_keys = redis_conn.keys("lock:*")
+                    for lock_key in lock_keys:
+                        if redis_conn.get(lock_key) and redis_conn.get(lock_key).decode() == job_id:
+                            redis_conn.delete(lock_key)
+                            print(f"🔓 釋放任務鎖: {lock_key.decode()}")
+                            break
+                
+        except Exception as e:
+            print(f"⚠️ 更新Redis進度失敗: {e}")  # 不中斷主流程
     
     def _log_to_file(self, progress_file: str, message: str):
         """將日誌寫入檔案"""
@@ -1574,7 +2086,7 @@ class PlaywrightCrawlerComponentV2:
                     limit = st.number_input("最大記錄數", min_value=10, max_value=10000, value=1000, key="playwright_limit_recent")
                 
                 if st.button("📊 導出最近數據", key="playwright_export_recent"):
-                    self._export_history_data(target_username, "recent", 
+                    self.export_handler.export_history_data(target_username, "recent", 
                                             days_back=days_back, limit=limit, 
                                             sort_by=sort_by, sort_order=sort_order)
             
@@ -1583,7 +2095,7 @@ class PlaywrightCrawlerComponentV2:
                     limit = st.number_input("最大記錄數", min_value=100, max_value=50000, value=5000, key="playwright_limit_all")
                 
                 if st.button("📊 導出全部歷史", key="playwright_export_all"):
-                    self._export_history_data(target_username, "all", 
+                    self.export_handler.export_history_data(target_username, "all", 
                                             limit=limit, sort_by=sort_by, sort_order=sort_order)
             
             elif export_type == "統計分析":
@@ -1661,47 +2173,38 @@ class PlaywrightCrawlerComponentV2:
                 position = self.queue_component.get_queue_position(task_id)
                 if position == 1:
                     st.success("✅ 任務已加入佇列，即將開始執行")
-                    st.session_state.playwright_crawl_status = "queued"
+                    st.session_state.playwright_crawl_status = "running"
                 else:
                     st.success(f"✅ 任務已加入佇列，排隊位置: #{position}")
-                    st.session_state.playwright_crawl_status = "queued"
-                
-                st.rerun()
+                    st.session_state.playwright_crawl_status = "running"
+                    st.rerun()
             else:
                 st.error("❌ 加入佇列失敗")
-                
+            
         except Exception as e:
             st.error(f"❌ 發生錯誤: {e}")
     
     def _start_crawl_from_queue_task(self, task):
         """從佇列任務開始爬蟲"""
         try:
-            # 載入認證檔案
-            if not os.path.exists(self.auth_file_path):
-                self.queue_manager.complete_task(task.task_id, False, "認證檔案不存在")
-                return
+            # 🔧 修復：將模式轉換為布林值
+            is_incremental = (task.mode == "new")
+            enable_deduplication = True  # 預設啟用去重
             
-            with open(self.auth_file_path, 'r', encoding='utf-8') as f:
-                auth_content = json.load(f)
-            
-            # 發送爬蟲請求
-            payload = {
-                "username": task.username,
-                "max_posts": task.max_posts,
-                "mode": task.mode,
-                "auth_json_content": auth_content,
-                "task_id": task.task_id
-            }
-            
-            # 使用背景執行緒發送請求
-            thread = threading.Thread(
-                target=self._send_crawl_request_background,
-                args=(payload, task.task_id)
+            # 🔧 重要修復：使用佇列中的 task_id，確保進度文件和任務ID一致
+            self._start_crawling(
+                username=task.username,
+                max_posts=task.max_posts,
+                enable_deduplication=enable_deduplication,
+                is_incremental=is_incremental,
+                task_id=task.task_id  # 🔥 關鍵修復：使用佇列中的 task_id
             )
-            thread.daemon = True
-            thread.start()
+            
+            # task_id 已經在 _start_crawling 中正確設置了
+            print(f"✅ 佇列任務已啟動: {task.username} (ID: {task.task_id[:8]}...)")
             
         except Exception as e:
+            print(f"❌ 佇列任務啟動失敗: {e}")
             self.queue_manager.complete_task(task.task_id, False, str(e))
     
     def _send_crawl_request_background(self, payload, task_id):
@@ -1714,107 +2217,6 @@ class PlaywrightCrawlerComponentV2:
         except Exception as e:
             self.queue_manager.complete_task(task_id, False, str(e))
     
-    def _render_queued_status(self):
-        """渲染佇列等待狀態"""
-        task_id = st.session_state.get('playwright_task_id')
-        if not task_id:
-            st.session_state.playwright_crawl_status = "idle"
-            st.rerun()
-            return
-        
-        st.subheader("⏳ 任務在佇列中")
-        
-        # 獲取任務資訊
-        status = self.queue_manager.get_queue_status()
-        current_task = None
-        for task in status["queue"]:
-            if task.task_id == task_id:
-                current_task = task
-                break
-        
-        if not current_task:
-            st.error("❌ 找不到任務")
-            st.session_state.playwright_crawl_status = "idle"
-            st.rerun()
-            return
-        
-        # 顯示任務資訊
-        col1, col2 = st.columns(2)
-        with col1:
-            st.info(f"🎯 目標: @{current_task.username}")
-            st.info(f"📊 數量: {current_task.max_posts} 篇貼文")
-            st.info(f"🔄 模式: {current_task.mode}")
-        
-        with col2:
-            st.info(f"🆔 任務 ID: {task_id[:8]}...")
-            st.info(f"📅 創建時間: {datetime.fromtimestamp(current_task.created_at).strftime('%H:%M:%S')}")
-            
-            if current_task.status == TaskStatus.WAITING:
-                position = self.queue_component.get_queue_position(task_id)
-                if position > 0:
-                    st.warning(f"⏳ 佇列位置: #{position}")
-                else:
-                    st.info("🔄 準備執行中...")
-            elif current_task.status == TaskStatus.RUNNING:
-                st.success("🚀 正在執行中...")
-                st.session_state.playwright_crawl_status = "running"
-                st.rerun()
-        
-        # 控制按鈕
-        col_cancel, col_queue, col_back = st.columns(3)
-        
-        with col_cancel:
-            if current_task.status == TaskStatus.WAITING:
-                if st.button("🚫 取消任務"):
-                    if self.queue_manager.cancel_task(task_id):
-                        st.success("✅ 任務已取消")
-                        st.session_state.playwright_crawl_status = "idle"
-                        st.rerun()
-                    else:
-                        st.error("❌ 取消失敗")
-        
-        with col_queue:
-            if st.button("📋 佇列管理"):
-                st.session_state.playwright_crawl_status = "queue_manager"
-                st.rerun()
-        
-        with col_back:
-            if st.button("🔙 返回設定"):
-                st.session_state.playwright_crawl_status = "idle"
-                st.rerun()
-        
-        # 自動重新整理
-        time.sleep(1)
-        st.rerun()
+
     
-    def _render_queue_manager(self):
-        """渲染佇列管理頁面"""
-        if not self.queue_component:
-            st.error("❌ 佇列管理器不可用")
-            return
-        
-        st.header("📋 任務佇列管理")
-        
-        # 返回按鈕
-        col_back, col_refresh = st.columns([1, 1])
-        with col_back:
-            if st.button("← 返回設定", key="back_to_setup_queue"):
-                st.session_state.playwright_crawl_status = "idle"
-                st.rerun()
-        
-        with col_refresh:
-            if st.button("🔄 重新整理", key="refresh_queue_status"):
-                st.rerun()
-        
-        st.divider()
-        
-        # 佇列狀態
-        self.queue_component.render_queue_status()
-        st.divider()
-        
-        # 佇列列表
-        self.queue_component.render_queue_list()
-        st.divider()
-        
-        # 佇列控制
-        self.queue_component.render_queue_controls()
+

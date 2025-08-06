@@ -139,6 +139,9 @@ class TaskRecoveryComponent:
         st.session_state.playwright_crawl_status = "running"
         st.session_state.recovered_from_background = True
         
+        # 標記是從任務管理頁面進入的
+        st.session_state.from_task_manager = True
+        
         st.success(f"✅ 已恢復任務 {task_id[:8]}...")
         time.sleep(1)
         st.rerun()

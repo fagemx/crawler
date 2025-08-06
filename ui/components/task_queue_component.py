@@ -98,7 +98,7 @@ class TaskQueueComponent:
             with col4:
                 # 操作按鈕
                 if task.status == TaskStatus.WAITING:
-                    if st.button("🚫 取消", key=f"cancel_task_{index}"):
+                    if st.button("🚫 取消", key=f"cancel_task_{task.task_id}"):
                         if self.queue_manager.cancel_task(task.task_id):
                             st.success(f"✅ 已取消任務 {task.task_id[:8]}...")
                             st.rerun()
@@ -110,7 +110,7 @@ class TaskQueueComponent:
                     st.caption("無法取消")
                 
                 elif task.status in [TaskStatus.COMPLETED, TaskStatus.ERROR, TaskStatus.CANCELLED]:
-                    if st.button("🗑️ 移除", key=f"remove_task_{index}"):
+                    if st.button("🗑️ 移除", key=f"remove_task_{task.task_id}"):
                         if self.queue_manager.remove_task(task.task_id):
                             st.success(f"✅ 已移除任務 {task.task_id[:8]}...")
                             st.rerun()

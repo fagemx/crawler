@@ -4,6 +4,7 @@
 
 import json
 import asyncio
+import os
 import time
 from pathlib import Path
 from typing import Dict, List, Optional, Any
@@ -258,13 +259,144 @@ class TaskQueueManager:
             "queue": queue
         }
     
+    def get_next_waiting_task(self) -> Optional[QueuedTask]:
+        """獲取下一個等待中的任務"""
+        queue = self._load_queue()
+        waiting_tasks = [task for task in queue if task.status == TaskStatus.WAITING]
+        if waiting_tasks:
+            # 按創建時間排序，返回最早的任務
+            waiting_tasks.sort(key=lambda x: x.created_at)
+            return waiting_tasks[0]
+        return None
+    
+    def start_task(self, task_id: str) -> bool:
+        """將任務標記為執行中"""
+        try:
+            queue = self._load_queue()
+            for task in queue:
+                if task.task_id == task_id and task.status == TaskStatus.WAITING:
+                    task.status = TaskStatus.RUNNING
+                    self._save_queue(queue)
+                    print(f"▶️ 任務開始執行: {task.username} (ID: {task_id[:8]}...)")
+                    return True
+            return False
+        except Exception as e:
+            print(f"❌ 啟動任務失敗: {e}")
+            return False
+    
+    def can_start_new_task(self) -> bool:
+        """檢查是否可以啟動新任務（沒有執行中的任務）"""
+        current_running = self.get_current_running_task()
+        return current_running is None
+    
+    def try_auto_start_next_task(self) -> bool:
+        """嘗試自動啟動下一個等待中的任務"""
+        if not self.can_start_new_task():
+            return False
+            
+        next_task = self.get_next_waiting_task()
+        if next_task:
+            return self.start_task(next_task.task_id)
+        return False
+
     def get_current_running_task(self) -> Optional[QueuedTask]:
-        """獲取當前執行中的任務"""
+        """獲取當前真正執行中的任務"""
         queue = self._load_queue()
         for task in queue:
             if task.status == TaskStatus.RUNNING:
-                return task
+                # 檢查任務是否真的在執行中
+                if self._is_task_actually_running(task):
+                    return task
+                else:
+                    # 任務已停止但狀態沒更新，標記為失敗
+                    self._mark_task_failed(task.task_id, "任務進程已停止")
         return None
+    
+    def _is_task_actually_running(self, task: QueuedTask) -> bool:
+        """檢查任務是否真的在執行中（有活躍的進度更新）"""
+        try:
+            progress_file = f"temp_progress/playwright_progress_{task.task_id}.json"
+            
+            # 1. 檢查進度檔案是否存在
+            if not os.path.exists(progress_file):
+                print(f"🔍 任務 {task.task_id[:8]} 進度檔案不存在")
+                return False
+            
+            # 2. 檢查檔案最後修改時間
+            last_modified = os.path.getmtime(progress_file)
+            current_time = time.time()
+            time_diff = current_time - last_modified
+            
+            # 如果超過2分鐘沒更新，認為任務已停止
+            MAX_IDLE_TIME = 120  # 2分鐘
+            if time_diff > MAX_IDLE_TIME:
+                print(f"🔍 任務 {task.task_id[:8]} 超過 {time_diff:.0f} 秒未更新，認為已停止")
+                return False
+            
+            # 3. 檢查進度內容是否為完成或錯誤狀態
+            try:
+                with open(progress_file, 'r', encoding='utf-8') as f:
+                    progress_data = json.load(f)
+                    
+                stage = progress_data.get("stage", "")
+                # 如果階段是完成或錯誤，任務應該已結束
+                if stage in ["completed", "error"]:
+                    print(f"🔍 任務 {task.task_id[:8]} 進度顯示已完成/錯誤: {stage}")
+                    return False
+                    
+                # 檢查是否有錯誤信息
+                if progress_data.get("error"):
+                    print(f"🔍 任務 {task.task_id[:8]} 進度檔案包含錯誤信息")
+                    return False
+                    
+            except (json.JSONDecodeError, IOError):
+                print(f"🔍 任務 {task.task_id[:8]} 進度檔案無法讀取")
+                return False
+            
+            # 所有檢查都通過，任務真的在執行
+            print(f"✅ 任務 {task.task_id[:8]} 確認執行中（{time_diff:.0f}秒前更新）")
+            return True
+            
+        except Exception as e:
+            print(f"❌ 檢查任務執行狀態失敗: {e}")
+            return False
+    
+    def _mark_task_failed(self, task_id: str, error_message: str):
+        """標記任務為失敗狀態"""
+        try:
+            queue = self._load_queue()
+            for task in queue:
+                if task.task_id == task_id:
+                    task.status = TaskStatus.ERROR
+                    task.error_message = error_message
+                    break
+            self._save_queue(queue)
+            print(f"🔄 任務 {task_id[:8]} 已標記為失敗: {error_message}")
+        except Exception as e:
+            print(f"❌ 標記任務失敗時出錯: {e}")
+    
+    def cleanup_zombie_tasks(self):
+        """清理殭屍任務 - 清理已停止但狀態未更新的 RUNNING 任務"""
+        try:
+            queue = self._load_queue()
+            updated = False
+            
+            for task in queue:
+                if task.status == TaskStatus.RUNNING:
+                    # 使用詳細檢查判斷任務是否真的在執行
+                    if not self._is_task_actually_running(task):
+                        # 任務已停止，標記為失敗
+                        task.status = TaskStatus.ERROR
+                        task.error_message = task.error_message or "任務進程已停止或超時"
+                        updated = True
+                        print(f"🧹 清理殭屍任務: {task.username} (ID: {task.task_id[:8]}...)")
+            
+            if updated:
+                self._save_queue(queue)
+                print("✅ 殭屍任務清理完成")
+                
+        except Exception as e:
+            print(f"❌ 清理殭屍任務失敗: {e}")
     
     def cleanup_old_tasks(self, hours: int = 24):
         """清理舊任務"""
