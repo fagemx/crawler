@@ -212,8 +212,8 @@ class PlaywrightCrawlerComponentV2:
     def _show_existing_task_progress(self, job_id: str):
         """顯示現有任務的進度"""
         try:
-            from common.redis_client import get_redis_connection
-            redis_conn = get_redis_connection()
+            from common.redis_client import get_redis_client
+            redis_conn = get_redis_client().redis
             
             if redis_conn:
                 # 檢查Redis中的任務狀態
@@ -426,7 +426,7 @@ class PlaywrightCrawlerComponentV2:
                 if hasattr(self, 'progress_manager') and self.progress_manager:
                     # 清理Redis中的所有進度數據
                     import common.redis_client as redis_client
-                    redis_conn = redis_client.get_redis_connection()
+                    redis_conn = redis_client.get_redis_client().redis
                     if redis_conn:
                         # 刪除所有playwright相關的keys
                         keys = redis_conn.keys("playwright:*")
@@ -560,8 +560,8 @@ class PlaywrightCrawlerComponentV2:
                         
                         # 嘗試獲取鎖
                         try:
-                            from common.redis_client import get_redis_connection
-                            redis_conn = get_redis_connection()
+                            from common.redis_client import get_redis_client
+                            redis_conn = get_redis_client().redis
                             
                             if redis_conn and redis_conn.set(f"lock:{job_key}", job_id, nx=True, ex=7200):
                                 # 獲得鎖，啟動新任務
@@ -1508,11 +1508,12 @@ class PlaywrightCrawlerComponentV2:
     def _update_redis_progress(self, progress_file: str, progress: float, stage: str, current_work: str = "", final_data: Dict = None, error: str = None):
         """更新Redis中的任務進度"""
         try:
-            # 從進度檔案路徑提取 job_id
-            job_id = progress_file.split('_')[-1].replace('.json', '')
+            # 從進度檔案路徑提取 job_id (處理Path物件)
+            progress_file_str = str(progress_file) if hasattr(progress_file, '__fspath__') else progress_file
+            job_id = progress_file_str.split('_')[-1].replace('.json', '')
             
-            from common.redis_client import get_redis_connection
-            redis_conn = get_redis_connection()
+            from common.redis_client import get_redis_client
+            redis_conn = get_redis_client().redis
             
             if redis_conn:
                 # 確定任務狀態

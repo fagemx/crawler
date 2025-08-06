@@ -34,7 +34,8 @@ from .helpers.scrolling import (
     extract_current_post_ids, check_page_bottom, scroll_once, 
     is_anchor_visible, collect_urls_from_dom, 
     should_stop_new_mode, should_stop_hist_mode,
-    enhanced_scroll_with_strategy, wait_for_content_loading
+    enhanced_scroll_with_strategy, wait_for_content_loading,
+    final_attempt_scroll, progressive_wait, should_stop_incremental_mode
 )
 
 # 調試檔案路徑
@@ -760,75 +761,68 @@ class PlaywrightLogic:
                 status_icon = "🆕" if incremental else "📍"
                 logging.debug(f"   {status_icon} [{len(urls)}] 發現: {post_id}")
             
-            # 增量模式：智能停止條件
+            # 增量模式：使用修復後的智能停止條件
             if incremental:
-                if found_existing_this_round:
-                    consecutive_existing_rounds += 1
-                    if len(urls) >= target_count:
-                        logging.info(f"   ✅ 增量檢測: 已收集足夠新貼文 ({len(urls)} 個)")
-                        break
-                    elif consecutive_existing_rounds >= max_consecutive_existing:
-                        logging.info(f"   ⏹️ 增量檢測: 連續 {consecutive_existing_rounds} 輪發現已存在貼文，停止收集")
-                        logging.info(f"   📊 最終收集: {len(urls)} 個新貼文 (目標: {target_count})")
-                        break
-                    else:
-                        logging.debug(f"   🔍 增量檢測: 發現已存在貼文但數量不足 ({len(urls)}/{target_count})，繼續滾動...")
-                else:
-                    # 這輪沒有發現已存在貼文，重置計數器
-                    consecutive_existing_rounds = 0
+                # 使用修復後的智能停止判斷（只檢查是否收集足夠）
+                if should_stop_incremental_mode(
+                    found_existing_this_round, consecutive_existing_rounds, 
+                    len(urls), target_count, max_consecutive_existing
+                ):
+                    break
             
             # 檢查是否有新內容
             new_urls_found = len(urls) - before_count
             
-            if new_urls_found == 0:
+            # 關鍵修復：重新設計停止邏輯
+            if new_urls_found > 0:
+                # 發現新URL，重置無新內容計數器
+                no_new_content_rounds = 0
+                logging.debug(f"   ✅ 第{scroll_rounds+1}輪發現 {new_urls_found} 個新URL，重置無新內容計數器")
+            elif not found_existing_this_round:
+                # 既沒有新URL也沒有已存在貼文，真正的無內容輪次
                 no_new_content_rounds += 1
-                logging.debug(f"   ⏳ 第{scroll_rounds+1}輪未發現新URL ({no_new_content_rounds}/{max_no_new_rounds})")
+                logging.debug(f"   ⏳ 第{scroll_rounds+1}輪完全沒有發現內容 ({no_new_content_rounds}/{max_no_new_rounds})")
                 
                 if no_new_content_rounds >= max_no_new_rounds:
-                    # 執行最後嘗試機制 - 採用Realtime Crawler策略
-                    logging.info("   🚀 執行最後嘗試：多重激進滾動激發新內容...")
+                    # 執行最後嘗試機制 - 使用新的策略
+                    attempt_result = await final_attempt_scroll(page)
                     
-                    # 第一次：激進滾動序列
-                    await page.mouse.wheel(0, 2500)
-                    await asyncio.sleep(2)
-                    await page.mouse.wheel(0, -500)  # 回滾模擬人類
-                    await asyncio.sleep(1)
-                    await page.mouse.wheel(0, 3000)
-                    await asyncio.sleep(2)
-                    
-                    # 第二次：滾動到更底部
-                    await page.mouse.wheel(0, 2000)
-                    await wait_for_content_loading(page)
-                    
-                    # 檢查最後嘗試是否有新內容
-                    final_urls = await page.evaluate(js_code, username)
-                    final_new_count = 0
-                    
-                    for url in final_urls:
-                        raw_post_id = url.split('/')[-1] if url else None
-                        post_id = f"{username}_{raw_post_id}" if raw_post_id else None
+                    if attempt_result > 0:
+                        # 檢查最後嘗試是否有新內容
+                        final_urls = await page.evaluate(js_code, username)
+                        final_new_count = 0
                         
-                        # 檢查是否是新的URL
-                        if url not in urls:
-                            # 增量模式檢查
-                            if incremental and post_id in existing_post_ids:
-                                continue
-                            final_new_count += 1
-                    
-                    if final_new_count == 0:
-                        logging.info("   🛑 最後嘗試無新內容，確認到達底部")
-                        break
+                        for url in final_urls:
+                            raw_post_id = url.split('/')[-1] if url else None
+                            post_id = f"{username}_{raw_post_id}" if raw_post_id else None
+                            
+                            # 檢查是否是新的URL
+                            if url not in urls:
+                                # 增量模式檢查
+                                if incremental and post_id in existing_post_ids:
+                                    continue
+                                # 將新URL添加到收集列表
+                                if len(urls) < target_count:
+                                    urls.append(url)
+                                    final_new_count += 1
+                                    logging.info(f"   📍 [{len(urls)}] 最後發現: {raw_post_id}")
+                        
+                        if final_new_count == 0:
+                            logging.info("   🛑 最後嘗試無新內容，確認到達底部")
+                            break
+                        else:
+                            logging.info(f"   🎯 最後嘗試發現{final_new_count}個新URL，繼續收集...")
+                            no_new_content_rounds = 0  # 重置計數器
+                            continue
                     else:
-                        logging.info(f"   🎯 最後嘗試發現{final_new_count}個新URL，繼續收集...")
-                        no_new_content_rounds = 0  # 重置計數器
-                        continue
-                    
-                # 遞增等待時間
-                progressive_wait = min(1.2 + (no_new_content_rounds - 1) * 0.3, 3.5)
-                await asyncio.sleep(progressive_wait)
+                        logging.info("   🛑 最後嘗試執行失敗，停止收集")
+                        break
+                        
+                    # 使用新的遞增等待策略
+                    await progressive_wait(no_new_content_rounds)
             else:
-                no_new_content_rounds = 0
-                logging.debug(f"   ✅ 第{scroll_rounds+1}輪發現{new_urls_found}個新URL")
+                # 有已存在貼文但沒有新URL，不增加無新內容計數器（繼續尋找更舊的內容）
+                logging.debug(f"   🔍 第{scroll_rounds+1}輪發現已存在貼文但無新URL，繼續尋找更舊內容...")
             
             # 使用增強的滾動策略
             await enhanced_scroll_with_strategy(page, scroll_rounds)

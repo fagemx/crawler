@@ -140,7 +140,7 @@ async def enhanced_scroll_with_strategy(page: Page, scroll_round: int) -> None:
 
 async def wait_for_content_loading(page: Page) -> None:
     """
-    等待內容載入完成 - 檢測載入指示器
+    等待內容載入完成 - 檢測載入指示器（增強版）
     """
     try:
         has_loading = await page.evaluate("""
@@ -157,9 +157,101 @@ async def wait_for_content_loading(page: Page) -> None:
             # 隨機等待2-3.5秒
             loading_wait = random.uniform(2.0, 3.5)
             await asyncio.sleep(loading_wait)
+        else:
+            # 即使沒有載入指示器，也給予基本等待時間
+            await asyncio.sleep(0.5)
             
     except Exception as e:
         logging.warning(f"⚠️ 載入檢測失敗: {e}")
+
+
+async def final_attempt_scroll(page: Page) -> int:
+    """
+    最後嘗試機制：多重激進滾動激發新內容載入
+    採用 realtime_crawler 的策略
+    
+    Returns:
+        int: 發現的新URL數量（概念性，實際由調用方檢查）
+    """
+    try:
+        logging.info("   🚀 最後嘗試：多重激進滾動激發新內容...")
+        
+        # 第一次：大幅向下
+        await page.mouse.wheel(0, 2500)
+        await asyncio.sleep(2)
+        
+        # 第二次：向上再向下（激發載入）
+        await page.mouse.wheel(0, -500)
+        await asyncio.sleep(1)
+        await page.mouse.wheel(0, 3000)
+        await asyncio.sleep(3)
+        
+        # 第三次：滾動到更底部
+        await page.mouse.wheel(0, 2000)
+        await asyncio.sleep(2)
+        
+        logging.info("   ⏳ 等待所有內容載入完成...")
+        await asyncio.sleep(3)
+        
+        # 強制等待載入
+        await wait_for_content_loading(page)
+        
+        return 1  # 表示已執行最後嘗試
+        
+    except Exception as e:
+        logging.warning(f"⚠️ 最後嘗試滾動失敗: {e}")
+        return 0
+
+
+async def progressive_wait(no_new_content_rounds: int) -> None:
+    """
+    遞增等待時間策略
+    採用 realtime_crawler 的策略
+    """
+    try:
+        # 加入隨機性，限制最大3.5秒
+        base_wait = min(1.2 + (no_new_content_rounds - 1) * 0.3, 3.5)  # 1.2s -> 3.5s
+        random_factor = random.uniform(0.8, 1.2)  # ±20%隨機變化
+        progressive_wait_time = base_wait * random_factor
+        
+        logging.debug(f"   ⏲️ 遞增等待 {progressive_wait_time:.1f}s...")
+        await asyncio.sleep(progressive_wait_time)
+        
+    except Exception as e:
+        logging.warning(f"⚠️ 遞增等待失敗: {e}")
+
+
+def should_stop_incremental_mode(
+    found_existing_this_round: bool,
+    consecutive_existing_rounds: int,
+    collected_count: int,
+    target_count: int,
+    max_consecutive_existing: int = 15
+) -> bool:
+    """
+    增量模式的智能停止條件（修復版）
+    只有在收集到足夠數量時才停止，發現已存在貼文不應該停止
+    
+    Args:
+        found_existing_this_round: 本輪是否發現已存在貼文
+        consecutive_existing_rounds: 連續發現已存在貼文的輪次  
+        collected_count: 已收集的貼文數量
+        target_count: 目標數量
+        max_consecutive_existing: 最大連續已存在輪次（此參數已廢棄）
+        
+    Returns:
+        True 如果應該停止
+    """
+    # 只有在收集到足夠數量時才停止
+    if collected_count >= target_count:
+        logging.info(f"   ✅ 增量檢測: 已收集足夠新貼文 ({collected_count} 個)")
+        return True
+    
+    # 發現已存在貼文是正常的，特別是在尋找遠古貼文時，不應該停止
+    if found_existing_this_round:
+        logging.debug(f"   🔍 增量檢測: 發現已存在貼文，繼續尋找更舊的內容... ({collected_count}/{target_count})")
+    
+    return False
 
 
 def is_anchor_visible(post_ids: List[str], anchor: str) -> Tuple[bool, int]:
