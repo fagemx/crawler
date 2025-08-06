@@ -1224,9 +1224,29 @@ class PlaywrightCrawlerComponentV2:
                     except:
                         return str(value)
                 
+                # 處理時間字段 - 轉換為台北時間
+                published_taipei = 'N/A'
+                created_taipei = 'N/A'
+                
+                if published_at:
+                    try:
+                        taipei_published = PlaywrightUtils.convert_to_taipei_time(published_at)
+                        if taipei_published:
+                            published_taipei = taipei_published.strftime('%Y-%m-%d %H:%M:%S')
+                    except:
+                        published_taipei = published_at[:19]
+                
+                if created_at:
+                    try:
+                        taipei_created = PlaywrightUtils.convert_to_taipei_time(created_at)
+                        if taipei_created:
+                            created_taipei = taipei_created.strftime('%Y-%m-%d %H:%M:%S')
+                    except:
+                        created_taipei = created_at[:19]
+                
                 table_data.append({
                     "#": i,
-                    "貼文ID": r.get('post_id', 'N/A')[:20] + "..." if len(r.get('post_id', '')) > 20 else r.get('post_id', 'N/A'),
+                    "貼文ID": r.get('post_id', 'N/A'),  # 🔧 移除ID截斷
                     "用戶名": r.get('username', 'N/A'),
                     "內容" if show_full_content else "內容預覽": r.get('content', 'N/A') if show_full_content else ((r.get('content', '')[:60] + "...") if r.get('content') and len(r.get('content', '')) > 60 else r.get('content', 'N/A')),
                     "觀看數": format_count(r.get('views_count', r.get('views', 'N/A'))),
@@ -1238,12 +1258,24 @@ class PlaywrightCrawlerComponentV2:
                     "標籤": tags_display,
                     "圖片數": images_count,
                     "影片數": videos_count,
-                    "發布時間": published_at[:19] if published_at else 'N/A',
-                    "爬取時間": created_at[:19] if created_at else 'N/A',
+                    "發布時間": published_taipei,  # 🔧 台北時間
+                    "爬取時間": created_taipei,    # 🔧 台北時間
                     "狀態": "✅" if r.get('success') else "❌"
                 })
             
-            st.dataframe(table_data, use_container_width=True, height=400)
+            # 🔧 優化dataframe顯示，避免截斷
+            st.dataframe(
+                table_data, 
+                use_container_width=True, 
+                height=400,
+                column_config={
+                    "貼文ID": st.column_config.TextColumn(width="medium"),
+                    "內容" if show_full_content else "內容預覽": st.column_config.TextColumn(width="large"),
+                    "標籤": st.column_config.TextColumn(width="medium"),
+                    "發布時間": st.column_config.TextColumn(width="medium"),
+                    "爬取時間": st.column_config.TextColumn(width="medium")
+                }
+            )
         
         # 資料庫狀態
         db_saved = results.get('database_saved', False)
@@ -1311,26 +1343,51 @@ class PlaywrightCrawlerComponentV2:
                     # 處理 videos 陣列
                     videos_str = "|".join(r.get('videos', [])) if r.get('videos') else ""
                     
+                    # 🔧 處理時間字段 - 轉換為台北時間
+                    created_at = r.get('created_at', '')
+                    if created_at:
+                        try:
+                            taipei_created = PlaywrightUtils.convert_to_taipei_time(created_at)
+                            created_at = taipei_created.isoformat() if taipei_created else created_at
+                        except:
+                            pass  # 保持原始值
+                    
+                    post_published_at = r.get('post_published_at', '')
+                    if post_published_at:
+                        try:
+                            taipei_published = PlaywrightUtils.convert_to_taipei_time(post_published_at)
+                            post_published_at = taipei_published.isoformat() if taipei_published else post_published_at
+                        except:
+                            pass  # 保持原始值
+                    
+                    extracted_at = r.get('extracted_at', '')
+                    if extracted_at:
+                        try:
+                            taipei_extracted = PlaywrightUtils.convert_to_taipei_time(extracted_at)
+                            extracted_at = taipei_extracted.isoformat() if taipei_extracted else extracted_at
+                        except:
+                            pass  # 保持原始值
+                    
                     csv_data.append({
                         "url": r.get('url', ''),
                         "post_id": r.get('post_id', ''),
                         "username": r.get('username', ''),
-                        "content": r.get('content', ''),
+                        "content": r.get('content', ''),  # 🔧 保持完整內容，不截斷
                         "likes_count": r.get('likes_count', r.get('likes', '')),
                         "comments_count": r.get('comments_count', r.get('comments', '')),
                         "reposts_count": r.get('reposts_count', r.get('reposts', '')),
                         "shares_count": r.get('shares_count', r.get('shares', '')),
                         "views_count": r.get('views_count', r.get('views', '')),
                         "calculated_score": r.get('calculated_score', ''),
-                        "created_at": r.get('created_at', ''),
-                        "post_published_at": r.get('post_published_at', ''),
+                        "created_at": created_at,          # 🔧 台北時間
+                        "post_published_at": post_published_at,  # 🔧 台北時間
                         "tags": tags_str,
                         "images": images_str,
                         "videos": videos_str,
                         "source": r.get('source', 'playwright_agent'),
                         "crawler_type": r.get('crawler_type', 'playwright'),
                         "crawl_id": r.get('crawl_id', ''),
-                        "extracted_at": r.get('extracted_at', ''),
+                        "extracted_at": extracted_at,     # 🔧 台北時間
                         "success": r.get('success', True)
                     })
                 

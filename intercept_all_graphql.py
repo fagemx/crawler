@@ -15,8 +15,8 @@ sys.path.append(str(Path(__file__).parent))
 from playwright.async_api import async_playwright
 from common.config import get_auth_file_path
 
-# 測試貼文
-TEST_URL = "https://www.threads.com/@star_shining0828/post/DMyvZJRz5Cz"
+# 使用一個更穩定的測試目標（例如 Threads 官方帳號）
+TEST_URL = "https://www.threads.net/@threads/post/DMxtXaggxsL"
 
 async def intercept_all_graphql_requests():
     """攔截所有 GraphQL 請求"""

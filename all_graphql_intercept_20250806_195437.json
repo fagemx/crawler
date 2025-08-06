@@ -1,0 +1,1397 @@
+{
+  "test_url": "https://www.threads.net/@threads/post/DMxtXaggxsL",
+  "requests": [
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "method": "POST",
+      "query_name": "BarcelonaNotificationBadgeContextQueryDirectQuery",
+      "headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_notification_badge",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "BarcelonaNotificationBadgeContextQueryDirectQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      },
+      "post_data": "av=17841476239996865&__user=0&__a=1&__req=1&__hs=20306.HYP%3Abarcelona_web_pkg.2.1...0&dpr=3&__ccg=EXCELLENT&__rev=1025565823&__s=x5w5ih%3Ao3sflu%3Anmag65&__hsi=7535439510252447041&__dyn=7xe6E5q5U5ObwKBBwno6u5U4e0C86u360O81nEhw2nVE4W0qa0FE3cwBw5Zx62G3i0Bo2ygao1aU2swlo6qU2zxe2GewbS0z82exu16w2oEGdwtU2ewbS1LwTwKG0hq1Iwqo9Epxq261bg5q2-2K7E4u8Dxd0LCzU4C0C85O1tK1Uw&__csr=gLbYhRGj4dk_qbbl9YDGJ4QGGqnQGSBz8Sh4DwEAy8WuF9pEixa5payuEtw05_DxZG0q8wiwJg15E1a4mh0ba1KG5k61B0qo3mefwJgbMMcAa0H85O0Ao0zi68SaAg1dkl5GbgG06oXxu05gU3twIyUBDgOt07pwTwnEiw56o3RCw59Dw9H4P1y0B9zy8OiU30w6ccElgoOw2282VwioD4G5k5wM7z0&__hsdp=iMOP4bsO5viicyi3aSmIz9FRf4O8dEIaNQn5jlqG44irb2VA8V6365IjkpihcysIAjm6nfiDy2iQD7cPta4G4FpjsMgwVXbgCBd4Or48zl572ER0S86SLgvkBIjds8wIojGx8aUlggguxrwHWxh0820GE6d1m1qwmo8VA4U4C1pwdaexW23g-3-fy81Y8&__hblp=05kyU1io5m1azpopw8q2K2ym6Ucolx67UowhE2hw9C0Ro7Su4VGx-dyFK3C2e3GdwXz8eGyUux22abK2TzUy7U1Q8&__sjsp=iMOP4bsO5viicQy3aSmgz9FRf4O8dEIaNQn5jpaG44irb2VAawjYjkpihcysIAjm6nfgj9bissPd9a4G4G8tcM3W8&__comet_req=29&fb_dtsg=NAfuF2y26oq8PRsQfIWsmuHHzVdRF8AUrzi9yTStaWiAtCP_0sGYngQ%3A17858225011064242%3A1754480681&jazoest=26403&lsd=uvP9fIiUajSSUxsdp3VvJO&__spin_r=1025565823&__spin_b=trunk&__spin_t=1754481231&__crn=comet.threads.BarcelonaPostColumnRoute&fb_api_caller_class=RelayModern&fb_api_req_friendly_name=BarcelonaNotificationBadgeContextQueryDirectQuery&variables=%7B%22deviceID%22%3A%22aJNAHQALAAFYaXp_vyk3hV2RWaux%22%7D&server_timestamps=true&doc_id=29486886354289124",
+      "timestamp": "2025-08-06T19:53:51.672719"
+    },
+    {
+      "url": "https://www.threads.com/api/graphql",
+      "method": "POST",
+      "query_name": "BarcelonaQuickPromotionLoginInterstitialContainerQuery",
+      "headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "BarcelonaQuickPromotionLoginInterstitialContainerQuery",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      },
+      "post_data": "av=17841476239996865&__user=0&__a=1&__req=9&__hs=20306.HYP%3Abarcelona_web_pkg.2.1...0&dpr=3&__ccg=EXCELLENT&__rev=1025565823&__s=x5w5ih%3Ao3sflu%3Anmag65&__hsi=7535439510252447041&__dyn=7xeUmwlEnwn8K2Wmh0no6u5U4e0yoW3q32360CEbo1nEhw2nVE4W0qa0FE2awgo9oO0n24oaEd82lwv89k2C1Fwc60D85m1mzXwae4UaEW0Loco5G0zK5o4q0HU1IEGdwtU2ewbS1LwTwKG0hq1Iwqo9Epxq261bg5q2-2K7E4u8Dxd0LCzU4C0C85O1tK1Uw&__csr=g_Nkyi5IOZEIJnv9ZbltaGCXZaJFoOdAh9Ua98yeDGimqqbxa5payuKEow05_DxZG0q8wiwJg15E1a4mh0ba1KG5k61B0qohg33efwJgsgh30OgE2Iwn82hw2d8ozoGh04RhkmEJ2E0pzK5U0h9wfC0xwLE90GwIyUBDgOt07pwTwnEiw56o3RCwaS3y1yDw9H4P1y1BpUB2NrCe8z9bwc10VAF058cElgoOw2282VwioD4G5k5wM7z0&__hsdp=g97T5MWmw4UGx0Kr3F36V1g8vclyeYj2ijeD3d1j5QFAGk65a40GgTcx2K3BE20RhhMGdgK2ikwWcqc7R9r1c2Nxf6wHxl111W5K2LG540w82GwoQ5o5G1pwzCgjwio8k3q0Bof8W7E8d3UfU-8w7Mw&__hblp=4g6V0dWbwxwxGao5F2E2exm3-1azpopwKx615wHwEBxK78kxmEW7UowhE2hw9C0Ro7Su4VGxm9zpWCUvgowzwWzoeUFUC2WEK7EgwyyXwJU-8x-0t2&__sjsp=g97T5FgOmw4t6GEgbCMWgMy2_z68XNc99cWscQ5cngCqwokEh26pQP0fEw&__comet_req=29&fb_dtsg=NAfuF2y26oq8PRsQfIWsmuHHzVdRF8AUrzi9yTStaWiAtCP_0sGYngQ%3A17858225011064242%3A1754480681&jazoest=26403&lsd=uvP9fIiUajSSUxsdp3VvJO&__spin_r=1025565823&__spin_b=trunk&__spin_t=1754481231&__crn=comet.threads.BarcelonaPostColumnRoute&fb_api_caller_class=RelayModern&fb_api_req_friendly_name=BarcelonaQuickPromotionLoginInterstitialContainerQuery&variables=%7B%22surface_nux_ids%22%3A%5B%22BARCELONA_FOR_WEB_APP_OPEN_PROMPT_NEW_X_EXPERIENCE_NXX__QP%22%5D%2C%22trigger_name%22%3A%22session_start%22%7D&server_timestamps=true&doc_id=24179286691677063",
+      "timestamp": "2025-08-06T19:53:53.719807"
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "method": "POST",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      },
+      "post_data": "av=17841476239996865&__user=0&__a=1&__req=b&__hs=20306.HYP%3Abarcelona_web_pkg.2.1...0&dpr=3&__ccg=EXCELLENT&__rev=1025565823&__s=x5w5ih%3Ao3sflu%3Anmag65&__hsi=7535439510252447041&__dyn=7xeUmwlEnwn8K2Wmh0no6u5U4e0yoW3q32360CEbo1nEhw2nVE4W0qa0FE2awgo9oO0n24oaEd82lwv89k2C1Fwc60D85m1mzXwae4UaEW0Loco5G0zK5o4q0HU1IEGdwtU2ewbS1LwTwKG0hq1Iwqo9Epxq261bg5q2-2K7E4u8Dxd0LCzU4C0C85O1tK1Uw&__csr=g_NkBEnPbOhtnb9ZbltkGCXZaJFoOdAh9Ua98yeDGimqqbxa5payuKEow05_DxZG0q8wiwJg15E1a4mh0ba1KG5k61B0qohg33efwJgsgh30OgE2Iwn82hw2d8ozoGh04RhkmEJ2E0pzK5U0h9wfC0xwLE90GwIyUBDgOt07pwTwnEiw56o3RCwaS3y1yDw9H4P1y1BpUB2NrCe8z9bwc10VAF058cElgoOw2282VwioD4G5k5wM7z0&__hsdp=g97T5MWmw4UGx0KofAcgF1g8vclyeYj2ijeD3d5zf7apaB1xix0aAdP8gHwVq0wdkksgUR2U99i3ENEMvkBI4Mb64Yq2K5k447EmUa-Ekg20waG1zglwmE5C2ep1e19wxgdE2lwYzEuwwQfw_zUy0v2&__hblp=4g6V0cS48KfU-26EFwmAaw8W5opxCbwiESm8x22W4o4m2K2ym6Usxi5qzEvxy16w960Co3lwvpUjCG5oCdDGrxZ1y2e3GdwXyDyobGyUux22abK2TzUy7U1Q8&__sjsp=g97T5FgOmw4t6GEgbC3V34l0LUNyeYj2ijeD3d5zf72pG1xix48pDjc0-y0&__comet_req=29&fb_dtsg=NAfuF2y26oq8PRsQfIWsmuHHzVdRF8AUrzi9yTStaWiAtCP_0sGYngQ%3A17858225011064242%3A1754480681&jazoest=26403&lsd=uvP9fIiUajSSUxsdp3VvJO&__spin_r=1025565823&__spin_b=trunk&__spin_t=1754481231&__crn=comet.threads.BarcelonaPostColumnRoute&fb_api_caller_class=RelayModern&fb_api_req_friendly_name=useBarcelonaBatchedDynamicPostCountsSubscriptionQuery&variables=%7B%22post_ids%22%3A%5B%223688929090896861963%22%5D%7D&server_timestamps=true&doc_id=9397645557011880",
+      "timestamp": "2025-08-06T19:53:54.700322"
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "method": "POST",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      },
+      "post_data": "av=17841476239996865&__user=0&__a=1&__req=d&__hs=20306.HYP%3Abarcelona_web_pkg.2.1...0&dpr=3&__ccg=EXCELLENT&__rev=1025565823&__s=x5w5ih%3Ao3sflu%3Anmag65&__hsi=7535439510252447041&__dyn=7xeUmwlEnwn8K2Wmh0no6u5U4e0yoW3q32360CEbo1nEhw2nVE4W0qa0FE2awgo9oO0n24oaEd82lwv89k2C1Fwc60D85m1mzXwae4UaEW0Loco5G0zK5o4q0HU1IEGdwtU2ewbS1LwTwKG0hq1Iwqo9Epxq261bg5q2-2K7E4u8Dxd0LCzU4C0C85O1tK1Uw&__csr=g_NkBEnPbOhtnb9ZbltkGCXZaJFoOdAh9Ua98yeDGimqqbxa5payuKEow05_DxZG0q8wiwJg15E1a4mh0ba1KG5k61B0qohg33efwJgsgh30OgE2Iwn82hw2d8ozoGh04RhkmEJ2E0pzK5U0h9wfC0xwLE90GwIyUBDgOt07pwTwnEiw56o3RCwaS3y1yDw9H4P1y1BpUB2NrCe8z9bwc10VAF058cElgoOw2282VwioD4G5k5wM7z0&__hsdp=g97T5MWmw4UGx0KofAcgF1g8vclyeYj2ijeD3d5zf7apaB1xix0aAdP8gHwVq0wdkksgUR2U99i3ENEMvkBI4Mb64Yq2K5k447EmUa-Ekg20waG1zglwmE5C2ep1e19wxgdE2lwYzEuwwQfw_zUy0v2&__hblp=4g6V0cS48KfU-26EFwmAaw8W5opxCbwiESm8x22W4o4m2K2ym6Usxi5qzEvxy16w960Co3lwvpUjCG5oCdDGrxZ1y2e3GdwXyDyobGyUux22abK2TzUy7U1Q8&__sjsp=g97T5FgOmw4t6GEgbC3V34l0LUNyeYj2ijeD3d5zf72pG1xix48pDjc0-y0&__comet_req=29&fb_dtsg=NAfuF2y26oq8PRsQfIWsmuHHzVdRF8AUrzi9yTStaWiAtCP_0sGYngQ%3A17858225011064242%3A1754480681&jazoest=26403&lsd=uvP9fIiUajSSUxsdp3VvJO&__spin_r=1025565823&__spin_b=trunk&__spin_t=1754481231&__crn=comet.threads.BarcelonaPostColumnRoute&fb_api_caller_class=RelayModern&fb_api_req_friendly_name=useBarcelonaBatchedDynamicPostCountsSubscriptionQuery&variables=%7B%22post_ids%22%3A%5B%223688929090896861963%22%5D%7D&server_timestamps=true&doc_id=9397645557011880",
+      "timestamp": "2025-08-06T19:53:57.719618"
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "method": "POST",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      },
+      "post_data": "av=17841476239996865&__user=0&__a=1&__req=f&__hs=20306.HYP%3Abarcelona_web_pkg.2.1...0&dpr=3&__ccg=EXCELLENT&__rev=1025565823&__s=x5w5ih%3Ao3sflu%3Anmag65&__hsi=7535439510252447041&__dyn=7xeUmwlEnwn8K2Wmh0no6u5U4e0yoW3q32360CEbo1nEhw2nVE4W0qa0FE2awgo9oO0n24oaEd82lwv89k2C1Fwc60D85m1mzXwae4UaEW0Loco5G0zK5o4q0HU1IEGdwtU2ewbS1LwTwKG0hq1Iwqo9Epxq261bg5q2-2K7E4u8Dxd0LCzU4C0C85O1tK1Uw&__csr=g_NkBEnPbOhtnb9ZbltkGCXZaJFoOdAh9Ua98yeDGimqqbxa5payuKEow05_DxZG0q8wiwJg15E1a4mh0ba1KG5k61B0qohg33efwJgsgh30OgE2Iwn82hw2d8ozoGh04RhkmEJ2E0pzK5U0h9wfC0xwLE90GwIyUBDgOt07pwTwnEiw56o3RCwaS3y1yDw9H4P1y1BpUB2NrCe8z9bwc10VAF058cElgoOw2282VwioD4G5k5wM7z0&__hsdp=g97T5MWmw4UGx0KofAcgF1g8vclyeYj2ijeD3d5zf7apaB1xix0aAdP8gHwVq0wdkksgUR2U99i3ENEMvkBI4Mb64Yq2K5k447EmUa-Ekg20waG1zglwmE5C2ep1e19wxgdE2lwYzEuwwQfw_zUy0v2&__hblp=4g6V0cS48KfU-26EFwmAaw8W5opxCbwiESm8x22W4o4m2K2ym6Usxi5qzEvxy16w960Co3lwvpUjCG5oCdDGrxZ1y2e3GdwXyDyobGyUux22abK2TzUy7U1Q8&__sjsp=g97T5FgOmw4t6GEgbC3V34l0LUNyeYj2ijeD3d5zf72pG1xix48pDjc0-y0&__comet_req=29&fb_dtsg=NAfuF2y26oq8PRsQfIWsmuHHzVdRF8AUrzi9yTStaWiAtCP_0sGYngQ%3A17858225011064242%3A1754480681&jazoest=26403&lsd=uvP9fIiUajSSUxsdp3VvJO&__spin_r=1025565823&__spin_b=trunk&__spin_t=1754481231&__crn=comet.threads.BarcelonaPostColumnRoute&fb_api_caller_class=RelayModern&fb_api_req_friendly_name=useBarcelonaBatchedDynamicPostCountsSubscriptionQuery&variables=%7B%22post_ids%22%3A%5B%223688929090896861963%22%5D%7D&server_timestamps=true&doc_id=9397645557011880",
+      "timestamp": "2025-08-06T19:54:00.737386"
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "method": "POST",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      },
+      "post_data": "av=17841476239996865&__user=0&__a=1&__req=h&__hs=20306.HYP%3Abarcelona_web_pkg.2.1...0&dpr=3&__ccg=EXCELLENT&__rev=1025565823&__s=x5w5ih%3Ao3sflu%3Anmag65&__hsi=7535439510252447041&__dyn=7xeUmwlEnwn8K2Wmh0no6u5U4e0yoW3q32360CEbo1nEhw2nVE4W0qa0FE2awgo9oO0n24oaEd82lwv89k2C1Fwc60D85m1mzXwae4UaEW0Loco5G0zK5o4q0HU1IEGdwtU2ewbS1LwTwKG0hq1Iwqo9Epxq261bg5q2-2K7E4u8Dxd0LCzU4C0C85O1tK1Uw&__csr=g_NkBEnPbOhtnb9ZbltkGCXZaJFoOdAh9Ua98yeDGimqqbxa5payuKEow05_DxZG0q8wiwJg15E1a4mh0ba1KG5k61B0qohg33efwJgsgh30OgE2Iwn82hw2d8ozoGh04RhkmEJ2E0pzK5U0h9wfC0xwLE90GwIyUBDgOt07pwTwnEiw56o3RCwaS3y1yDw9H4P1y1BpUB2NrCe8z9bwc10VAF058cElgoOw2282VwioD4G5k5wM7z0&__hsdp=g97T5MWmw4UGx0KofAcgF1g8vclyeYj2ijeD3d5zf7apaB1xix0aAdP8gHwVq0wdkksgUR2U99i3ENEMvkBI4Mb64Yq2K5k447EmUa-Ekg20waG1zglwmE5C2ep1e19wxgdE2lwYzEuwwQfw_zUy0v2&__hblp=4g6V0cS48KfU-26EFwmAaw8W5opxCbwiESm8x22W4o4m2K2ym6Usxi5qzEvxy16w960Co3lwvpUjCG5oCdDGrxZ1y2e3GdwXyDyobGyUux22abK2TzUy7U1Q8&__sjsp=g97T5FgOmw4t6GEgbC3V34l0LUNyeYj2ijeD3d5zf72pG1xix48pDjc0-y0&__comet_req=29&fb_dtsg=NAfuF2y26oq8PRsQfIWsmuHHzVdRF8AUrzi9yTStaWiAtCP_0sGYngQ%3A17858225011064242%3A1754480681&jazoest=26403&lsd=uvP9fIiUajSSUxsdp3VvJO&__spin_r=1025565823&__spin_b=trunk&__spin_t=1754481231&__crn=comet.threads.BarcelonaPostColumnRoute&fb_api_caller_class=RelayModern&fb_api_req_friendly_name=useBarcelonaBatchedDynamicPostCountsSubscriptionQuery&variables=%7B%22post_ids%22%3A%5B%223688929532632476590%22%2C%223688930541756936093%22%5D%7D&server_timestamps=true&doc_id=9397645557011880",
+      "timestamp": "2025-08-06T19:54:02.751727"
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "method": "POST",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      },
+      "post_data": "av=17841476239996865&__user=0&__a=1&__req=j&__hs=20306.HYP%3Abarcelona_web_pkg.2.1...0&dpr=3&__ccg=EXCELLENT&__rev=1025565823&__s=x5w5ih%3Ao3sflu%3Anmag65&__hsi=7535439510252447041&__dyn=7xeUmwlEnwn8K2Wmh0no6u5U4e0yoW3q32360CEbo1nEhw2nVE4W0qa0FE2awgo9oO0n24oaEd82lwv89k2C1Fwc60D85m1mzXwae4UaEW0Loco5G0zK5o4q0HU1IEGdwtU2ewbS1LwTwKG0hq1Iwqo9Epxq261bg5q2-2K7E4u8Dxd0LCzU4C0C85O1tK1Uw&__csr=g_NkBEnPbOhtnb9ZbltkGCXZaJFoOdAh9Ua98yeDGimqqbxa5payuKEow05_DxZG0q8wiwJg15E1a4mh0ba1KG5k61B0qohg33efwJgsgh30OgE2Iwn82hw2d8ozoGh04RhkmEJ2E0pzK5U0h9wfC0xwLE90GwIyUBDgOt07pwTwnEiw56o3RCwaS3y1yDw9H4P1y1BpUB2NrCe8z9bwc10VAF058cElgoOw2282VwioD4G5k5wM7z0&__hsdp=g97T5MWmw4UGx0KofAcgF1g8vclyeYj2ijeD3d5zf7apaB1xix0aAdP8gHwVq0wdkksgUR2U99i3ENEMvkBI4Mb64Yq2K5k447EmUa-Ekg20waG1zglwmE5C2ep1e19wxgdE2lwYzEuwwQfw_zUy0v2&__hblp=4g6V0cS48KfU-26EFwmAaw8W5opxCbwiESm8x22W4o4m2K2ym6Usxi5qzEvxy16w960Co3lwvpUjCG5oCdDGrxZ1y2e3GdwXyDyobGyUux22abK2TzUy7U1Q8&__sjsp=g97T5FgOmw4t6GEgbC3V34l0LUNyeYj2ijeD3d5zf72pG1xix48pDjc0-y0&__comet_req=29&fb_dtsg=NAfuF2y26oq8PRsQfIWsmuHHzVdRF8AUrzi9yTStaWiAtCP_0sGYngQ%3A17858225011064242%3A1754480681&jazoest=26403&lsd=uvP9fIiUajSSUxsdp3VvJO&__spin_r=1025565823&__spin_b=trunk&__spin_t=1754481231&__crn=comet.threads.BarcelonaPostColumnRoute&fb_api_caller_class=RelayModern&fb_api_req_friendly_name=useBarcelonaBatchedDynamicPostCountsSubscriptionQuery&variables=%7B%22post_ids%22%3A%5B%223688929532632476590%22%2C%223688930541756936093%22%2C%223688931211662724461%22%5D%7D&server_timestamps=true&doc_id=9397645557011880",
+      "timestamp": "2025-08-06T19:54:03.756017"
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "method": "POST",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      },
+      "post_data": "av=17841476239996865&__user=0&__a=1&__req=l&__hs=20306.HYP%3Abarcelona_web_pkg.2.1...0&dpr=3&__ccg=EXCELLENT&__rev=1025565823&__s=x5w5ih%3Ao3sflu%3Anmag65&__hsi=7535439510252447041&__dyn=7xeUmwlEnwn8K2Wmh0no6u5U4e0yoW3q32360CEbo1nEhw2nVE4W0qa0FE2awgo9oO0n24oaEd82lwv89k2C1Fwc60D85m1mzXwae4UaEW0Loco5G0zK5o4q0HU1IEGdwtU2ewbS1LwTwKG0hq1Iwqo9Epxq261bg5q2-2K7E4u8Dxd0LCzU4C0C85O1tK1Uw&__csr=g_NkBEnPbOhtnb9ZbltkGCXZaJFoOdAh9Ua98yeDGimqqbxa5payuKEow05_DxZG0q8wiwJg15E1a4mh0ba1KG5k61B0qohg33efwJgsgh30OgE2Iwn82hw2d8ozoGh04RhkmEJ2E0pzK5U0h9wfC0xwLE90GwIyUBDgOt07pwTwnEiw56o3RCwaS3y1yDw9H4P1y1BpUB2NrCe8z9bwc10VAF058cElgoOw2282VwioD4G5k5wM7z0&__hsdp=g97T5MWmw4UGx0KofAcgF1g8vclyeYj2ijeD3d5zf7apaB1xix0aAdP8gHwVq0wdkksgUR2U99i3ENEMvkBI4Mb64Yq2K5k447EmUa-Ekg20waG1zglwmE5C2ep1e19wxgdE2lwYzEuwwQfw_zUy0v2&__hblp=4g6V0cS48KfU-26EFwmAaw8W5opxCbwiESm8x22W4o4m2K2ym6Usxi5qzEvxy16w960Co3lwvpUjCG5oCdDGrxZ1y2e3GdwXyDyobGyUux22abK2TzUy7U1Q8&__sjsp=g97T5FgOmw4t6GEgbC3V34l0LUNyeYj2ijeD3d5zf72pG1xix48pDjc0-y0&__comet_req=29&fb_dtsg=NAfuF2y26oq8PRsQfIWsmuHHzVdRF8AUrzi9yTStaWiAtCP_0sGYngQ%3A17858225011064242%3A1754480681&jazoest=26403&lsd=uvP9fIiUajSSUxsdp3VvJO&__spin_r=1025565823&__spin_b=trunk&__spin_t=1754481231&__crn=comet.threads.BarcelonaPostColumnRoute&fb_api_caller_class=RelayModern&fb_api_req_friendly_name=useBarcelonaBatchedDynamicPostCountsSubscriptionQuery&variables=%7B%22post_ids%22%3A%5B%223688929532632476590%22%2C%223688930541756936093%22%2C%223688931211662724461%22%5D%7D&server_timestamps=true&doc_id=9397645557011880",
+      "timestamp": "2025-08-06T19:54:06.785500"
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "method": "POST",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      },
+      "post_data": "av=17841476239996865&__user=0&__a=1&__req=m&__hs=20306.HYP%3Abarcelona_web_pkg.2.1...0&dpr=3&__ccg=EXCELLENT&__rev=1025565823&__s=x5w5ih%3Ao3sflu%3Anmag65&__hsi=7535439510252447041&__dyn=7xeUmwlEnwn8K2Wmh0no6u5U4e0yoW3q32360CEbo1nEhw2nVE4W0qa0FE2awgo9oO0n24oaEd82lwv89k2C1Fwc60D85m1mzXwae4UaEW0Loco5G0zK5o4q0HU1IEGdwtU2ewbS1LwTwKG0hq1Iwqo9Epxq261bg5q2-2K7E4u8Dxd0LCzU4C0C85O1tK1Uw&__csr=g_NkBEnPbOhtnb9ZbltkGCXZaJFoOdAh9Ua98yeDGimqqbxa5payuKEow05_DxZG0q8wiwJg15E1a4mh0ba1KG5k61B0qohg33efwJgsgh30OgE2Iwn82hw2d8ozoGh04RhkmEJ2E0pzK5U0h9wfC0xwLE90GwIyUBDgOt07pwTwnEiw56o3RCwaS3y1yDw9H4P1y1BpUB2NrCe8z9bwc10VAF058cElgoOw2282VwioD4G5k5wM7z0&__hsdp=g97T5MWmw4UGx0KofAcgF1g8vclyeYj2ijeD3d5zf7apaB1xix0aAdP8gHwVq0wdkksgUR2U99i3ENEMvkBI4Mb64Yq2K5k447EmUa-Ekg20waG1zglwmE5C2ep1e19wxgdE2lwYzEuwwQfw_zUy0v2&__hblp=4g6V0cS48KfU-26EFwmAaw8W5opxCbwiESm8x22W4o4m2K2ym6Usxi5qzEvxy16w960Co3lwvpUjCG5oCdDGrxZ1y2e3GdwXyDyobGyUux22abK2TzUy7U1Q8&__sjsp=g97T5FgOmw4t6GEgbC3V34l0LUNyeYj2ijeD3d5zf72pG1xix48pDjc0-y0&__comet_req=29&fb_dtsg=NAfuF2y26oq8PRsQfIWsmuHHzVdRF8AUrzi9yTStaWiAtCP_0sGYngQ%3A17858225011064242%3A1754480681&jazoest=26403&lsd=uvP9fIiUajSSUxsdp3VvJO&__spin_r=1025565823&__spin_b=trunk&__spin_t=1754481231&__crn=comet.threads.BarcelonaPostColumnRoute&fb_api_caller_class=RelayModern&fb_api_req_friendly_name=useBarcelonaBatchedDynamicPostCountsSubscriptionQuery&variables=%7B%22post_ids%22%3A%5B%223688929532632476590%22%2C%223688930541756936093%22%2C%223688931211662724461%22%5D%7D&server_timestamps=true&doc_id=9397645557011880",
+      "timestamp": "2025-08-06T19:54:09.790403"
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "method": "POST",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      },
+      "post_data": "av=17841476239996865&__user=0&__a=1&__req=n&__hs=20306.HYP%3Abarcelona_web_pkg.2.1...0&dpr=3&__ccg=EXCELLENT&__rev=1025565823&__s=x5w5ih%3Ao3sflu%3Anmag65&__hsi=7535439510252447041&__dyn=7xeUmwlEnwn8K2Wmh0no6u5U4e0yoW3q32360CEbo1nEhw2nVE4W0qa0FE2awgo9oO0n24oaEd82lwv89k2C1Fwc60D85m1mzXwae4UaEW0Loco5G0zK5o4q0HU1IEGdwtU2ewbS1LwTwKG0hq1Iwqo9Epxq261bg5q2-2K7E4u8Dxd0LCzU4C0C85O1tK1Uw&__csr=g_NkBEnPbOhtnb9ZbltkGCXZaJFoOdAh9Ua98yeDGimqqbxa5payuKEow05_DxZG0q8wiwJg15E1a4mh0ba1KG5k61B0qohg33efwJgsgh30OgE2Iwn82hw2d8ozoGh04RhkmEJ2E0pzK5U0h9wfC0xwLE90GwIyUBDgOt07pwTwnEiw56o3RCwaS3y1yDw9H4P1y1BpUB2NrCe8z9bwc10VAF058cElgoOw2282VwioD4G5k5wM7z0&__hsdp=g97T5MWmw4UGx0KofAcgF1g8vclyeYj2ijeD3d5zf7apaB1xix0aAdP8gHwVq0wdkksgUR2U99i3ENEMvkBI4Mb64Yq2K5k447EmUa-Ekg20waG1zglwmE5C2ep1e19wxgdE2lwYzEuwwQfw_zUy0v2&__hblp=4g6V0cS48KfU-26EFwmAaw8W5opxCbwiESm8x22W4o4m2K2ym6Usxi5qzEvxy16w960Co3lwvpUjCG5oCdDGrxZ1y2e3GdwXyDyobGyUux22abK2TzUy7U1Q8&__sjsp=g97T5FgOmw4t6GEgbC3V34l0LUNyeYj2ijeD3d5zf72pG1xix48pDjc0-y0&__comet_req=29&fb_dtsg=NAfuF2y26oq8PRsQfIWsmuHHzVdRF8AUrzi9yTStaWiAtCP_0sGYngQ%3A17858225011064242%3A1754480681&jazoest=26403&lsd=uvP9fIiUajSSUxsdp3VvJO&__spin_r=1025565823&__spin_b=trunk&__spin_t=1754481231&__crn=comet.threads.BarcelonaPostColumnRoute&fb_api_caller_class=RelayModern&fb_api_req_friendly_name=useBarcelonaBatchedDynamicPostCountsSubscriptionQuery&variables=%7B%22post_ids%22%3A%5B%223688929532632476590%22%2C%223688930541756936093%22%2C%223688931211662724461%22%5D%7D&server_timestamps=true&doc_id=9397645557011880",
+      "timestamp": "2025-08-06T19:54:12.804671"
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "method": "POST",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      },
+      "post_data": "av=17841476239996865&__user=0&__a=1&__req=o&__hs=20306.HYP%3Abarcelona_web_pkg.2.1...0&dpr=3&__ccg=EXCELLENT&__rev=1025565823&__s=x5w5ih%3Ao3sflu%3Anmag65&__hsi=7535439510252447041&__dyn=7xeUmwlEnwn8K2Wmh0no6u5U4e0yoW3q32360CEbo1nEhw2nVE4W0qa0FE2awgo9oO0n24oaEd82lwv89k2C1Fwc60D85m1mzXwae4UaEW0Loco5G0zK5o4q0HU1IEGdwtU2ewbS1LwTwKG0hq1Iwqo9Epxq261bg5q2-2K7E4u8Dxd0LCzU4C0C85O1tK1Uw&__csr=g_NkBEnPbOhtnb9ZbltkGCXZaJFoOdAh9Ua98yeDGimqqbxa5payuKEow05_DxZG0q8wiwJg15E1a4mh0ba1KG5k61B0qohg33efwJgsgh30OgE2Iwn82hw2d8ozoGh04RhkmEJ2E0pzK5U0h9wfC0xwLE90GwIyUBDgOt07pwTwnEiw56o3RCwaS3y1yDw9H4P1y1BpUB2NrCe8z9bwc10VAF058cElgoOw2282VwioD4G5k5wM7z0&__hsdp=g97T5MWmw4UGx0KofAcgF1g8vclyeYj2ijeD3d5zf7apaB1xix0aAdP8gHwVq0wdkksgUR2U99i3ENEMvkBI4Mb64Yq2K5k447EmUa-Ekg20waG1zglwmE5C2ep1e19wxgdE2lwYzEuwwQfw_zUy0v2&__hblp=4g6V0cS48KfU-26EFwmAaw8W5opxCbwiESm8x22W4o4m2K2ym6Usxi5qzEvxy16w960Co3lwvpUjCG5oCdDGrxZ1y2e3GdwXyDyobGyUux22abK2TzUy7U1Q8&__sjsp=g97T5FgOmw4t6GEgbC3V34l0LUNyeYj2ijeD3d5zf72pG1xix48pDjc0-y0&__comet_req=29&fb_dtsg=NAfuF2y26oq8PRsQfIWsmuHHzVdRF8AUrzi9yTStaWiAtCP_0sGYngQ%3A17858225011064242%3A1754480681&jazoest=26403&lsd=uvP9fIiUajSSUxsdp3VvJO&__spin_r=1025565823&__spin_b=trunk&__spin_t=1754481231&__crn=comet.threads.BarcelonaPostColumnRoute&fb_api_caller_class=RelayModern&fb_api_req_friendly_name=useBarcelonaBatchedDynamicPostCountsSubscriptionQuery&variables=%7B%22post_ids%22%3A%5B%223688929532632476590%22%2C%223688930541756936093%22%2C%223688931211662724461%22%5D%7D&server_timestamps=true&doc_id=9397645557011880",
+      "timestamp": "2025-08-06T19:54:15.819533"
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "method": "POST",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      },
+      "post_data": "av=17841476239996865&__user=0&__a=1&__req=p&__hs=20306.HYP%3Abarcelona_web_pkg.2.1...0&dpr=3&__ccg=EXCELLENT&__rev=1025565823&__s=x5w5ih%3Ao3sflu%3Anmag65&__hsi=7535439510252447041&__dyn=7xeUmwlEnwn8K2Wmh0no6u5U4e0yoW3q32360CEbo1nEhw2nVE4W0qa0FE2awgo9oO0n24oaEd82lwv89k2C1Fwc60D85m1mzXwae4UaEW0Loco5G0zK5o4q0HU1IEGdwtU2ewbS1LwTwKG0hq1Iwqo9Epxq261bg5q2-2K7E4u8Dxd0LCzU4C0C85O1tK1Uw&__csr=g_NkBEnPbOhtnb9ZbltkGCXZaJFoOdAh9Ua98yeDGimqqbxa5payuKEow05_DxZG0q8wiwJg15E1a4mh0ba1KG5k61B0qohg33efwJgsgh30OgE2Iwn82hw2d8ozoGh04RhkmEJ2E0pzK5U0h9wfC0xwLE90GwIyUBDgOt07pwTwnEiw56o3RCwaS3y1yDw9H4P1y1BpUB2NrCe8z9bwc10VAF058cElgoOw2282VwioD4G5k5wM7z0&__hsdp=g97T5MWmw4UGx0KofAcgF1g8vclyeYj2ijeD3d5zf7apaB1xix0aAdP8gHwVq0wdkksgUR2U99i3ENEMvkBI4Mb64Yq2K5k447EmUa-Ekg20waG1zglwmE5C2ep1e19wxgdE2lwYzEuwwQfw_zUy0v2&__hblp=4g6V0cS48KfU-26EFwmAaw8W5opxCbwiESm8x22W4o4m2K2ym6Usxi5qzEvxy16w960Co3lwvpUjCG5oCdDGrxZ1y2e3GdwXyDyobGyUux22abK2TzUy7U1Q8&__sjsp=g97T5FgOmw4t6GEgbC3V34l0LUNyeYj2ijeD3d5zf72pG1xix48pDjc0-y0&__comet_req=29&fb_dtsg=NAfuF2y26oq8PRsQfIWsmuHHzVdRF8AUrzi9yTStaWiAtCP_0sGYngQ%3A17858225011064242%3A1754480681&jazoest=26403&lsd=uvP9fIiUajSSUxsdp3VvJO&__spin_r=1025565823&__spin_b=trunk&__spin_t=1754481231&__crn=comet.threads.BarcelonaPostColumnRoute&fb_api_caller_class=RelayModern&fb_api_req_friendly_name=useBarcelonaBatchedDynamicPostCountsSubscriptionQuery&variables=%7B%22post_ids%22%3A%5B%223688929532632476590%22%2C%223688930541756936093%22%2C%223688931211662724461%22%5D%7D&server_timestamps=true&doc_id=9397645557011880",
+      "timestamp": "2025-08-06T19:54:18.831584"
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "method": "POST",
+      "query_name": "BarcelonaNotificationBadgeContextQueryDirectQuery",
+      "headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_notification_badge",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "BarcelonaNotificationBadgeContextQueryDirectQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      },
+      "post_data": "av=17841476239996865&__user=0&__a=1&__req=q&__hs=20306.HYP%3Abarcelona_web_pkg.2.1...0&dpr=3&__ccg=EXCELLENT&__rev=1025565823&__s=x5w5ih%3Ao3sflu%3Anmag65&__hsi=7535439510252447041&__dyn=7xeUmwlEnwn8K2Wmh0no6u5U4e0yoW3q32360CEbo1nEhw2nVE4W0qa0FE2awgo9oO0n24oaEd82lwv89k2C1Fwc60D85m1mzXwae4UaEW0Loco5G0zK5o4q0HU1IEGdwtU2ewbS1LwTwKG0hq1Iwqo9Epxq261bg5q2-2K7E4u8Dxd0LCzU4C0C85O1tK1Uw&__csr=g_NkBEnPbOhtnb9ZbltkGCXZaJFoOdAh9Ua98yeDGimqqbxa5payuKEow05_DxZG0q8wiwJg15E1a4mh0ba1KG5k61B0qohg33efwJgsgh30OgE2Iwn82hw2d8ozoGh04RhkmEJ2E0pzK5U0h9wfC0xwLE90GwIyUBDgOt07pwTwnEiw56o3RCwaS3y1yDw9H4P1y1BpUB2NrCe8z9bwc10VAF058cElgoOw2282VwioD4G5k5wM7z0&__hsdp=g97T5MWmw4UGx0KofAcgF1g8vclyeYj2ijeD3d5zf7apaB1xix0aAdP8gHwVq0wdkksgUR2U99i3ENEMvkBI4Mb64Yq2K5k447EmUa-Ekg20waG1zglwmE5C2ep1e19wxgdE2lwYzEuwwQfw_zUy0v2&__hblp=4g6V0cS48KfU-26EFwmAaw8W5opxCbwiESm8x22W4o4m2K2ym6Usxi5qzEvxy16w960Co3lwvpUjCG5oCdDGrxZ1y2e3GdwXyDyobGyUux22abK2TzUy7U1Q8&__sjsp=g97T5FgOmw4t6GEgbC3V34l0LUNyeYj2ijeD3d5zf72pG1xix48pDjc0-y0&__comet_req=29&fb_dtsg=NAfuF2y26oq8PRsQfIWsmuHHzVdRF8AUrzi9yTStaWiAtCP_0sGYngQ%3A17858225011064242%3A1754480681&jazoest=26403&lsd=uvP9fIiUajSSUxsdp3VvJO&__spin_r=1025565823&__spin_b=trunk&__spin_t=1754481231&__crn=comet.threads.BarcelonaPostColumnRoute&fb_api_caller_class=RelayModern&fb_api_req_friendly_name=BarcelonaNotificationBadgeContextQueryDirectQuery&variables=%7B%22deviceID%22%3A%22aJNAHQALAAFYaXp_vyk3hV2RWaux%22%7D&server_timestamps=true&doc_id=29486886354289124",
+      "timestamp": "2025-08-06T19:54:21.983426"
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "method": "POST",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      },
+      "post_data": "av=17841476239996865&__user=0&__a=1&__req=r&__hs=20306.HYP%3Abarcelona_web_pkg.2.1...0&dpr=3&__ccg=EXCELLENT&__rev=1025565823&__s=x5w5ih%3Ao3sflu%3Anmag65&__hsi=7535439510252447041&__dyn=7xeUmwlEnwn8K2Wmh0no6u5U4e0yoW3q32360CEbo1nEhw2nVE4W0qa0FE2awgo9oO0n24oaEd82lwv89k2C1Fwc60D85m1mzXwae4UaEW0Loco5G0zK5o4q0HU1IEGdwtU2ewbS1LwTwKG0hq1Iwqo9Epxq261bg5q2-2K7E4u8Dxd0LCzU4C0C85O1tK1Uw&__csr=g_NkBEnPbOhtnb9ZbltkGCXZaJFoOdAh9Ua98yeDGimqqbxa5payuKEow05_DxZG0q8wiwJg15E1a4mh0ba1KG5k61B0qohg33efwJgsgh30OgE2Iwn82hw2d8ozoGh04RhkmEJ2E0pzK5U0h9wfC0xwLE90GwIyUBDgOt07pwTwnEiw56o3RCwaS3y1yDw9H4P1y1BpUB2NrCe8z9bwc10VAF058cElgoOw2282VwioD4G5k5wM7z0&__hsdp=g97T5MWmw4UGx0KofAcgF1g8vclyeYj2ijeD3d5zf7apaB1xix0aAdP8gHwVq0wdkksgUR2U99i3ENEMvkBI4Mb64Yq2K5k447EmUa-Ekg20waG1zglwmE5C2ep1e19wxgdE2lwYzEuwwQfw_zUy0v2&__hblp=4g6V0cS48KfU-26EFwmAaw8W5opxCbwiESm8x22W4o4m2K2ym6Usxi5qzEvxy16w960Co3lwvpUjCG5oCdDGrxZ1y2e3GdwXyDyobGyUux22abK2TzUy7U1Q8&__sjsp=g97T5FgOmw4t6GEgbC3V34l0LUNyeYj2ijeD3d5zf72pG1xix48pDjc0-y0&__comet_req=29&fb_dtsg=NAfuF2y26oq8PRsQfIWsmuHHzVdRF8AUrzi9yTStaWiAtCP_0sGYngQ%3A17858225011064242%3A1754480681&jazoest=26403&lsd=uvP9fIiUajSSUxsdp3VvJO&__spin_r=1025565823&__spin_b=trunk&__spin_t=1754481231&__crn=comet.threads.BarcelonaPostColumnRoute&fb_api_caller_class=RelayModern&fb_api_req_friendly_name=useBarcelonaBatchedDynamicPostCountsSubscriptionQuery&variables=%7B%22post_ids%22%3A%5B%223688929532632476590%22%2C%223688930541756936093%22%2C%223688931211662724461%22%5D%7D&server_timestamps=true&doc_id=9397645557011880",
+      "timestamp": "2025-08-06T19:54:24.852267"
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "method": "POST",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      },
+      "post_data": "av=17841476239996865&__user=0&__a=1&__req=s&__hs=20306.HYP%3Abarcelona_web_pkg.2.1...0&dpr=3&__ccg=EXCELLENT&__rev=1025565823&__s=x5w5ih%3Ao3sflu%3Anmag65&__hsi=7535439510252447041&__dyn=7xeUmwlEnwn8K2Wmh0no6u5U4e0yoW3q32360CEbo1nEhw2nVE4W0qa0FE2awgo9oO0n24oaEd82lwv89k2C1Fwc60D85m1mzXwae4UaEW0Loco5G0zK5o4q0HU1IEGdwtU2ewbS1LwTwKG0hq1Iwqo9Epxq261bg5q2-2K7E4u8Dxd0LCzU4C0C85O1tK1Uw&__csr=g_NkBEnPbOhtnb9ZbltkGCXZaJFoOdAh9Ua98yeDGimqqbxa5payuKEow05_DxZG0q8wiwJg15E1a4mh0ba1KG5k61B0qohg33efwJgsgh30OgE2Iwn82hw2d8ozoGh04RhkmEJ2E0pzK5U0h9wfC0xwLE90GwIyUBDgOt07pwTwnEiw56o3RCwaS3y1yDw9H4P1y1BpUB2NrCe8z9bwc10VAF058cElgoOw2282VwioD4G5k5wM7z0&__hsdp=g97T5MWmw4UGx0KofAcgF1g8vclyeYj2ijeD3d5zf7apaB1xix0aAdP8gHwVq0wdkksgUR2U99i3ENEMvkBI4Mb64Yq2K5k447EmUa-Ekg20waG1zglwmE5C2ep1e19wxgdE2lwYzEuwwQfw_zUy0v2&__hblp=4g6V0cS48KfU-26EFwmAaw8W5opxCbwiESm8x22W4o4m2K2ym6Usxi5qzEvxy16w960Co3lwvpUjCG5oCdDGrxZ1y2e3GdwXyDyobGyUux22abK2TzUy7U1Q8&__sjsp=g97T5FgOmw4t6GEgbC3V34l0LUNyeYj2ijeD3d5zf72pG1xix48pDjc0-y0&__comet_req=29&fb_dtsg=NAfuF2y26oq8PRsQfIWsmuHHzVdRF8AUrzi9yTStaWiAtCP_0sGYngQ%3A17858225011064242%3A1754480681&jazoest=26403&lsd=uvP9fIiUajSSUxsdp3VvJO&__spin_r=1025565823&__spin_b=trunk&__spin_t=1754481231&__crn=comet.threads.BarcelonaPostColumnRoute&fb_api_caller_class=RelayModern&fb_api_req_friendly_name=useBarcelonaBatchedDynamicPostCountsSubscriptionQuery&variables=%7B%22post_ids%22%3A%5B%223688929532632476590%22%2C%223688930541756936093%22%2C%223688931211662724461%22%5D%7D&server_timestamps=true&doc_id=9397645557011880",
+      "timestamp": "2025-08-06T19:54:27.873142"
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "method": "POST",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      },
+      "post_data": "av=17841476239996865&__user=0&__a=1&__req=t&__hs=20306.HYP%3Abarcelona_web_pkg.2.1...0&dpr=3&__ccg=EXCELLENT&__rev=1025565823&__s=x5w5ih%3Ao3sflu%3Anmag65&__hsi=7535439510252447041&__dyn=7xeUmwlEnwn8K2Wmh0no6u5U4e0yoW3q32360CEbo1nEhw2nVE4W0qa0FE2awgo9oO0n24oaEd82lwv89k2C1Fwc60D85m1mzXwae4UaEW0Loco5G0zK5o4q0HU1IEGdwtU2ewbS1LwTwKG0hq1Iwqo9Epxq261bg5q2-2K7E4u8Dxd0LCzU4C0C85O1tK1Uw&__csr=g_NkBEnPbOhtnb9ZbltkGCXZaJFoOdAh9Ua98yeDGimqqbxa5payuKEow05_DxZG0q8wiwJg15E1a4mh0ba1KG5k61B0qohg33efwJgsgh30OgE2Iwn82hw2d8ozoGh04RhkmEJ2E0pzK5U0h9wfC0xwLE90GwIyUBDgOt07pwTwnEiw56o3RCwaS3y1yDw9H4P1y1BpUB2NrCe8z9bwc10VAF058cElgoOw2282VwioD4G5k5wM7z0&__hsdp=g97T5MWmw4UGx0KofAcgF1g8vclyeYj2ijeD3d5zf7apaB1xix0aAdP8gHwVq0wdkksgUR2U99i3ENEMvkBI4Mb64Yq2K5k447EmUa-Ekg20waG1zglwmE5C2ep1e19wxgdE2lwYzEuwwQfw_zUy0v2&__hblp=4g6V0cS48KfU-26EFwmAaw8W5opxCbwiESm8x22W4o4m2K2ym6Usxi5qzEvxy16w960Co3lwvpUjCG5oCdDGrxZ1y2e3GdwXyDyobGyUux22abK2TzUy7U1Q8&__sjsp=g97T5FgOmw4t6GEgbC3V34l0LUNyeYj2ijeD3d5zf72pG1xix48pDjc0-y0&__comet_req=29&fb_dtsg=NAfuF2y26oq8PRsQfIWsmuHHzVdRF8AUrzi9yTStaWiAtCP_0sGYngQ%3A17858225011064242%3A1754480681&jazoest=26403&lsd=uvP9fIiUajSSUxsdp3VvJO&__spin_r=1025565823&__spin_b=trunk&__spin_t=1754481231&__crn=comet.threads.BarcelonaPostColumnRoute&fb_api_caller_class=RelayModern&fb_api_req_friendly_name=useBarcelonaBatchedDynamicPostCountsSubscriptionQuery&variables=%7B%22post_ids%22%3A%5B%223688929532632476590%22%2C%223688930541756936093%22%2C%223688931211662724461%22%5D%7D&server_timestamps=true&doc_id=9397645557011880",
+      "timestamp": "2025-08-06T19:54:36.923572"
+    }
+  ],
+  "responses": [
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "query_name": "BarcelonaNotificationBadgeContextQueryDirectQuery",
+      "data": {
+        "data": {
+          "xdt_text_app_notification_badge": {
+            "total_count": 0
+          }
+        },
+        "extensions": {
+          "is_final": true,
+          "server_metadata": {
+            "request_start_time_ms": 1754481232977,
+            "time_at_flush_ms": 1754481233056
+          }
+        },
+        "status": "ok"
+      },
+      "timestamp": "2025-08-06T19:53:51.980103",
+      "request_headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_notification_badge",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "BarcelonaNotificationBadgeContextQueryDirectQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      }
+    },
+    {
+      "url": "https://www.threads.com/api/graphql",
+      "query_name": "BarcelonaQuickPromotionLoginInterstitialContainerQuery",
+      "data": {
+        "data": {
+          "ig_quick_promotion_batch_fetch_root": [
+            {
+              "eligible_promotions": {
+                "nodes": []
+              }
+            }
+          ]
+        },
+        "extensions": {
+          "server_metadata": {
+            "request_start_time_ms": 1754481235067,
+            "time_at_flush_ms": 1754481235127
+          },
+          "is_final": true
+        }
+      },
+      "timestamp": "2025-08-06T19:53:54.131741",
+      "request_headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "BarcelonaQuickPromotionLoginInterstitialContainerQuery",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      }
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "data": {
+        "data": {
+          "data": {
+            "posts": [
+              {
+                "pk": "3688929090896861963",
+                "like_count": 2529,
+                "text_post_app_info": {
+                  "direct_reply_count": 193,
+                  "quote_count": 4,
+                  "repost_count": 46,
+                  "reshare_count": 33
+                },
+                "id": "3688929090896861963_63082166531"
+              }
+            ]
+          }
+        },
+        "extensions": {
+          "is_final": true,
+          "server_metadata": {
+            "request_start_time_ms": 1754481235989,
+            "time_at_flush_ms": 1754481236179
+          }
+        },
+        "status": "ok"
+      },
+      "timestamp": "2025-08-06T19:53:55.072612",
+      "request_headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      }
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "data": {
+        "data": {
+          "data": {
+            "posts": [
+              {
+                "pk": "3688929090896861963",
+                "like_count": 2529,
+                "text_post_app_info": {
+                  "direct_reply_count": 193,
+                  "quote_count": 4,
+                  "repost_count": 46,
+                  "reshare_count": 33
+                },
+                "id": "3688929090896861963_63082166531"
+              }
+            ]
+          }
+        },
+        "extensions": {
+          "is_final": true,
+          "server_metadata": {
+            "request_start_time_ms": 1754481239021,
+            "time_at_flush_ms": 1754481239084
+          }
+        },
+        "status": "ok"
+      },
+      "timestamp": "2025-08-06T19:53:57.979038",
+      "request_headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      }
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "data": {
+        "data": {
+          "data": {
+            "posts": [
+              {
+                "pk": "3688929090896861963",
+                "like_count": 2529,
+                "text_post_app_info": {
+                  "direct_reply_count": 193,
+                  "quote_count": 4,
+                  "repost_count": 46,
+                  "reshare_count": 33
+                },
+                "id": "3688929090896861963_63082166531"
+              }
+            ]
+          }
+        },
+        "extensions": {
+          "is_final": true,
+          "server_metadata": {
+            "request_start_time_ms": 1754481242026,
+            "time_at_flush_ms": 1754481242223
+          }
+        },
+        "status": "ok"
+      },
+      "timestamp": "2025-08-06T19:54:01.126982",
+      "request_headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      }
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "data": {
+        "data": {
+          "data": {
+            "posts": [
+              {
+                "pk": "3688929532632476590",
+                "like_count": 238,
+                "text_post_app_info": {
+                  "direct_reply_count": 11,
+                  "quote_count": 0,
+                  "repost_count": 3,
+                  "reshare_count": 5
+                },
+                "id": "3688929532632476590_63082166531"
+              },
+              {
+                "pk": "3688930541756936093",
+                "like_count": 59,
+                "text_post_app_info": {
+                  "direct_reply_count": 3,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": 1
+                },
+                "id": "3688930541756936093_63082166531"
+              }
+            ]
+          }
+        },
+        "extensions": {
+          "is_final": true,
+          "server_metadata": {
+            "request_start_time_ms": 1754481244041,
+            "time_at_flush_ms": 1754481244149
+          }
+        },
+        "status": "ok"
+      },
+      "timestamp": "2025-08-06T19:54:03.040264",
+      "request_headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      }
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "data": {
+        "data": {
+          "data": {
+            "posts": [
+              {
+                "pk": "3688929532632476590",
+                "like_count": 238,
+                "text_post_app_info": {
+                  "direct_reply_count": 11,
+                  "quote_count": 0,
+                  "repost_count": 3,
+                  "reshare_count": 5
+                },
+                "id": "3688929532632476590_63082166531"
+              },
+              {
+                "pk": "3688930541756936093",
+                "like_count": 59,
+                "text_post_app_info": {
+                  "direct_reply_count": 3,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": 1
+                },
+                "id": "3688930541756936093_63082166531"
+              },
+              {
+                "pk": "3688931211662724461",
+                "like_count": 60,
+                "text_post_app_info": {
+                  "direct_reply_count": 2,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": 4
+                },
+                "id": "3688931211662724461_63082166531"
+              }
+            ]
+          }
+        },
+        "extensions": {
+          "is_final": true,
+          "server_metadata": {
+            "request_start_time_ms": 1754481245056,
+            "time_at_flush_ms": 1754481245159
+          }
+        },
+        "status": "ok"
+      },
+      "timestamp": "2025-08-06T19:54:04.045538",
+      "request_headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      }
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "data": {
+        "data": {
+          "data": {
+            "posts": [
+              {
+                "pk": "3688929532632476590",
+                "like_count": 238,
+                "text_post_app_info": {
+                  "direct_reply_count": 11,
+                  "quote_count": 0,
+                  "repost_count": 3,
+                  "reshare_count": 5
+                },
+                "id": "3688929532632476590_63082166531"
+              },
+              {
+                "pk": "3688930541756936093",
+                "like_count": 59,
+                "text_post_app_info": {
+                  "direct_reply_count": 3,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": 1
+                },
+                "id": "3688930541756936093_63082166531"
+              },
+              {
+                "pk": "3688931211662724461",
+                "like_count": 60,
+                "text_post_app_info": {
+                  "direct_reply_count": 2,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": 4
+                },
+                "id": "3688931211662724461_63082166531"
+              }
+            ]
+          }
+        },
+        "extensions": {
+          "is_final": true,
+          "server_metadata": {
+            "request_start_time_ms": 1754481248074,
+            "time_at_flush_ms": 1754481248204
+          }
+        },
+        "status": "ok"
+      },
+      "timestamp": "2025-08-06T19:54:07.099291",
+      "request_headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      }
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "data": {
+        "data": {
+          "data": {
+            "posts": [
+              {
+                "pk": "3688929532632476590",
+                "like_count": 238,
+                "text_post_app_info": {
+                  "direct_reply_count": 11,
+                  "quote_count": 0,
+                  "repost_count": 3,
+                  "reshare_count": 5
+                },
+                "id": "3688929532632476590_63082166531"
+              },
+              {
+                "pk": "3688930541756936093",
+                "like_count": 59,
+                "text_post_app_info": {
+                  "direct_reply_count": 3,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": 1
+                },
+                "id": "3688930541756936093_63082166531"
+              },
+              {
+                "pk": "3688931211662724461",
+                "like_count": 60,
+                "text_post_app_info": {
+                  "direct_reply_count": 2,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": 4
+                },
+                "id": "3688931211662724461_63082166531"
+              }
+            ]
+          }
+        },
+        "extensions": {
+          "is_final": true,
+          "server_metadata": {
+            "request_start_time_ms": 1754481251080,
+            "time_at_flush_ms": 1754481251265
+          }
+        },
+        "status": "ok"
+      },
+      "timestamp": "2025-08-06T19:54:10.157354",
+      "request_headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      }
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "data": {
+        "data": {
+          "data": {
+            "posts": [
+              {
+                "pk": "3688929532632476590",
+                "like_count": 238,
+                "text_post_app_info": {
+                  "direct_reply_count": 11,
+                  "quote_count": 0,
+                  "repost_count": 3,
+                  "reshare_count": 5
+                },
+                "id": "3688929532632476590_63082166531"
+              },
+              {
+                "pk": "3688930541756936093",
+                "like_count": 59,
+                "text_post_app_info": {
+                  "direct_reply_count": 3,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": 1
+                },
+                "id": "3688930541756936093_63082166531"
+              },
+              {
+                "pk": "3688931211662724461",
+                "like_count": 60,
+                "text_post_app_info": {
+                  "direct_reply_count": 2,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": 4
+                },
+                "id": "3688931211662724461_63082166531"
+              }
+            ]
+          }
+        },
+        "extensions": {
+          "is_final": true,
+          "server_metadata": {
+            "request_start_time_ms": 1754481254093,
+            "time_at_flush_ms": 1754481254186
+          }
+        },
+        "status": "ok"
+      },
+      "timestamp": "2025-08-06T19:54:13.075708",
+      "request_headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      }
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "data": {
+        "data": {
+          "data": {
+            "posts": [
+              {
+                "pk": "3688929532632476590",
+                "like_count": 238,
+                "text_post_app_info": {
+                  "direct_reply_count": 11,
+                  "quote_count": 0,
+                  "repost_count": 3,
+                  "reshare_count": 5
+                },
+                "id": "3688929532632476590_63082166531"
+              },
+              {
+                "pk": "3688930541756936093",
+                "like_count": 59,
+                "text_post_app_info": {
+                  "direct_reply_count": 3,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": 1
+                },
+                "id": "3688930541756936093_63082166531"
+              },
+              {
+                "pk": "3688931211662724461",
+                "like_count": 60,
+                "text_post_app_info": {
+                  "direct_reply_count": 2,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": 4
+                },
+                "id": "3688931211662724461_63082166531"
+              }
+            ]
+          }
+        },
+        "extensions": {
+          "is_final": true,
+          "server_metadata": {
+            "request_start_time_ms": 1754481257116,
+            "time_at_flush_ms": 1754481257257
+          }
+        },
+        "status": "ok"
+      },
+      "timestamp": "2025-08-06T19:54:16.168051",
+      "request_headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      }
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "data": {
+        "data": {
+          "data": {
+            "posts": [
+              {
+                "pk": "3688929532632476590",
+                "like_count": 238,
+                "text_post_app_info": {
+                  "direct_reply_count": 11,
+                  "quote_count": 0,
+                  "repost_count": 3,
+                  "reshare_count": 5
+                },
+                "id": "3688929532632476590_63082166531"
+              },
+              {
+                "pk": "3688930541756936093",
+                "like_count": 59,
+                "text_post_app_info": {
+                  "direct_reply_count": 3,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": 1
+                },
+                "id": "3688930541756936093_63082166531"
+              },
+              {
+                "pk": "3688931211662724461",
+                "like_count": 60,
+                "text_post_app_info": {
+                  "direct_reply_count": 2,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": 4
+                },
+                "id": "3688931211662724461_63082166531"
+              }
+            ]
+          }
+        },
+        "extensions": {
+          "is_final": true,
+          "server_metadata": {
+            "request_start_time_ms": 1754481260121,
+            "time_at_flush_ms": 1754481260259
+          }
+        },
+        "status": "ok"
+      },
+      "timestamp": "2025-08-06T19:54:19.154094",
+      "request_headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      }
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "query_name": "BarcelonaNotificationBadgeContextQueryDirectQuery",
+      "data": {
+        "data": {
+          "xdt_text_app_notification_badge": {
+            "total_count": 0
+          }
+        },
+        "extensions": {
+          "is_final": true,
+          "server_metadata": {
+            "request_start_time_ms": 1754481263276,
+            "time_at_flush_ms": 1754481263304
+          }
+        },
+        "status": "ok"
+      },
+      "timestamp": "2025-08-06T19:54:22.195176",
+      "request_headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_notification_badge",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "BarcelonaNotificationBadgeContextQueryDirectQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      }
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "data": {
+        "data": {
+          "data": {
+            "posts": [
+              {
+                "pk": "3688929532632476590",
+                "like_count": 238,
+                "text_post_app_info": {
+                  "direct_reply_count": 11,
+                  "quote_count": 0,
+                  "repost_count": 3,
+                  "reshare_count": 5
+                },
+                "id": "3688929532632476590_63082166531"
+              },
+              {
+                "pk": "3688930541756936093",
+                "like_count": 59,
+                "text_post_app_info": {
+                  "direct_reply_count": 3,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": 1
+                },
+                "id": "3688930541756936093_63082166531"
+              },
+              {
+                "pk": "3688931211662724461",
+                "like_count": 60,
+                "text_post_app_info": {
+                  "direct_reply_count": 2,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": 4
+                },
+                "id": "3688931211662724461_63082166531"
+              }
+            ]
+          }
+        },
+        "extensions": {
+          "is_final": true,
+          "server_metadata": {
+            "request_start_time_ms": 1754481266175,
+            "time_at_flush_ms": 1754481266383
+          }
+        },
+        "status": "ok"
+      },
+      "timestamp": "2025-08-06T19:54:25.284645",
+      "request_headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      }
+    },
+    {
+      "url": "https://www.threads.com/graphql/query",
+      "query_name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+      "data": {
+        "data": {
+          "data": {
+            "posts": [
+              {
+                "pk": "3688929532632476590",
+                "like_count": 238,
+                "text_post_app_info": {
+                  "direct_reply_count": 11,
+                  "quote_count": 0,
+                  "repost_count": 3,
+                  "reshare_count": 5
+                },
+                "id": "3688929532632476590_63082166531"
+              },
+              {
+                "pk": "3688930541756936093",
+                "like_count": 59,
+                "text_post_app_info": {
+                  "direct_reply_count": 3,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": 1
+                },
+                "id": "3688930541756936093_63082166531"
+              },
+              {
+                "pk": "3688931211662724461",
+                "like_count": 60,
+                "text_post_app_info": {
+                  "direct_reply_count": 2,
+                  "quote_count": 0,
+                  "repost_count": 0,
+                  "reshare_count": 4
+                },
+                "id": "3688931211662724461_63082166531"
+              }
+            ]
+          }
+        },
+        "extensions": {
+          "is_final": true,
+          "server_metadata": {
+            "request_start_time_ms": 1754481269166,
+            "time_at_flush_ms": 1754481269304
+          }
+        },
+        "status": "ok"
+      },
+      "timestamp": "2025-08-06T19:54:28.203355",
+      "request_headers": {
+        "sec-ch-ua-full-version-list": "\"Chromium\";v=\"139.0.7258.5\", \"Not;A=Brand\";v=\"99.0.0.0\"",
+        "sec-ch-ua-platform": "\"iOS\"",
+        "x-root-field-name": "xdt_text_app_posts_batch",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-model": "\"\"",
+        "sec-ch-ua-mobile": "?0",
+        "x-ig-app-id": "1412234116260832",
+        "x-fb-lsd": "uvP9fIiUajSSUxsdp3VvJO",
+        "content-type": "application/x-www-form-urlencoded",
+        "x-csrftoken": "zHGveKbkFhx98n5i75vPMSOHIUS1Y44a",
+        "referer": "https://www.threads.com/@threads/post/DMxtXaggxsL",
+        "accept-language": "zh-TW",
+        "x-fb-friendly-name": "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery",
+        "x-bloks-version-id": "b12cfbcbf33dbc5967ca6292a74038c86c0f5679d254920a74764d33130237fa",
+        "x-asbd-id": "359341",
+        "sec-ch-prefers-color-scheme": "light",
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "sec-ch-ua-platform-version": "\"15_0\""
+      }
+    }
+  ],
+  "query_statistics": {
+    "BarcelonaNotificationBadgeContextQueryDirectQuery": {
+      "requests": 2,
+      "responses": 2
+    },
+    "BarcelonaQuickPromotionLoginInterstitialContainerQuery": {
+      "requests": 1,
+      "responses": 1
+    },
+    "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery": {
+      "requests": 13,
+      "responses": 12
+    }
+  },
+  "extracted_doc_ids": [
+    [
+      "24179286691677063",
+      "BarcelonaQuickPromotionLoginInterstitialContainerQuery"
+    ],
+    [
+      "9397645557011880",
+      "useBarcelonaBatchedDynamicPostCountsSubscriptionQuery"
+    ],
+    [
+      "29486886354289124",
+      "BarcelonaNotificationBadgeContextQueryDirectQuery"
+    ]
+  ]
+}

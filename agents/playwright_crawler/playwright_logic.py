@@ -33,7 +33,8 @@ from .utils.post_deduplicator import apply_deduplication
 from .helpers.scrolling import (
     extract_current_post_ids, check_page_bottom, scroll_once, 
     is_anchor_visible, collect_urls_from_dom, 
-    should_stop_new_mode, should_stop_hist_mode
+    should_stop_new_mode, should_stop_hist_mode,
+    enhanced_scroll_with_strategy, wait_for_content_loading
 )
 
 # 調試檔案路徑
@@ -330,7 +331,60 @@ class PlaywrightLogic:
                 if final_count >= need_to_fetch:
                     logging.info(f"🎯 [Task: {task_id}] 補足成功！目標: {need_to_fetch}，最終: {final_count}")
                 else:
-                    logging.warning(f"⚠️ [Task: {task_id}] 補足未達標：目標: {need_to_fetch}，最終: {final_count}")
+                    final_shortage = need_to_fetch - final_count
+                    logging.warning(f"⚠️ [Task: {task_id}] 補足未達標：目標: {need_to_fetch}，最終: {final_count}，仍缺: {final_shortage}")
+                    
+                    # === 新增：啟動增強滾動收集策略 ===
+                    logging.info(f"🚀 [Task: {task_id}] 啟動增強滾動收集，使用Realtime策略...")
+                    
+                    try:
+                        # 創建新頁面進行增強收集
+                        enhanced_page = await self.context.new_page()
+                        await enhanced_page.goto(f"https://www.threads.com/@{username}")
+                        await asyncio.sleep(3)  # 等待頁面載入
+                        
+                        # 使用增強的收集策略
+                        existing_post_ids_final = existing_post_ids | {p.post_id for p in final_posts}
+                        extended_max_scroll_rounds = max_scroll_rounds + 30  # 額外30輪滾動
+                        
+                        additional_urls = await self._collect_urls_realtime_style(
+                            enhanced_page, username, final_shortage + 10,  # 多收集10個作為緩衝
+                            existing_post_ids_final, incremental, extended_max_scroll_rounds
+                        )
+                        
+                        await enhanced_page.close()
+                        
+                        if additional_urls:
+                            logging.info(f"🎯 [Task: {task_id}] 增強收集到 {len(additional_urls)} 個額外URL")
+                            
+                            # 處理額外收集的URLs
+                            additional_posts = await self._convert_urls_to_posts(additional_urls, username, mode, task_id)
+                            additional_posts = await self.details_extractor.process_posts(
+                                additional_posts, task_id=task_id
+                            )
+                            
+                            # 去重並合併
+                            additional_posts = conditional_deduplication(additional_posts)
+                            combined_posts = final_posts + additional_posts
+                            combined_posts = conditional_deduplication(combined_posts)
+                            
+                            final_added = len(combined_posts) - len(final_posts)
+                            final_posts = combined_posts
+                            
+                            logging.info(f"🎉 [Task: {task_id}] 增強收集完成：新增 {final_added} 篇，最終累計 {len(final_posts)} 篇")
+                            
+                            # 更新最終計數
+                            final_count = len(final_posts)
+                            if final_count >= need_to_fetch:
+                                logging.info(f"✅ [Task: {task_id}] 增強收集達標！目標: {need_to_fetch}，最終: {final_count}")
+                            else:
+                                remaining_shortage = need_to_fetch - final_count
+                                logging.warning(f"⚠️ [Task: {task_id}] 增強收集後仍未達標：還缺 {remaining_shortage} 篇")
+                        else:
+                            logging.warning(f"⚠️ [Task: {task_id}] 增強收集無新URL，可能已到達真正底部")
+                            
+                    except Exception as e:
+                        logging.error(f"❌ [Task: {task_id}] 增強收集失敗: {e}")
 
             # 步驟5: 保存調試數據
             await self._save_debug_data(task_id, username, len(all_collected_urls), final_posts)
@@ -425,8 +479,27 @@ class PlaywrightLogic:
     async def _setup_browser_and_auth(self, auth_json_content: Dict, task_id: str):
         """設置瀏覽器和認證"""
         playwright = await async_playwright().start()
-        self.browser = await playwright.chromium.launch(headless=True)
-        self.context = await self.browser.new_context()
+        # 🎬 2025新版Threads影片提取優化 - 無手勢自動播放
+        self.browser = await playwright.chromium.launch(
+            headless=True,
+            args=[
+                # ❶ 取消使用者手勢限制（關鍵）
+                "--autoplay-policy=no-user-gesture-required",
+                # ❷ 停用背景媒體暫停
+                "--disable-background-media-suspend",
+                "--disable-features=MediaSessionService",
+                # ❸ 強制網頁永遠處於「可見」
+                "--force-prefers-reduced-motion=0",
+                # ❹ 反偵測增強
+                "--disable-blink-features=AutomationControlled",
+                "--disable-web-security",
+                "--disable-features=VizDisplayCompositor"
+            ]
+        )
+        # 創建context並啟用自動播放權限
+        self.context = await self.browser.new_context(
+            permissions=["autoplay"]
+        )
         
         # 設置認證
         auth_file = Path(tempfile.gettempdir()) / f"{task_id}_auth.json"
@@ -714,8 +787,43 @@ class PlaywrightLogic:
                 logging.debug(f"   ⏳ 第{scroll_rounds+1}輪未發現新URL ({no_new_content_rounds}/{max_no_new_rounds})")
                 
                 if no_new_content_rounds >= max_no_new_rounds:
-                    logging.info(f"   🛑 連續{max_no_new_rounds}輪無新內容，可能已到達底部")
-                    break
+                    # 執行最後嘗試機制 - 採用Realtime Crawler策略
+                    logging.info("   🚀 執行最後嘗試：多重激進滾動激發新內容...")
+                    
+                    # 第一次：激進滾動序列
+                    await page.mouse.wheel(0, 2500)
+                    await asyncio.sleep(2)
+                    await page.mouse.wheel(0, -500)  # 回滾模擬人類
+                    await asyncio.sleep(1)
+                    await page.mouse.wheel(0, 3000)
+                    await asyncio.sleep(2)
+                    
+                    # 第二次：滾動到更底部
+                    await page.mouse.wheel(0, 2000)
+                    await wait_for_content_loading(page)
+                    
+                    # 檢查最後嘗試是否有新內容
+                    final_urls = await page.evaluate(js_code, username)
+                    final_new_count = 0
+                    
+                    for url in final_urls:
+                        raw_post_id = url.split('/')[-1] if url else None
+                        post_id = f"{username}_{raw_post_id}" if raw_post_id else None
+                        
+                        # 檢查是否是新的URL
+                        if url not in urls:
+                            # 增量模式檢查
+                            if incremental and post_id in existing_post_ids:
+                                continue
+                            final_new_count += 1
+                    
+                    if final_new_count == 0:
+                        logging.info("   🛑 最後嘗試無新內容，確認到達底部")
+                        break
+                    else:
+                        logging.info(f"   🎯 最後嘗試發現{final_new_count}個新URL，繼續收集...")
+                        no_new_content_rounds = 0  # 重置計數器
+                        continue
                     
                 # 遞增等待時間
                 progressive_wait = min(1.2 + (no_new_content_rounds - 1) * 0.3, 3.5)
@@ -724,9 +832,8 @@ class PlaywrightLogic:
                 no_new_content_rounds = 0
                 logging.debug(f"   ✅ 第{scroll_rounds+1}輪發現{new_urls_found}個新URL")
             
-            # 滾動到下一段
-            await page.evaluate("window.scrollBy(0, 800)")
-            await asyncio.sleep(2)
+            # 使用增強的滾動策略
+            await enhanced_scroll_with_strategy(page, scroll_rounds)
             scroll_rounds += 1
             
             # 定期顯示進度

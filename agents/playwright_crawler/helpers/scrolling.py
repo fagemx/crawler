@@ -94,6 +94,74 @@ async def scroll_once(page: Page, delta: int = 1000) -> None:
         logging.warning(f"⚠️ 滾動失敗: {e}")
 
 
+async def enhanced_scroll_with_strategy(page: Page, scroll_round: int) -> None:
+    """
+    增強的人性化滾動策略 - 採用Realtime Crawler優秀策略
+    
+    Args:
+        page: Playwright頁面對象
+        scroll_round: 當前滾動輪次
+    """
+    try:
+        if scroll_round % 6 == 5:  # 每6輪進行一次激進滾動
+            logging.debug("   🚀 執行激進滾動激發載入...")
+            # 模擬用戶快速滾動行為
+            await page.mouse.wheel(0, 1600)
+            await asyncio.sleep(1.2)
+            # 稍微回滾（像用戶滾過頭了）
+            await page.mouse.wheel(0, -250)
+            await asyncio.sleep(0.8)
+            # 再繼續向下
+            await page.mouse.wheel(0, 1400)
+            await asyncio.sleep(3.5)
+            
+        elif scroll_round % 3 == 2:  # 每3輪進行一次中度滾動
+            logging.debug("   🔄 執行中度滾動...")
+            # 分段滾動，更像人類行為
+            await page.mouse.wheel(0, 800)
+            await asyncio.sleep(1)
+            await page.mouse.wheel(0, 600)
+            await asyncio.sleep(2.8)
+            
+        else:
+            # 正常滾動，加入隨機性和人性化
+            scroll_distance = 900 + (scroll_round % 3) * 100  # 900-1100px隨機
+            await page.mouse.wheel(0, scroll_distance)
+            
+            # 短暫暫停（模擬用戶閱讀）
+            await asyncio.sleep(1.8 + (scroll_round % 2) * 0.4)  # 1.8-2.2秒隨機
+        
+        # 統一的載入檢測（所有滾動後都檢查）
+        await wait_for_content_loading(page)
+        
+    except Exception as e:
+        logging.warning(f"⚠️ 增強滾動失敗: {e}")
+
+
+async def wait_for_content_loading(page: Page) -> None:
+    """
+    等待內容載入完成 - 檢測載入指示器
+    """
+    try:
+        has_loading = await page.evaluate("""
+            () => {
+                const indicators = document.querySelectorAll(
+                    '[role="progressbar"], .loading, [aria-label*="loading"], [aria-label*="Loading"]'
+                );
+                return indicators.length > 0;
+            }
+        """)
+        
+        if has_loading:
+            logging.debug("   ⏳ 檢測到載入指示器，額外等待...")
+            # 隨機等待2-3.5秒
+            loading_wait = random.uniform(2.0, 3.5)
+            await asyncio.sleep(loading_wait)
+            
+    except Exception as e:
+        logging.warning(f"⚠️ 載入檢測失敗: {e}")
+
+
 def is_anchor_visible(post_ids: List[str], anchor: str) -> Tuple[bool, int]:
     """
     檢查錨點是否在當前貼文列表中

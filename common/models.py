@@ -51,6 +51,7 @@ class PostMetrics(BaseModel):
     reposts_count: Optional[int] = None
     shares_count: Optional[int] = None
     views_count: Optional[int] = Field(None, description="瀏覽數 (從前端畫面讀取)")
+    calculated_score: Optional[float] = Field(None, description="計算分數 (基於互動數據)")
     media_urls: Optional[List[str]] = Field(default_factory=list, description="舊版媒體URL欄位(已棄用)")
     images: List[str] = Field(default_factory=list, description="圖片URL列表")
     videos: List[str] = Field(default_factory=list, description="影片URL列表")
