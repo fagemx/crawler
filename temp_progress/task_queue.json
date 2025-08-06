@@ -1,0 +1,68 @@
+[
+  {
+    "task_id": "test_user1_1754502307",
+    "username": "user1",
+    "max_posts": 20,
+    "mode": "new",
+    "status": "completed",
+    "created_at": 1754502307.355513,
+    "started_at": 1754502339.097665,
+    "completed_at": 1754502339.1064994,
+    "error_message": null
+  },
+  {
+    "task_id": "test_user2_1754502307",
+    "username": "user2",
+    "max_posts": 30,
+    "mode": "hist",
+    "status": "waiting",
+    "created_at": 1754502307.3565133,
+    "started_at": null,
+    "completed_at": null,
+    "error_message": null
+  },
+  {
+    "task_id": "test_user3_1754502307",
+    "username": "user3",
+    "max_posts": 15,
+    "mode": "new",
+    "status": "waiting",
+    "created_at": 1754502307.3575327,
+    "started_at": null,
+    "completed_at": null,
+    "error_message": null
+  },
+  {
+    "task_id": "test_user1_1754502339",
+    "username": "user1",
+    "max_posts": 20,
+    "mode": "new",
+    "status": "waiting",
+    "created_at": 1754502339.085002,
+    "started_at": null,
+    "completed_at": null,
+    "error_message": null
+  },
+  {
+    "task_id": "test_user2_1754502339",
+    "username": "user2",
+    "max_posts": 30,
+    "mode": "hist",
+    "status": "cancelled",
+    "created_at": 1754502339.088018,
+    "started_at": null,
+    "completed_at": 1754502339.0999215,
+    "error_message": null
+  },
+  {
+    "task_id": "test_user3_1754502339",
+    "username": "user3",
+    "max_posts": 15,
+    "mode": "new",
+    "status": "waiting",
+    "created_at": 1754502339.090528,
+    "started_at": null,
+    "completed_at": null,
+    "error_message": null
+  }
+]

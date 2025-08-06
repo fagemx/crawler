@@ -146,7 +146,7 @@ class PlaywrightLogic:
             
             if not all_collected_urls:
                 logging.warning(f"❌ [Task: {task_id}] 沒有收集到任何新的URL")
-                return PostMetricsBatch(posts=[], username=username, total_processed=0, success_count=0, failure_count=0)
+                return PostMetricsBatch(posts=[], username=username, total_count=0)
             
             logging.info(f"✅ [Task: {task_id}] URL收集完成！收集到 {len(all_collected_urls)} 個URL")
             
