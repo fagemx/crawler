@@ -21,6 +21,7 @@ import asyncio
 from .playwright_utils import PlaywrightUtils
 from .playwright_database_handler import PlaywrightDatabaseHandler
 from .playwright_user_manager import PlaywrightUserManager
+from .playwright_data_export_handler import PlaywrightDataExportHandler
 
 # 新增進度管理組件
 try:
@@ -48,6 +49,7 @@ class PlaywrightCrawlerComponentV2:
         # 初始化子組件
         self.db_handler = PlaywrightDatabaseHandler()
         self.user_manager = PlaywrightUserManager()
+        self.export_handler = PlaywrightDataExportHandler(self.db_handler)
         
         # 初始化進度管理組件
         if PROGRESS_MANAGER_AVAILABLE:
