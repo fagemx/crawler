@@ -20,7 +20,7 @@ import sys
 def safe_rerun():
     """安全的重新運行函數，兼容舊版本 Streamlit"""
     try:
-        safe_rerun()
+        st.rerun()
     except AttributeError:
         # 舊版本 Streamlit 使用 experimental_rerun
         st.experimental_rerun()
@@ -1128,7 +1128,7 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
                     if st.button("🗑️", key=f"close_tab_btn_{active_id}", help="關閉當前分頁"):
                         if st.session_state.active_tab_id:
                             self._close_tab(st.session_state.active_tab_id)
-                            safe_rerun()
+                            # 不在這裡調用 rerun，讓後續邏輯處理
                 
                 # 關閉所有分頁按鈕
                 with cols[-2]:
@@ -1138,7 +1138,7 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
                         st.session_state.analysis_tabs = []
                         st.session_state.active_tab_id = None
                         self._clear_persistent_state()
-                        safe_rerun()
+                        # 不在這裡調用 rerun，讓後續邏輯處理
             
             # 診斷按鈕
             with cols[-1]:
@@ -1147,10 +1147,10 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
                 if st.button("🔧", key=f"diagnose_btn_{tab_count}", help="診斷權限和儲存狀態"):
                     self._show_diagnostic_info()
         
-        # 如果沒有分頁，創建第一個
+        # 如果沒有分頁，創建第一個（在下次渲染時生效）
         if not st.session_state.analysis_tabs:
             self._create_new_tab("分析任務 1")
-            safe_rerun()
+            # 分頁已創建，不需要 rerun，讓當前渲染周期完成
         
         # 分頁內容區域
         active_tab = self._get_active_tab()
