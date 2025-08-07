@@ -186,6 +186,20 @@ class GeminiProvider(BaseLLMProvider):
                 safety_settings=self.safety_settings
             )
             
+            # 檢查響應狀態
+            if not response.candidates:
+                raise Exception("Gemini API 沒有返回任何候選響應")
+            
+            candidate = response.candidates[0]
+            
+            # 檢查 finish_reason
+            if candidate.finish_reason == 2:  # SAFETY
+                raise Exception("Gemini API 因安全過濾而拒絕生成內容，請嘗試修改提示詞")
+            elif candidate.finish_reason == 3:  # RECITATION
+                raise Exception("Gemini API 檢測到重複內容，請嘗試修改提示詞")
+            elif candidate.finish_reason != 1:  # STOP (正常完成)
+                raise Exception(f"Gemini API 異常終止，finish_reason: {candidate.finish_reason}")
+            
             # 計算使用量和成本
             usage = {
                 'prompt_tokens': response.usage_metadata.prompt_token_count if response.usage_metadata else 0,
@@ -196,8 +210,15 @@ class GeminiProvider(BaseLLMProvider):
             cost = self._calculate_cost(model_name, usage)
             latency = time.time() - start_time
             
+            # 安全地獲取文本內容
+            try:
+                content = response.text
+            except Exception as text_error:
+                logger.error(f"無法獲取 Gemini 響應文本: {text_error}")
+                content = "無法獲取響應內容"
+            
             llm_response = LLMResponse(
-                content=response.text,
+                content=content,
                 provider=LLMProvider.GEMINI,
                 model=model_name,
                 usage=usage,
@@ -205,7 +226,7 @@ class GeminiProvider(BaseLLMProvider):
                 latency=latency,
                 request_id=request_id,
                 timestamp=time.time(),
-                metadata={'safety_ratings': response.candidates[0].safety_ratings if response.candidates else []}
+                metadata={'safety_ratings': candidate.safety_ratings if hasattr(candidate, 'safety_ratings') else []}
             )
             
             self.update_stats(llm_response, True)
@@ -349,6 +370,109 @@ class OpenAIProvider(BaseLLMProvider):
         return self.cost_config.get(model, {'input': 0.0, 'output': 0.0})
 
 
+class OpenRouterProvider(BaseLLMProvider):
+    """OpenRouter 供應商實現"""
+    
+    def __init__(self, config: Dict[str, Any]):
+        super().__init__(LLMProvider.OPENROUTER, config)
+        
+        self.api_key = config.get('api_key') or os.getenv("OPENROUTER_API_KEY")
+        self.base_url = config.get('base_url', 'https://openrouter.ai/api/v1')
+        self.default_model = config.get('default_model', 'openai/gpt-4o-mini')
+        self.site_url = config.get('site_url', 'https://localhost:3000')
+        self.site_name = config.get('site_name', 'Social Media Content Generator')
+        
+        if not self.api_key:
+            raise ValueError("OpenRouter API key not found")
+        
+        # 成本配置 (OpenRouter 動態定價，這裡提供估算)
+        self.cost_config = {
+            'openai/gpt-4o': {'input': 2.50, 'output': 10.00},
+            'openai/gpt-4o-mini': {'input': 0.15, 'output': 0.60},
+            'anthropic/claude-3.5-sonnet': {'input': 3.00, 'output': 15.00},
+            'perplexity/sonar': {'input': 0.20, 'output': 0.20},
+            'moonshotai/kimi-k2:free': {'input': 0.00, 'output': 0.00},
+            'qwen/qwen3-235b-a22b:free': {'input': 0.00, 'output': 0.00},
+        }
+    
+    async def chat_completion(self, request: LLMRequest) -> LLMResponse:
+        """執行 OpenRouter 聊天完成請求"""
+        start_time = time.time()
+        request_id = f"openrouter_{int(time.time() * 1000)}"
+        
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": self.site_url,
+                "X-Title": self.site_name,
+            }
+            
+            payload = {
+                "model": request.model or self.default_model,
+                "messages": request.messages,
+                "temperature": request.temperature,
+                "max_tokens": request.max_tokens
+            }
+            
+            async with httpx.AsyncClient(timeout=120.0) as client:
+                response = await client.post(
+                    f"{self.base_url}/chat/completions",
+                    json=payload,
+                    headers=headers
+                )
+                response.raise_for_status()
+                data = response.json()
+            
+            # 解析響應
+            content = data['choices'][0]['message']['content']
+            usage = data.get('usage', {})
+            
+            # 計算成本
+            model_name = request.model or self.default_model
+            cost = self._calculate_cost(model_name, usage)
+            latency = time.time() - start_time
+            
+            llm_response = LLMResponse(
+                content=content,
+                provider=LLMProvider.OPENROUTER,
+                model=model_name,
+                usage=usage,
+                cost=cost,
+                latency=latency,
+                request_id=request_id,
+                timestamp=time.time(),
+                metadata={}
+            )
+            
+            self.update_stats(llm_response, True)
+            return llm_response
+            
+        except Exception as e:
+            logger.error(f"OpenRouter API error: {e}")
+            self.update_stats(None, False)
+            raise
+    
+    def _calculate_cost(self, model: str, usage: Dict[str, int]) -> float:
+        """計算 OpenRouter API 調用成本"""
+        costs = self.get_cost_per_token(model)
+        input_cost = (usage.get('prompt_tokens', 0) / 1_000_000) * costs['input']
+        output_cost = (usage.get('completion_tokens', 0) / 1_000_000) * costs['output']
+        return input_cost + output_cost
+    
+    def is_available(self) -> bool:
+        """檢查 OpenRouter 供應商是否可用"""
+        return bool(self.api_key)
+    
+    def get_cost_per_token(self, model: str) -> Dict[str, float]:
+        """獲取 OpenRouter 每個 token 的成本"""
+        config = self.cost_config.get(model, self.cost_config.get(self.default_model, {'input': 0.001, 'output': 0.002}))
+        return {
+            'input': config['input'],
+            'output': config['output']
+        }
+
+
 class LLMManager:
     """統一 LLM 管理器"""
     
@@ -384,6 +508,18 @@ class LLMManager:
                 self.logger.info("OpenAI provider initialized")
         except Exception as e:
             self.logger.warning(f"Failed to initialize OpenAI provider: {e}")
+        
+        # 初始化 OpenRouter
+        try:
+            openrouter_config = {
+                'api_key': os.getenv("OPENROUTER_API_KEY"),
+                'default_model': 'openai/gpt-4o-mini'
+            }
+            if openrouter_config['api_key']:
+                self.providers[LLMProvider.OPENROUTER] = OpenRouterProvider(openrouter_config)
+                self.logger.info("OpenRouter provider initialized")
+        except Exception as e:
+            self.logger.warning(f"Failed to initialize OpenRouter provider: {e}")
         
         # 設置預設供應商
         if LLMProvider.GEMINI in self.providers:

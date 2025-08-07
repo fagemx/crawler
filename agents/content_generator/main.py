@@ -59,9 +59,11 @@ async def generate_content(request: ContentGenerationRequest):
         logger.info(f"開始生成內容，用戶提示: {request.user_prompt[:50]}...")
         
         # 構建五段式 prompt
+        post_count = request.settings.get('post_count', 5)  # 預設5篇
         full_prompt = _build_five_stage_prompt(
             user_prompt=request.user_prompt,
             settings=request.settings,
+            post_count=post_count,
             reference_analysis=request.reference_analysis
         )
         
@@ -110,6 +112,7 @@ async def generate_content(request: ContentGenerationRequest):
 def _build_five_stage_prompt(
     user_prompt: str,
     settings: Dict[str, Any],
+    post_count: int = 5,
     reference_analysis: Optional[Dict[str, Any]] = None
 ) -> str:
     """
@@ -117,9 +120,9 @@ def _build_five_stage_prompt(
     """
     
     # 第一段：開頭指示
-    stage_1 = """只輸出貼文範例，不用分析。
-根據以下內容，提供五個貼文範例。
-5種版本以上，請嚴格按照第一階段分析的格式。
+    stage_1 = f"""只輸出貼文範例，不用分析。
+根據以下內容，提供{post_count}個貼文範例。
+{post_count}種版本，請嚴格按照第一階段分析的格式。
 只輸出貼文，不用分析，不要抄襲原文。
 以下只是參考內容。"""
     

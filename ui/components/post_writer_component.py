@@ -254,17 +254,16 @@ class PostWriterComponent:
             # 根據選擇的提供商顯示不同的模型選項
             if project.get('llm_provider', 'Gemini (Google)') == 'Gemini (Google)':
                 model_options = [
-                    "gemini-2.5-flash",
+                    "gemini-2.0-flash",
                     "gemini-2.5-pro"
                 ]
-                default_model = 'gemini-2.5-flash'
+                default_model = 'gemini-2.0-flash'
             else:  # OpenRouter
                 model_options = [
                     "perplexity/sonar",
-                    "anthropic/claude-3.5-sonnet",
-                    "openai/gpt-4o",
                     "qwen/qwen3-235b-a22b:free", 
-                    "moonshotai/kimi-k2:free"
+                    "moonshotai/kimi-k2:free",
+                    "openai/gpt-oss-120b"
                 ]
                 default_model = 'perplexity/sonar'
             
@@ -279,7 +278,7 @@ class PostWriterComponent:
         
         # 內容設定
         st.markdown("**📝 內容設定**")
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
         
         with col1:
             content_type_options = ["自動預設 - 系統自動判斷內容類型", "社群貼文", "產品介紹", "教學內容", "故事分享", "觀點評論"]
@@ -312,6 +311,14 @@ class PostWriterComponent:
                     project.get('tone', '自動預設 - 系統自動判斷語調')
                 ),
                 key=f"tone_{project['id']}"
+            )
+        
+        with col4:
+            project['post_count'] = st.selectbox(
+                "生成數量：",
+                [1, 2, 3, 4, 5],
+                index=4,  # 預設5篇
+                key=f"post_count_{project['id']}"
             )
         
 
@@ -482,13 +489,14 @@ class PostWriterComponent:
                     'user_prompt': project['user_prompt'],
                     'llm_config': {
                         'provider': project.get('llm_provider', 'Gemini (Google)'),
-                        'model': project.get('llm_model', 'gemini-2.0-flash-exp')
+                        'model': project.get('llm_model', 'gemini-2.0-flash')
                     },
                     'settings': {
                         'writing_style': project.get('writing_style'),
                         'content_type': project.get('content_type'),
                         'target_length': project.get('target_length'),
-                        'tone': project.get('tone')
+                        'tone': project.get('tone'),
+                        'post_count': project.get('post_count', 5)
                     }
                 }
                 
@@ -800,7 +808,7 @@ class PostWriterComponent:
                 "user_prompt": "測試連接",
                 "llm_config": {
                     "provider": "Gemini (Google)",
-                    "model": "gemini-2.5-flash"
+                    "model": "gemini-2.0-flash"
                 },
                 "settings": {
                     "writing_style": "自動預設",
