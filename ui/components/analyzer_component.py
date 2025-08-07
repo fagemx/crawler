@@ -163,6 +163,53 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
         """從Jina API獲取內容 - 直接使用測試過的方法"""
         return self.extractor.fetch_content_jina_api(url)
     
+    def _fetch_content_jina_api_sync(self, url: str) -> tuple:
+        """同步方式從 JINA API 獲取內容"""
+        try:
+            full_url = f"{self.official_reader_url}/{url}"
+            
+            response = requests.get(full_url, headers=self.official_headers, timeout=30)
+            
+            if response.status_code == 200:
+                return True, response.text
+            else:
+                return False, f"HTTP {response.status_code}: {response.text}"
+                
+        except Exception as e:
+            return False, str(e)
+    
+    def _parse_post_data_from_url(self, url: str, markdown_content: str) -> Optional[Dict[str, Any]]:
+        """解析從URL提取的貼文數據"""
+        try:
+            # 從 URL 提取基本資訊
+            url_match = re.match(r'https://www\.threads\.com/@([\w\._]+)/post/([\w-]+)', url)
+            if not url_match:
+                return None
+            
+            username = url_match.group(1)
+            post_id = url_match.group(2)
+            
+            # 使用 extractor 的方法解析內容
+            views_count = self.extractor.extract_views_count(markdown_content, post_id)
+            likes_count = self.extractor.extract_likes_count(markdown_content)
+            main_content = self.extractor.extract_post_content(markdown_content)
+            
+            return {
+                'post_id': post_id,
+                'username': username,
+                'url': url,
+                'content': main_content or '無法提取內容',
+                'views_count': views_count or '未知',
+                'likes_count': likes_count or '未知',
+                'comments_count': '未知',
+                'raw_markdown': markdown_content,
+                'extracted_at': datetime.now().isoformat()
+            }
+            
+        except Exception as e:
+            st.error(f"解析貼文數據時發生錯誤: {e}")
+            return None
+    
 
 
     def _parse_post_data(self, url: str, markdown_content: str) -> Optional[Dict[str, Any]]:
@@ -1158,7 +1205,7 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
                 if username and post_id:
                     # 自動保存輸入狀態
                     self._save_persistent_state()
-                    url = f"https://www.threads.net/@{username}/post/{post_id}"
+                    url = f"https://www.threads.com/@{username}/post/{post_id}"
                     self._extract_post_from_url(tab, url)
                 else:
                     st.error("請輸入用戶名和貼文ID")
@@ -1168,47 +1215,36 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
         self._update_tab_status(tab['id'], 'extracting')
         
         try:
-            # 執行提取
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            post_data = loop.run_until_complete(self._fetch_post_content(url))
-            
-            if post_data:
-                # 更新分頁標題
-                username = post_data.get('username', 'unknown')
-                new_title = f"@{username}"
-                tab['title'] = new_title
+            with st.spinner("🔍 正在提取貼文內容..."):
+                # 使用同步方式提取內容
+                success, content = self._fetch_content_jina_api_sync(url)
                 
-                self._update_tab_status(tab['id'], 'idle', post_data=post_data)
-            else:
-                self._update_tab_status(tab['id'], 'error')
+                if success:
+                    post_data = self._parse_post_data_from_url(url, content)
+                    if post_data:
+                        # 更新分頁標題
+                        username = post_data.get('username', 'unknown')
+                        new_title = f"@{username}"
+                        tab['title'] = new_title
+                        
+                        self._update_tab_status(tab['id'], 'idle', post_data=post_data)
+                        st.success("✅ 貼文內容提取成功！")
+                    else:
+                        st.error("❌ 無法解析貼文內容")
+                        self._update_tab_status(tab['id'], 'error')
+                else:
+                    st.error(f"❌ API 請求失敗：{content}")
+                    self._update_tab_status(tab['id'], 'error')
+                    
         except Exception as e:
-            st.error(f"提取失敗: {e}")
+            st.error(f"❌ 提取失敗: {e}")
             self._update_tab_status(tab['id'], 'error')
+            import traceback
+            st.error(f"詳細錯誤: {traceback.format_exc()}")
         
         st.rerun()
     
-    async def _fetch_post_content(self, url: str) -> Dict[str, Any]:
-        """提取貼文內容（重用現有邏輯）"""
-        try:
-            # 使用 JINA API 提取
-            full_url = f"{self.official_reader_url}/{url}"
-            
-            async with httpx.AsyncClient() as client:
-                response = await client.get(full_url, headers=self.official_headers, timeout=30.0)
-                
-                if response.status_code != 200:
-                    return None
-                
-                markdown_content = response.text
-                
-                # 解析貼文數據
-                post_data = self._parse_post_data(url, markdown_content)
-                return post_data
-                
-        except Exception as e:
-            st.error(f"提取失敗: {e}")
-            return None
+
     
     def _render_tab_extracting_status(self, tab: Dict[str, Any]):
         """渲染提取狀態"""
