@@ -408,10 +408,11 @@ class PostWriterComponent:
             with st.expander(f"⭐ 精選 {i+1} - {saved_post['saved_at'][:16]}", expanded=False):
                 # 顯示貼文內容
                 st.markdown("**📝 精選內容：**")
+                content_with_breaks = saved_post['content'].replace('\n', '<br>')
                 st.markdown(
                     f"""
                     <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; margin: 10px 0;">
-                        {saved_post['content'].replace('\n', '<br>')}
+                        {content_with_breaks}
                     </div>
                     """, 
                     unsafe_allow_html=True

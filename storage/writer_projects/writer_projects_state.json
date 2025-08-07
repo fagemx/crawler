@@ -159,10 +159,27 @@
           },
           "created_at": "2025-08-07 17:17:31"
         }
+      ],
+      "post_count": 5,
+      "saved_posts": [
+        {
+          "id": "saved_0_1754559467",
+          "content": "大一新生筆電選購求助！聽說16GB記憶體和512GB SSD是電機資工系的基本配備，不過到底有沒有必要升到32GB和1TB呢？CPU要買i7還是i5？OLED螢幕會燒屏嗎？ASUS筆電多是OLED面板，不知道耐用度如何。Windows系統選Pro還是Home？我家有人用Lenovo，感覺也挺好。筆電主要用來寫程式，不打遊戲，預算算寬裕但想買得划算。各位大大有推薦的型號或品牌嗎？謝謝！",
+          "prompt": "",
+          "created_at": "2025-08-07 17:17:31",
+          "saved_at": "2025-08-07T17:37:47.988926",
+          "settings": {
+            "writing_style": "自動預設 - 系統自動判斷最適合的風格",
+            "content_type": "自動預設 - 系統自動判斷內容類型",
+            "target_length": "自動預設 - 系統自動判斷長度",
+            "tone": "自動預設 - 系統自動判斷語調"
+          },
+          "version_info": "版本 版本 5"
+        }
       ]
     }
   ],
   "active_project_id": "project_1",
   "project_counter": 1,
-  "last_updated": "2025-08-07T17:17:31.973159"
+  "last_updated": "2025-08-07T17:37:47.988926"
 }
