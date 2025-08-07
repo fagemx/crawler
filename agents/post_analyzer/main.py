@@ -13,6 +13,10 @@ import asyncio
 import sys
 import os
 from datetime import datetime
+from dotenv import load_dotenv
+
+# 載入環境變數
+load_dotenv()
 
 # 添加專案根目錄到 Python 路徑
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
@@ -20,6 +24,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from common.llm_manager import get_llm_manager, chat_completion
 from common.settings import get_settings
 from common.models import PostMetrics, PostMetricsBatch
+from agents.post_analyzer.analyzer_logic import PostAnalyzerAgent as StructureAnalyzerAgent
 
 app = FastAPI(title="Post Analyzer Agent", version="1.0.0")
 
@@ -28,6 +33,11 @@ class AnalyzeRequest(BaseModel):
     posts_data: List[Dict[str, Any]] = Field(..., description="貼文數據列表")
     batch_id: Optional[str] = Field(None, description="批次ID")
 
+class StructureAnalyzeRequest(BaseModel):
+    post_content: str = Field(..., description="要分析的貼文內容")
+    post_id: str = Field(..., description="貼文ID")
+    username: str = Field(..., description="用戶名稱")
+
 class AnalysisResult(BaseModel):
     batch_id: str
     username: str
@@ -35,6 +45,13 @@ class AnalysisResult(BaseModel):
     recommendations: Dict[str, Any]
     top_posts_analysis: List[Dict[str, Any]]
     rewrite_suggestions: List[Dict[str, Any]]
+    analyzed_at: datetime
+
+class StructureAnalysisResult(BaseModel):
+    post_id: str
+    username: str
+    post_structure_guide: Dict[str, Any]
+    analysis_summary: str
     analyzed_at: datetime
 
 class PostAnalyzerAgent:
@@ -423,6 +440,7 @@ class PostAnalyzerAgent:
 
 # 全域 agent 實例
 post_analyzer_agent = PostAnalyzerAgent()
+structure_analyzer_agent = StructureAnalyzerAgent()
 
 @app.get("/health")
 async def health_check():
@@ -446,6 +464,30 @@ async def analyze_posts(request: AnalyzeRequest):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"分析處理失敗: {str(e)}")
+
+@app.post("/structure-analyze", response_model=StructureAnalysisResult)
+async def analyze_post_structure(request: StructureAnalyzeRequest):
+    """結構分析貼文"""
+    try:
+        result = await structure_analyzer_agent.analyze_post_structure(
+            post_content=request.post_content,
+            post_id=request.post_id,
+            username=request.username
+        )
+        
+        if result.get("status") == "error":
+            raise HTTPException(status_code=500, detail=result.get("message"))
+        
+        return StructureAnalysisResult(
+            post_id=result["post_id"],
+            username=result["username"],
+            post_structure_guide=result["post_structure_guide"],
+            analysis_summary=result["analysis_summary"],
+            analyzed_at=datetime.fromisoformat(result["analyzed_at"])
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"結構分析處理失敗: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

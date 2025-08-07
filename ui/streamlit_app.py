@@ -21,6 +21,7 @@ from ui.components.playwright_crawler_component_v2 import PlaywrightCrawlerCompo
 from ui.components.monitoring_component import SystemMonitoringComponent
 from ui.components.content_generator_component import ContentGeneratorComponent
 from ui.components.analyzer_component import AnalyzerComponent
+from ui.components.post_writer_component import PostWriterComponent
 
 # 設置頁面配置
 st.set_page_config(
@@ -39,6 +40,7 @@ class SocialMediaGeneratorApp:
         self.monitoring_component = SystemMonitoringComponent()
         self.content_generator_component = ContentGeneratorComponent()
         self.analyzer_component = AnalyzerComponent()
+        self.post_writer_component = PostWriterComponent(self.analyzer_component)
         
         # 初始化會話狀態
         self._init_session_state()
@@ -126,38 +128,37 @@ class SocialMediaGeneratorApp:
     
     def render_main_content(self):
         """渲染主要內容"""
-        # 標籤頁 (暫時隱藏部分功能)
-        tab1, tab2 = st.tabs([
+        # 標籤頁
+        tabs = st.tabs([
             "🚀 實時智能爬蟲",
-            "🎭 Playwright 爬蟲"
+            "🎭 Playwright 爬蟲",
+            "📊 內容分析",
+            "✍️ 智能撰寫"
+            # "📝 內容生成", 
+            # "🔧 系統監控"
         ])
         
-        # 隱藏的分頁 (保留程式碼，需要時可以重新啟用)
-        # tab3, tab4, tab5, tab6 = st.tabs([
-        #     "🕷️ Threads 爬蟲", 
-        #     "📊 內容分析",
-        #     "📝 內容生成", 
-        #     "🔧 系統監控"
-        # ])
-        
-        with tab1:
+        with tabs[0]:
             self.realtime_crawler_component.render()
         
-        with tab2:
+        with tabs[1]:
             self.playwright_crawler_component.render()
-        
-        # 隱藏的組件渲染 (保留程式碼)
-        # with tab3:
-        #     self.crawler_component.render()
-        # 
-        # with tab4:
-        #     self.analyzer_component.render()
-        # 
-        # with tab5:
+            
+        with tabs[2]:
+            self.analyzer_component.render()
+            
+        with tabs[3]:
+            self.post_writer_component.render()
+
+        # with tabs[4]:
         #     self.content_generator_component.render()
         # 
-        # with tab6:
+        # with tabs[4]:
         #     self.monitoring_component.render()
+        # 
+        # 舊的 Threads 爬蟲 (可選)
+        # with st.expander("🕷️ 舊版 Threads 爬蟲"):
+        #      self.crawler_component.render()
     
     def _reset_all_states(self):
         """重置所有狀態"""

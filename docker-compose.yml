@@ -289,6 +289,35 @@ services:
     profiles:
       - tunnel
 
+  # Content Generator Agent - 貼文生成服務
+  content-generator-agent:
+    build:
+      context: .
+      dockerfile: agents/content_generator/Dockerfile
+    container_name: social-media-content-generator
+    ports:
+      - "8008:8008"
+    environment:
+      - PYTHONPATH=/app
+      - AGENT_PORT=8008
+      - REDIS_URL=redis://redis:6379/0
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - social-media-network
+    profiles:
+      - tunnel
+
   # Form API - 表單處理服務
   form-api:
     build:

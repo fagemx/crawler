@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y curl gcc && rm -rf /var/lib/apt/lists/*
 COPY pyproject.toml README.md LICENSE ./
 
 # 安裝 Python 依賴（包含可選依賴組）
-RUN pip install --no-cache-dir -e ".[messaging,ai,monitoring]"
+RUN pip install --no-cache-dir -e ".[database,messaging,ai,monitoring]"
 
 # 複製應用程式碼
 COPY . .
