@@ -954,8 +954,12 @@ class PlaywrightCrawlerComponentV2:
         """渲染結果頁面"""
         st.subheader("✅ 爬取完成")
         
+        # 優先檢查 final_data（來自正常爬取），然後檢查 playwright_results（來自CSV導入）
         final_data = st.session_state.get('playwright_final_data', {})
-        if not final_data:
+        csv_results = st.session_state.get('playwright_results', {})
+        
+        # 如果沒有任何數據
+        if not final_data and not csv_results:
             st.warning("沒有爬取到數據")
             if st.button("🔙 返回設定"):
                 # 檢查是否從管理任務頁面進入
@@ -968,6 +972,13 @@ class PlaywrightCrawlerComponentV2:
                 st.session_state.playwright_results_saved = False
                 st.rerun()
             return
+        
+        # 統一數據格式：如果有CSV導入的結果，使用它；否則使用final_data
+        if csv_results:
+            final_data = csv_results
+            st.info("📁 顯示CSV導入的結果")
+        else:
+            st.info("🎯 顯示爬取的結果")
         
         # 處理並顯示結果
         try:

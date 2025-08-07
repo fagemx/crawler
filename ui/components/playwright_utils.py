@@ -19,13 +19,59 @@ class PlaywrightUtils:
     
     @staticmethod
     def convert_to_taipei_time(datetime_str: str) -> datetime:
-        """將 ISO 格式的日期時間字符串轉換為台北時區的 datetime 物件（無時區信息）"""
+        """將各種格式的日期時間字符串轉換為台北時區的 datetime 物件（無時區信息）"""
         try:
             if not datetime_str:
                 return None
             
-            # 處理 ISO 格式日期字符串
-            dt = datetime.fromisoformat(datetime_str.replace('Z', '+00:00'))
+            # 清理輸入字符串
+            datetime_str = str(datetime_str).strip()
+            
+            # 嘗試多種時間格式解析
+            dt = None
+            
+            # 方法1：嘗試 ISO 格式
+            try:
+                dt = datetime.fromisoformat(datetime_str.replace('Z', '+00:00'))
+            except ValueError:
+                pass
+            
+            # 方法2：嘗試標準格式（空格分隔）
+            if dt is None:
+                try:
+                    # 處理 "YYYY-MM-DD HH:MM:SS" 格式
+                    if len(datetime_str) == 19 and ' ' in datetime_str:
+                        dt = datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S')
+                    # 處理 "YYYY-MM-DD HH:MM:SS.ffffff" 格式
+                    elif '.' in datetime_str and ' ' in datetime_str:
+                        # 截取到微秒最多6位
+                        if '.' in datetime_str:
+                            base_part, micro_part = datetime_str.split('.')
+                            micro_part = micro_part[:6].ljust(6, '0')  # 確保6位微秒
+                            datetime_str = f"{base_part}.{micro_part}"
+                        dt = datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S.%f')
+                except ValueError:
+                    pass
+            
+            # 方法3：嘗試替換T為空格後解析
+            if dt is None:
+                try:
+                    modified_str = datetime_str.replace('T', ' ')
+                    if '.' in modified_str:
+                        dt = datetime.strptime(modified_str, '%Y-%m-%d %H:%M:%S.%f')
+                    else:
+                        dt = datetime.strptime(modified_str, '%Y-%m-%d %H:%M:%S')
+                except ValueError:
+                    pass
+            
+            # 如果所有方法都失敗
+            if dt is None:
+                print(f"⚠️ 無法解析時間格式: {datetime_str}")
+                return None
+            
+            # 如果解析的時間沒有時區信息，假設它是UTC時間
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
             
             # 轉換為台北時區 (UTC+8)
             taipei_tz = timezone(timedelta(hours=8))

@@ -406,12 +406,25 @@ class PlaywrightCrawlerComponent:
             content = uploaded_file.getvalue()
             df = pd.read_csv(io.StringIO(content.decode('utf-8-sig')))
             
-            required_columns = ['username', 'post_id', 'content', 'views']
-            missing_columns = [col for col in required_columns if col not in df.columns]
+            # 檢查CSV格式是否正確（更靈活的驗證）
+            # 核心必要欄位
+            core_required = ['username', 'post_id', 'content']
+            missing_core = [col for col in core_required if col not in df.columns]
             
-            if missing_columns:
-                st.error(f"❌ CSV格式不正確，缺少欄位: {', '.join(missing_columns)}")
+            if missing_core:
+                st.error(f"❌ CSV格式不正確，缺少核心欄位: {', '.join(missing_core)}")
                 return
+            
+            # 檢查可選欄位，如果沒有則提供預設值
+            optional_columns = ['views', 'likes_count', 'comments_count', 'reposts_count', 'shares_count']
+            for col in optional_columns:
+                if col not in df.columns:
+                    if col == 'views':
+                        df[col] = df.get('views_count', 0)  # 嘗試使用 views_count 作為 views
+                    else:
+                        df[col] = 0  # 預設值為 0
+            
+            st.info(f"✅ 成功載入CSV，包含 {len(df)} 筆記錄")
             
             # 簡化轉換（完整版本請參考原組件）
             results = []

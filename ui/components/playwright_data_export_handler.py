@@ -135,6 +135,39 @@ class PlaywrightDataExportHandler:
                     content = post.get('content', '')
                     content_display = content if show_full_history_content else ((content[:40] + "...") if content and len(content) > 40 else content or 'N/A')
                     
+                    # 處理發布時間顯示（強化錯誤處理）
+                    published_at = post.get('post_published_at', '')
+                    if published_at:
+                        try:
+                            # 轉換為台北時間並格式化顯示
+                            taipei_published = PlaywrightUtils.convert_to_taipei_time(published_at)
+                            if taipei_published:
+                                published_display = taipei_published.strftime('%Y-%m-%d %H:%M')
+                            else:
+                                # 如果轉換失敗，嘗試直接格式化字符串
+                                published_display = str(published_at)[:16] if len(str(published_at)) >= 16 else str(published_at)
+                        except Exception as e:
+                            print(f"🐛 發布時間格式化錯誤: {published_at} -> {e}")
+                            published_display = str(published_at)[:16] if published_at else 'N/A'
+                    else:
+                        published_display = 'N/A'
+                    
+                    # 處理爬取時間顯示（強化錯誤處理）
+                    fetched_at = post.get('fetched_at', '')
+                    if fetched_at:
+                        try:
+                            taipei_fetched = PlaywrightUtils.convert_to_taipei_time(fetched_at)
+                            if taipei_fetched:
+                                fetched_display = taipei_fetched.strftime('%Y-%m-%d %H:%M')
+                            else:
+                                # 如果轉換失敗，嘗試直接格式化字符串
+                                fetched_display = str(fetched_at)[:16] if len(str(fetched_at)) >= 16 else str(fetched_at)
+                        except Exception as e:
+                            print(f"🐛 爬取時間格式化錯誤: {fetched_at} -> {e}")
+                            fetched_display = str(fetched_at)[:16] if fetched_at else 'N/A'
+                    else:
+                        fetched_display = 'N/A'
+                    
                     preview_data.append({
                         "#": i,
                         "貼文ID": post.get('post_id', 'N/A')[:20] + "..." if len(post.get('post_id', '')) > 20 else post.get('post_id', 'N/A'),
@@ -142,7 +175,8 @@ class PlaywrightDataExportHandler:
                         "觀看數": f"{post.get('views_count', 0):,}",
                         "按讚數": f"{post.get('likes_count', 0):,}",
                         "分數": f"{post.get('calculated_score', 0):,.1f}" if post.get('calculated_score') else 'N/A',
-                        "爬取時間": str(post.get('fetched_at', 'N/A'))[:19]
+                        "發布時間": published_display,
+                        "爬取時間": fetched_display
                     })
                 st.dataframe(preview_data, use_container_width=True)
             
@@ -537,13 +571,27 @@ class PlaywrightDataExportHandler:
             content = uploaded_file.getvalue()
             df = pd.read_csv(io.StringIO(content.decode('utf-8-sig')))
             
-            # 檢查CSV格式是否正確（與 JSON 格式一致）
-            required_columns = ['url', 'post_id', 'username', 'content']
-            missing_columns = [col for col in required_columns if col not in df.columns]
+            # 檢查CSV格式是否正確（更靈活的驗證）
+            # 核心必要欄位
+            core_required = ['username', 'post_id', 'content']
+            missing_core = [col for col in core_required if col not in df.columns]
             
-            if missing_columns:
-                st.error(f"❌ CSV格式不正確，缺少欄位: {', '.join(missing_columns)}")
+            if missing_core:
+                st.error(f"❌ CSV格式不正確，缺少核心欄位: {', '.join(missing_core)}")
                 return
+            
+            # 檢查可選欄位，如果沒有則提供預設值
+            optional_columns = ['url', 'views', 'likes_count', 'comments_count', 'reposts_count', 'shares_count']
+            for col in optional_columns:
+                if col not in df.columns:
+                    if col == 'views':
+                        df[col] = df.get('views_count', 0)  # 嘗試使用 views_count 作為 views
+                    elif col == 'url':
+                        df[col] = ''  # URL可以為空
+                    else:
+                        df[col] = 0  # 預設值為 0
+            
+            st.info(f"✅ 成功載入CSV，包含 {len(df)} 筆記錄")
             
             # 轉換為結果格式
             results = []
