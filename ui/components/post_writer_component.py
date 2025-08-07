@@ -429,7 +429,7 @@ class PostWriterComponent:
                 
                 with col2:
                     st.markdown("**💭 創作提示：**")
-                    edited_prompt = st.text_area("", value=saved_post['prompt'], height=80, key=f"prompt_view_{saved_post['id']}")
+                    edited_prompt = st.text_area("創作提示內容", value=saved_post['prompt'], height=80, key=f"prompt_view_{saved_post['id']}", label_visibility="collapsed")
                     
                     # 如果提示詞被修改，顯示保存按鈕
                     if edited_prompt != saved_post['prompt']:
@@ -541,15 +541,28 @@ class PostWriterComponent:
     def _delete_current_project(self):
         """刪除當前專案"""
         if st.session_state.active_project_id:
+            original_count = len(st.session_state.writer_projects)
+            project_to_delete = st.session_state.active_project_id
+            
             st.session_state.writer_projects = [
                 p for p in st.session_state.writer_projects 
                 if p['id'] != st.session_state.active_project_id
             ]
             
-            if st.session_state.writer_projects:
-                st.session_state.active_project_id = st.session_state.writer_projects[-1]['id']
+            new_count = len(st.session_state.writer_projects)
+            if original_count > new_count:
+                st.success(f"✅ 已刪除專案 {project_to_delete[:8]}...")
+                
+                if st.session_state.writer_projects:
+                    st.session_state.active_project_id = st.session_state.writer_projects[-1]['id']
+                    st.info(f"ℹ️ 已切換到專案 {st.session_state.active_project_id[:8]}...")
+                else:
+                    st.session_state.active_project_id = None
+                    st.info("ℹ️ 已清空所有專案")
             else:
-                st.session_state.active_project_id = None
+                st.warning("⚠️ 專案清單中未找到對應項目")
+        else:
+            st.warning("⚠️ 沒有選中的專案可刪除")
     
     def _get_active_project(self) -> Dict[str, Any]:
         """獲取當前活動專案"""

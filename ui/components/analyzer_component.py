@@ -796,21 +796,48 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
     def _delete_analysis_result(self, analysis_id: str):
         """刪除分析結果"""
         try:
+            # 檢查目錄權限
+            import os
+            storage_writable = os.access(self.analysis_results_dir, os.W_OK)
+            
             # 刪除分析文件
             analysis_file = self.analysis_results_dir / f"analysis_{analysis_id}.json"
             if analysis_file.exists():
+                file_writable = os.access(analysis_file, os.W_OK)
+                if not file_writable:
+                    st.error(f"❌ 檔案權限不足，無法刪除: {analysis_file}")
+                    return
+                    
                 analysis_file.unlink()
+                st.success(f"✅ 已刪除分析檔案: {analysis_file.name}")
+            else:
+                st.warning(f"⚠️ 檔案不存在: {analysis_file}")
             
             # 更新索引
+            if not storage_writable:
+                st.error(f"❌ 目錄權限不足，無法更新索引: {self.analysis_results_dir}")
+                return
+                
             index_data = self._load_analysis_index()
+            original_count = len(index_data["analyses"])
             index_data["analyses"] = [
                 a for a in index_data["analyses"] 
                 if a["analysis_id"] != analysis_id
             ]
             self._save_analysis_index(index_data)
             
+            new_count = len(index_data["analyses"])
+            if original_count > new_count:
+                st.success(f"✅ 索引已更新，移除 {original_count - new_count} 筆記錄")
+            else:
+                st.warning("⚠️ 索引中未找到對應記錄")
+            
+        except PermissionError as e:
+            st.error(f"❌ 權限錯誤: {e}")
         except Exception as e:
             st.error(f"❌ 刪除分析結果失敗: {e}")
+            import traceback
+            st.error(f"詳細錯誤: {traceback.format_exc()}")
     
     def get_saved_analysis_options(self) -> List[Dict[str, str]]:
         """獲取已保存的分析結果選項（供其他組件使用）"""
@@ -885,12 +912,28 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
             del st.session_state[key]
         
         # 刪除分頁的持久化文件
-        tab_state_file = self.storage_dir / f"{tab_id}_state.json"
-        if tab_state_file.exists():
-            tab_state_file.unlink()
-        
-        # 自動保存狀態
-        self._save_persistent_state()
+        try:
+            import os
+            tab_state_file = self.storage_dir / f"{tab_id}_state.json"
+            if tab_state_file.exists():
+                if os.access(tab_state_file, os.W_OK):
+                    tab_state_file.unlink()
+                    st.success(f"✅ 已刪除分頁狀態檔案: {tab_state_file.name}")
+                else:
+                    st.error(f"❌ 分頁狀態檔案權限不足: {tab_state_file}")
+            else:
+                st.info(f"ℹ️ 分頁狀態檔案不存在: {tab_state_file.name}")
+                
+            # 自動保存狀態
+            self._save_persistent_state()
+            st.success(f"✅ 分頁 {tab_id[:8]}... 已成功關閉")
+            
+        except PermissionError as e:
+            st.error(f"❌ 關閉分頁權限錯誤: {e}")
+        except Exception as e:
+            st.error(f"❌ 關閉分頁失敗: {e}")
+            import traceback
+            st.error(f"詳細錯誤: {traceback.format_exc()}")
     
     def _get_active_tab(self) -> Dict[str, Any]:
         """獲取當前活動分頁"""
@@ -967,8 +1010,8 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
             </style>
             """, unsafe_allow_html=True)
             
-            # 分頁標籤欄
-            cols = st.columns([0.1] + [0.15] * len(st.session_state.analysis_tabs) + [0.1, 0.1])
+            # 分頁標籤欄 (增加診斷按鈕列)
+            cols = st.columns([0.1] + [0.15] * len(st.session_state.analysis_tabs) + [0.08, 0.08, 0.08])
             
             # 新增分頁按鈕
             with cols[0]:
@@ -1004,19 +1047,24 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
             
             # 關閉分頁按鈕（只在有分頁時顯示）
             if st.session_state.analysis_tabs:
-                with cols[-2]:
+                with cols[-3]:
                     if st.button("🗑️", key="close_tab_btn", help="關閉當前分頁"):
                         if st.session_state.active_tab_id:
                             self._close_tab(st.session_state.active_tab_id)
                             st.rerun()
                 
                 # 關閉所有分頁按鈕
-                with cols[-1]:
+                with cols[-2]:
                     if st.button("🗑️📑", key="close_all_tabs_btn", help="關閉所有分頁"):
                         st.session_state.analysis_tabs = []
                         st.session_state.active_tab_id = None
                         self._clear_persistent_state()
                         st.rerun()
+            
+            # 診斷按鈕
+            with cols[-1]:
+                if st.button("🔧", key="diagnose_btn", help="診斷權限和儲存狀態"):
+                    self._show_diagnostic_info()
         
         # 如果沒有分頁，創建第一個
         if not st.session_state.analysis_tabs:
@@ -1512,3 +1560,61 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
             if key.startswith(f"{source_tab['id']}_"):
                 new_key = key.replace(f"{source_tab['id']}_", f"{new_tab_id}_")
                 st.session_state[new_key] = st.session_state[key]
+    
+    def _show_diagnostic_info(self):
+        """顯示診斷信息"""
+        import os
+        import stat
+        
+        st.info("🔧 **系統診斷結果**")
+        
+        # 檢查存儲目錄
+        with st.expander("📁 存儲目錄權限檢查", expanded=True):
+            directories = [
+                ("分析結果目錄", self.analysis_results_dir),
+                ("暫存目錄", self.storage_dir),
+                ("專案目錄", Path("storage") / "writer_projects")
+            ]
+            
+            for name, path in directories:
+                if path.exists():
+                    perms = oct(path.stat().st_mode)[-3:]
+                    readable = os.access(path, os.R_OK)
+                    writable = os.access(path, os.W_OK)
+                    executable = os.access(path, os.X_OK)
+                    
+                    status = "✅" if (readable and writable and executable) else "❌"
+                    st.text(f"{status} {name}: {path}")
+                    st.text(f"   權限: {perms} | 讀:{readable} 寫:{writable} 執行:{executable}")
+                else:
+                    st.text(f"❌ {name}: {path} (不存在)")
+        
+        # 檢查現有檔案
+        with st.expander("📄 現有檔案檢查"):
+            # 分析結果檔案
+            analysis_files = list(self.analysis_results_dir.glob("*.json"))
+            st.text(f"📊 分析結果檔案: {len(analysis_files)} 個")
+            for file in analysis_files[:5]:  # 只顯示前5個
+                writable = os.access(file, os.W_OK)
+                status = "✅" if writable else "❌"
+                st.text(f"   {status} {file.name}")
+            if len(analysis_files) > 5:
+                st.text(f"   ... 還有 {len(analysis_files) - 5} 個檔案")
+            
+            # 分頁狀態檔案
+            tab_files = list(self.storage_dir.glob("tab_*_state.json"))
+            st.text(f"📝 分頁狀態檔案: {len(tab_files)} 個")
+            for file in tab_files:
+                writable = os.access(file, os.W_OK)
+                status = "✅" if writable else "❌"
+                st.text(f"   {status} {file.name}")
+        
+        # 記憶體狀態檢查
+        with st.expander("💾 記憶體狀態檢查"):
+            st.text(f"📋 當前分頁數: {len(st.session_state.analysis_tabs)}")
+            st.text(f"🎯 活動分頁 ID: {st.session_state.get('active_tab_id', 'None')}")
+            
+            # 專案狀態
+            writer_projects = st.session_state.get('writer_projects', [])
+            st.text(f"📝 撰寫專案數: {len(writer_projects)}")
+            st.text(f"🎯 活動專案 ID: {st.session_state.get('active_project_id', 'None')}")

@@ -53,6 +53,12 @@ RUN playwright install chromium
 # 複製專案檔案
 COPY . .
 
+# 創建存儲目錄並設置權限
+RUN mkdir -p /app/storage/analysis_results \
+    && mkdir -p /app/storage/temp_progress \
+    && mkdir -p /app/storage/writer_projects \
+    && chmod -R 755 /app/storage
+
 # 設置 Python 路徑
 ENV PYTHONPATH=/app
 
