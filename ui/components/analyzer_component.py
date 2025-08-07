@@ -339,17 +339,18 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
         
         # 執行分析
         try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.run_until_complete(self._execute_structure_analysis(selected_post))
+            with st.spinner("🔬 正在進行結構分析..."):
+                self._execute_structure_analysis_sync(selected_post)
         except Exception as e:
             st.session_state.structure_analysis_logs.append(f"❌ 分析執行失敗: {e}")
             st.session_state.structure_analysis_status = 'error'
+            import traceback
+            st.error(f"詳細錯誤: {traceback.format_exc()}")
         finally:
             st.rerun()
     
-    async def _execute_structure_analysis(self, selected_post: Dict[str, Any]):
-        """執行結構分析請求"""
+    def _execute_structure_analysis_sync(self, selected_post: Dict[str, Any]):
+        """執行結構分析請求 (同步版本)"""
         try:
             # 準備請求數據
             request_data = {
@@ -362,32 +363,39 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
             st.session_state.structure_analysis_logs.append("🤖 啟動 Gemini 2.0 Flash AI 模型...")
             st.session_state.structure_analysis_logs.append("🔍 第一階段：結構特徵分析中...")
             
-            timeout = httpx.Timeout(120.0)  # 2分鐘超時
-            async with httpx.AsyncClient(timeout=timeout) as client:
-                response = await client.post(self.structure_analyzer_url, json=request_data)
+            # 使用同步 requests
+            response = requests.post(
+                self.structure_analyzer_url, 
+                json=request_data,
+                timeout=120  # 2分鐘超時
+            )
+            
+            if response.status_code != 200:
+                error_msg = f"❌ 結構分析服務請求失敗，狀態碼: {response.status_code}"
+                st.session_state.structure_analysis_logs.append(error_msg)
+                st.session_state.structure_analysis_logs.append(f"錯誤內容: {response.text}")
+                st.session_state.structure_analysis_status = 'error'
+                return
+            
+            # 解析分析結果
+            try:
+                st.session_state.structure_analysis_logs.append("📝 第二階段：深度內容分析完成")
+                st.session_state.structure_analysis_logs.append("📊 正在整理分析結果...")
+                analysis_result = response.json()
+                st.session_state.structure_analysis_result = analysis_result
+                st.session_state.structure_analysis_status = 'completed'
+                st.session_state.structure_analysis_logs.append("✅ 結構分析完成！生成了完整的改寫建議與發展方向")
                 
-                if response.status_code != 200:
-                    error_msg = f"❌ 結構分析服務請求失敗，狀態碼: {response.status_code}"
-                    st.session_state.structure_analysis_logs.append(error_msg)
-                    st.session_state.structure_analysis_logs.append(f"錯誤內容: {response.text}")
-                    st.session_state.structure_analysis_status = 'error'
-                    return
-                
-                # 解析分析結果
-                try:
-                    st.session_state.structure_analysis_logs.append("📝 第二階段：深度內容分析完成")
-                    st.session_state.structure_analysis_logs.append("📊 正在整理分析結果...")
-                    analysis_result = response.json()
-                    st.session_state.structure_analysis_result = analysis_result
-                    st.session_state.structure_analysis_status = 'completed'
-                    st.session_state.structure_analysis_logs.append("✅ 結構分析完成！生成了完整的改寫建議與發展方向")
-                    
-                except json.JSONDecodeError as e:
-                    st.session_state.structure_analysis_logs.append(f"❌ 無法解析分析結果 JSON: {e}")
-                    st.session_state.structure_analysis_status = 'error'
+            except json.JSONDecodeError as e:
+                st.session_state.structure_analysis_logs.append(f"❌ 無法解析分析結果 JSON: {e}")
+                st.session_state.structure_analysis_status = 'error'
         
-        except httpx.ConnectError:
-            error_msg = f"連線錯誤: 無法連線至分析服務 {self.structure_analyzer_url}。請確認分析 Agent 是否正在運行。"
+        except requests.exceptions.ConnectionError:
+            error_msg = f"❌ 連線錯誤: 無法連線至分析服務 {self.structure_analyzer_url}。請確認分析 Agent 是否正在運行。"
+            st.session_state.structure_analysis_logs.append(error_msg)
+            st.session_state.structure_analysis_status = 'error'
+        except requests.exceptions.Timeout:
+            error_msg = "❌ 請求超時: 分析服務響應時間過長，請稍後再試。"
             st.session_state.structure_analysis_logs.append(error_msg)
             st.session_state.structure_analysis_status = 'error'
         except Exception as e:
@@ -669,8 +677,12 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
                 else:
                     st.info("📝 沒有找到之前的分析任務")
                 
+        except PermissionError as e:
+            st.warning(f"⚠️ 載入狀態權限錯誤: {e}")
         except Exception as e:
             st.warning(f"⚠️ 載入狀態時發生錯誤: {e}")
+            import traceback
+            st.error(f"詳細錯誤: {traceback.format_exc()}")
         
         st.session_state.persistent_loaded = True
     
@@ -708,8 +720,12 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
                 with open(tab_state_file, 'w', encoding='utf-8') as f:
                     json.dump(tab_state, f, ensure_ascii=False, indent=2)
             
+        except PermissionError as e:
+            st.error(f"❌ 保存狀態權限錯誤: {e}")
         except Exception as e:
             st.error(f"❌ 保存狀態失敗: {e}")
+            import traceback
+            st.error(f"詳細錯誤: {traceback.format_exc()}")
     
     def _clear_persistent_state(self):
         """清理持久化狀態"""
@@ -1368,24 +1384,25 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
         
         # 執行完整的兩階段分析
         try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            result = loop.run_until_complete(self._execute_tab_structure_analysis(tab))
-            
-            if result:
-                self._update_tab_status(tab['id'], 'completed', analysis_result=result)
-                st.success("✅ 結構分析完成！")
-            else:
-                self._update_tab_status(tab['id'], 'error')
-                st.error("❌ 分析失敗")
+            with st.spinner("🔬 正在進行結構分析..."):
+                result = self._execute_tab_structure_analysis_sync(tab)
+                
+                if result:
+                    self._update_tab_status(tab['id'], 'completed', analysis_result=result)
+                    st.success("✅ 結構分析完成！")
+                else:
+                    self._update_tab_status(tab['id'], 'error')
+                    st.error("❌ 分析失敗")
         except Exception as e:
             self._update_tab_status(tab['id'], 'error')
             st.error(f"❌ 分析過程中發生錯誤: {e}")
+            import traceback
+            st.error(f"詳細錯誤: {traceback.format_exc()}")
         
         st.rerun()
     
-    async def _execute_tab_structure_analysis(self, tab: Dict[str, Any]) -> Dict[str, Any]:
-        """執行分頁的結構分析請求"""
+    def _execute_tab_structure_analysis_sync(self, tab: Dict[str, Any]) -> Dict[str, Any]:
+        """執行分頁的結構分析請求 (同步版本)"""
         try:
             post_data = tab.get('post_data')
             if not post_data:
@@ -1398,24 +1415,32 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
                 "username": post_data['username']
             }
             
-            # 調用後端分析 API
-            timeout = httpx.Timeout(120.0)  # 2分鐘超時
-            async with httpx.AsyncClient(timeout=timeout) as client:
-                response = await client.post(self.structure_analyzer_url, json=request_data)
+            # 使用同步 requests
+            response = requests.post(
+                self.structure_analyzer_url, 
+                json=request_data,
+                timeout=120  # 2分鐘超時
+            )
+            
+            if response.status_code != 200:
+                st.error(f"❌ 結構分析服務請求失敗，狀態碼: {response.status_code}")
+                return None
+            
+            # 解析分析結果
+            try:
+                analysis_result = response.json()
+                return analysis_result
                 
-                if response.status_code != 200:
-                    st.error(f"❌ 結構分析服務請求失敗，狀態碼: {response.status_code}")
-                    return None
+            except json.JSONDecodeError as e:
+                st.error(f"❌ 無法解析分析結果 JSON: {e}")
+                return None
                 
-                # 解析分析結果
-                try:
-                    analysis_result = response.json()
-                    return analysis_result
-                    
-                except json.JSONDecodeError as e:
-                    st.error(f"❌ 無法解析分析結果 JSON: {e}")
-                    return None
-                    
+        except requests.exceptions.ConnectionError:
+            st.error(f"❌ 無法連線至分析服務 {self.structure_analyzer_url}")
+            return None
+        except requests.exceptions.Timeout:
+            st.error("❌ 分析請求超時，請稍後再試")
+            return None
         except Exception as e:
             st.error(f"❌ 分析請求執行失敗: {e}")
             return None
@@ -1622,8 +1647,24 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
                     status = "✅" if (readable and writable and executable) else "❌"
                     st.text(f"{status} {name}: {path}")
                     st.text(f"   權限: {perms} | 讀:{readable} 寫:{writable} 執行:{executable}")
+                    
+                    # 嘗試創建測試文件來檢查實際寫入權限
+                    test_file = path / "permission_test.tmp"
+                    try:
+                        with open(test_file, 'w') as f:
+                            f.write("test")
+                        test_file.unlink()
+                        st.text(f"   ✅ 實際寫入測試: 成功")
+                    except Exception as e:
+                        st.text(f"   ❌ 實際寫入測試: 失敗 - {e}")
                 else:
                     st.text(f"❌ {name}: {path} (不存在)")
+                    # 嘗試創建目錄
+                    try:
+                        path.mkdir(parents=True, exist_ok=True)
+                        st.text(f"   ✅ 已嘗試創建目錄")
+                    except Exception as e:
+                        st.text(f"   ❌ 創建目錄失敗: {e}")
         
         # 檢查現有檔案
         with st.expander("📄 現有檔案檢查"):
