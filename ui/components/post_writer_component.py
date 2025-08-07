@@ -8,6 +8,7 @@ import httpx
 import json
 import asyncio
 from datetime import datetime
+import time
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 import sys
@@ -360,77 +361,156 @@ class PostWriterComponent:
                         if st.button(f"📋 複製內容", key=f"copy_{project['id']}_{i}"):
                             st.code(generation['content'])
                     with col2:
-                        if st.button(f"🔄 基於此版本重新創作", key=f"regenerate_{project['id']}_{i}"):
-                            project['user_prompt'] = generation['prompt']
+                        if st.button(f"⭐ 保留到精選", key=f"save_{project['id']}_{i}"):
+                            self._save_to_favorites(project, generation)
+                            st.success("✅ 已保留到精選！")
                             st.rerun()
     
-    def _render_generated_results(self, project: Dict[str, Any]):
-        """渲染生成結果"""
-        st.subheader("📝 生成結果")
+    def _save_to_favorites(self, project: Dict[str, Any], generation: Dict[str, Any]):
+        """保存版本到精選"""
+        if 'saved_posts' not in project:
+            project['saved_posts'] = []
         
-        if not project.get('generation_history'):
-            st.info("尚未生成任何內容，請先到「✍️ 內容創作」頁面開始創作")
+        # 創建精選版本對象
+        saved_post = {
+            'id': f"saved_{len(project['saved_posts'])}_{int(time.time())}",
+            'content': generation['content'],
+            'prompt': generation['prompt'],
+            'created_at': generation['created_at'],
+            'saved_at': datetime.now().isoformat(),
+            'settings': generation.get('settings', {}),
+            'version_info': f"版本 {generation.get('version', '未知')}"
+        }
+        
+        # 檢查是否已存在相同內容（避免重複保存）
+        existing_content = [p['content'] for p in project['saved_posts']]
+        if generation['content'] not in existing_content:
+            project['saved_posts'].append(saved_post)
+            self._save_writer_persistent_state()
+    
+    def _render_generated_results(self, project: Dict[str, Any]):
+        """渲染精選的生成結果"""
+        st.subheader("📝 精選貼文")
+        
+        saved_posts = project.get('saved_posts', [])
+        
+        if not saved_posts:
+            st.info("🌟 尚未保留任何精選貼文\n\n請到「✍️ 內容創作」頁面生成內容，然後點擊「⭐ 保留到精選」按鈕")
             return
         
-        # 顯示最新生成的內容
-        latest_generation = project['generation_history'][-1]
+        # 統計資訊
+        st.markdown(f"**📊 精選統計：** 共有 **{len(saved_posts)}** 篇精選貼文")
         
-        st.markdown("**🎉 最新創作結果**")
-        st.markdown(f"*生成時間：{latest_generation['created_at']}*")
-        
-        # 結果展示
-        result_container = st.container()
-        with result_container:
-            st.markdown(
-                f"""
-                <div style="background-color: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #28a745;">
-                    {latest_generation['content'].replace('\n', '<br>')}
-                </div>
-                """, 
-                unsafe_allow_html=True
-            )
-        
-        # 操作按鈕
-        col1, col2, col3, col4 = st.columns(4)
-        
-        with col1:
-            if st.button("📋 複製文字", use_container_width=True):
-                st.code(latest_generation['content'])
-        
-        with col2:
-            if st.button("💾 另存新版", use_container_width=True):
-                # 這裡可以實現保存到其他格式的功能
-                st.success("✅ 功能開發中")
-        
-        with col3:
-            if st.button("🔄 重新生成", use_container_width=True):
-                project['user_prompt'] = latest_generation['prompt']
-                st.switch_page("✍️ 內容創作")
-        
-        with col4:
-            if st.button("✅ 標記完成", use_container_width=True):
-                project['status'] = 'completed'
-                self._save_writer_persistent_state()
-                st.success("✅ 專案已標記為完成")
-        
-        # 內容統計
-        content = latest_generation['content']
-        word_count = len(content)
-        line_count = len(content.split('\n'))
-        
+        # 顯示精選貼文
         st.markdown("---")
-        st.markdown("**📊 內容統計**")
         
-        stat_col1, stat_col2, stat_col3, stat_col4 = st.columns(4)
-        with stat_col1:
-            st.metric("字數", word_count)
-        with stat_col2:
-            st.metric("行數", line_count)
-        with stat_col3:
-            st.metric("版本數", len(project['generation_history']))
-        with stat_col4:
-            completion_rate = "100%" if project.get('status') == 'completed' else "進行中"
-            st.metric("完成度", completion_rate)
+        for i, saved_post in enumerate(saved_posts):
+            with st.expander(f"⭐ 精選 {i+1} - {saved_post['saved_at'][:16]}", expanded=False):
+                # 顯示貼文內容
+                st.markdown("**📝 精選內容：**")
+                st.markdown(
+                    f"""
+                    <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; margin: 10px 0;">
+                        {saved_post['content'].replace('\n', '<br>')}
+                    </div>
+                    """, 
+                    unsafe_allow_html=True
+                )
+                
+                # 顯示詳細資訊
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown("**ℹ️ 詳細資訊：**")
+                    st.text(f"原始創作時間：{saved_post['created_at'][:16]}")
+                    st.text(f"保存時間：{saved_post['saved_at'][:16]}")
+                    if saved_post.get('version_info'):
+                        st.text(f"版本：{saved_post['version_info']}")
+                
+                with col2:
+                    st.markdown("**💭 創作提示：**")
+                    edited_prompt = st.text_area("", value=saved_post['prompt'], height=80, key=f"prompt_view_{saved_post['id']}")
+                    
+                    # 如果提示詞被修改，顯示保存按鈕
+                    if edited_prompt != saved_post['prompt']:
+                        if st.button("💾 保存修改", key=f"save_prompt_{saved_post['id']}", use_container_width=True):
+                            saved_post['prompt'] = edited_prompt
+                            self._save_writer_persistent_state()
+                            st.success("✅ 創作提示已更新")
+                            st.rerun()
+                
+                # 操作按鈕
+                btn_col1, btn_col2, btn_col3, btn_col4 = st.columns(4)
+                
+                with btn_col1:
+                    if st.button("📋 複製內容", key=f"copy_saved_{saved_post['id']}", use_container_width=True):
+                        st.code(saved_post['content'])
+                
+                with btn_col2:
+                    if st.button("📤 匯出文字", key=f"export_saved_{saved_post['id']}", use_container_width=True):
+                        st.download_button(
+                            label="📁 下載 TXT",
+                            data=saved_post['content'],
+                            file_name=f"精選貼文_{i+1}_{saved_post['saved_at'][:10]}.txt",
+                            mime="text/plain",
+                            key=f"download_saved_{saved_post['id']}"
+                        )
+                
+                with btn_col3:
+                    if st.button("🔄 基於此重新創作", key=f"recreate_saved_{saved_post['id']}", use_container_width=True):
+                        project['user_prompt'] = saved_post['prompt']
+                        self._save_writer_persistent_state()
+                        st.success("✅ 已設定創作提示，請切換到「✍️ 內容創作」頁面")
+                
+                with btn_col4:
+                    if st.button("🗑️ 從精選移除", key=f"remove_saved_{saved_post['id']}", use_container_width=True):
+                        project['saved_posts'].remove(saved_post)
+                        self._save_writer_persistent_state()
+                        st.success("✅ 已從精選中移除")
+                        st.rerun()
+                
+                # 內容統計
+                word_count = len(saved_post['content'])
+                line_count = saved_post['content'].count('\n') + 1
+                
+                stat_col1, stat_col2 = st.columns(2)
+                with stat_col1:
+                    st.metric("字數", word_count, label_visibility="collapsed")
+                with stat_col2:
+                    st.metric("行數", line_count, label_visibility="collapsed")
+        
+        # 批量操作
+        if len(saved_posts) > 1:
+            st.markdown("---")
+            st.markdown("**🔧 批量操作**")
+            
+            batch_col1, batch_col2 = st.columns(2)
+            
+            with batch_col1:
+                if st.button("📤 匯出所有精選", use_container_width=True):
+                    # 組合所有精選內容
+                    all_content = ""
+                    for i, post in enumerate(saved_posts):
+                        all_content += f"=== 精選貼文 {i+1} ===\n"
+                        all_content += f"創作時間：{post['created_at']}\n"
+                        all_content += f"保存時間：{post['saved_at']}\n"
+                        all_content += f"創作提示：{post['prompt']}\n\n"
+                        all_content += f"{post['content']}\n\n"
+                        all_content += "="*50 + "\n\n"
+                    
+                    st.download_button(
+                        label="📁 下載所有精選貼文",
+                        data=all_content,
+                        file_name=f"所有精選貼文_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
+                        mime="text/plain"
+                    )
+            
+            with batch_col2:
+                if st.button("🗑️ 清空所有精選", use_container_width=True):
+                    if st.button("⚠️ 確認清空", use_container_width=True):
+                        project['saved_posts'] = []
+                        self._save_writer_persistent_state()
+                        st.success("✅ 已清空所有精選貼文")
+                        st.rerun()
     
     def _create_new_project(self):
         """創建新專案"""
