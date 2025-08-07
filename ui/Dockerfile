@@ -57,6 +57,8 @@ COPY . .
 RUN mkdir -p /app/storage/analysis_results \
     && mkdir -p /app/storage/temp_progress \
     && mkdir -p /app/storage/writer_projects \
+    && mkdir -p /app/storage/crawler_results \
+    && mkdir -p /app/storage/rustfs-logs \
     && chmod -R 755 /app/storage
 
 # 設置 Python 路徑

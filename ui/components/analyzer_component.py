@@ -34,8 +34,8 @@ class AnalyzerComponent:
         self._init_tab_system()
         
         # 持久化儲存設定
-        self.storage_dir = Path("temp_progress")
-        self.storage_dir.mkdir(exist_ok=True)
+        self.storage_dir = Path("storage") / "temp_progress"
+        self.storage_dir.mkdir(parents=True, exist_ok=True)
         self.state_file = self.storage_dir / "analyzer_tabs_state.json"
         
         # 分析結果保存設定
