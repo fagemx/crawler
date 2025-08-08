@@ -150,7 +150,11 @@ class PlaywrightUtils:
         """轉換 Playwright API 結果為專用格式"""
         # 🔥 修復：支援兩種格式 - API 響應用 "posts"，Redis final_data 用 "results"
         posts = playwright_data.get("posts", []) or playwright_data.get("results", [])
-        username = playwright_data.get("username", "")
+        
+        # 🔧 修復：從多個來源獲取正確的用戶名稱
+        username = (playwright_data.get("username", "") or 
+                   playwright_data.get("target_username", "") or
+                   (posts[0].get("username", "") if posts else ""))
         
         # 轉換為 Playwright 專用格式
         converted_results = []
@@ -193,7 +197,7 @@ class PlaywrightUtils:
                 "has_shares": bool(post.get("shares_count")),
                 "content_length": len(post.get("content", "")),
                 "extracted_at": PlaywrightUtils.get_current_taipei_time().isoformat(),
-                "username": username
+                "username": post.get("username", "") or username  # 🔧 修復：優先使用貼文中的username，回退到整體username
             }
             converted_results.append(result)
         

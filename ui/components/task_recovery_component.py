@@ -152,9 +152,22 @@ class TaskRecoveryComponent:
         final_data = progress_data.get("final_data", {})
         
         if final_data:
+            # 🔧 修復：從進度數據中提取正確的用戶名稱
+            username = progress_data.get("username") or final_data.get("username") or final_data.get("target_username")
+            if username:
+                # 設置 playwright_target 以確保用戶名稱正確傳遞
+                st.session_state.playwright_target = {
+                    'username': username,
+                    'from_task_recovery': True
+                }
+            
             st.session_state.playwright_final_data = final_data
             st.session_state.playwright_crawl_status = "completed"
             st.session_state.playwright_task_id = task_id
+            
+            # 標記是從任務管理頁面進入的
+            st.session_state.from_task_manager = True
+            
             st.rerun()
         else:
             st.error("無法載入任務結果")

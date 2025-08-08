@@ -1908,6 +1908,14 @@ class PlaywrightCrawlerComponentV2:
                 
                 # 準備CSV數據（與 JSON 格式完全一致）
                 csv_data = []
+                
+                # 🔧 修復：從結果中獲取正確的目標用戶名稱
+                target_username = results.get("target_username", "")
+                if not target_username:
+                    # 嘗試從 session state 中獲取
+                    target = st.session_state.get('playwright_target', {})
+                    target_username = target.get('username', "")
+                
                 for r in posts:
                     # 處理 tags 陣列
                     tags_str = "|".join(r.get('tags', [])) if r.get('tags') else ""
@@ -1946,7 +1954,7 @@ class PlaywrightCrawlerComponentV2:
                     csv_data.append({
                         "url": r.get('url', ''),
                         "post_id": r.get('post_id', ''),
-                        "username": r.get('username', ''),
+                        "username": r.get('username', '') or target_username,  # 🔧 修復：優先使用貼文中的username，回退到target_username
                         "content": r.get('content', ''),  # 🔧 保持完整內容，不截斷
                         "likes_count": r.get('likes_count', r.get('likes', '')),
                         "comments_count": r.get('comments_count', r.get('comments', '')),
