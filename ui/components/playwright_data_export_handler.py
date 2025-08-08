@@ -572,12 +572,26 @@ class PlaywrightDataExportHandler:
             df = pd.read_csv(io.StringIO(content.decode('utf-8-sig')))
             
             # 檢查CSV格式是否正確（更靈活的驗證）
-            # 核心必要欄位
-            core_required = ['username', 'post_id', 'content']
-            missing_core = [col for col in core_required if col not in df.columns]
+            # 🔧 修復：支援新格式和舊格式的兼容性
+            # 核心必要欄位 - 至少需要用戶識別和貼文識別
+            has_username = 'username' in df.columns
+            has_user_id = 'user_id' in df.columns
+            has_post_id = 'post_id' in df.columns
+            has_real_post_id = 'real_post_id' in df.columns
             
-            if missing_core:
-                st.error(f"❌ CSV格式不正確，缺少核心欄位: {', '.join(missing_core)}")
+            # 必須有用戶識別欄位
+            if not (has_username or has_user_id):
+                st.error("❌ CSV格式不正確，必須包含 'username' 或 'user_id' 欄位")
+                return
+            
+            # 必須有貼文識別欄位
+            if not (has_post_id or has_real_post_id):
+                st.error("❌ CSV格式不正確，必須包含 'post_id' 或 'real_post_id' 欄位")
+                return
+            
+            # 必須有內容欄位
+            if 'content' not in df.columns:
+                st.error("❌ CSV格式不正確，缺少 'content' 欄位")
                 return
             
             # 檢查可選欄位，如果沒有則提供預設值
@@ -606,10 +620,30 @@ class PlaywrightDataExportHandler:
                 videos_str = str(row.get('videos', '')).strip()
                 videos = videos_str.split('|') if videos_str else []
                 
+                # 🔧 修復：智能處理新舊格式的用戶名和貼文ID
+                # 優先使用新格式欄位，回退到舊格式
+                user_id = str(row.get('user_id', '')).strip() or str(row.get('username', '')).strip()
+                real_post_id = str(row.get('real_post_id', '')).strip()
+                original_post_id = str(row.get('post_id', '')).strip()
+                
+                # 如果沒有 real_post_id，嘗試從 post_id 分離
+                if not real_post_id and original_post_id and '_' in original_post_id:
+                    parts = original_post_id.split('_', 1)
+                    if len(parts) > 1:
+                        if not user_id:  # 如果還沒有用戶ID，從post_id提取
+                            user_id = parts[0]
+                        real_post_id = parts[1]
+                else:
+                    # 如果沒有分離格式，使用原始post_id作為real_post_id
+                    real_post_id = real_post_id or original_post_id
+                
+                # 重建兼容的post_id格式（舊系統兼容性）
+                combined_post_id = f"{user_id}_{real_post_id}" if user_id and real_post_id else original_post_id
+                
                 result = {
                     "url": str(row.get('url', '')).strip(),
-                    "post_id": str(row.get('post_id', '')).strip(),
-                    "username": str(row.get('username', '')).strip(),
+                    "post_id": combined_post_id,  # 保持舊格式兼容性
+                    "username": user_id,  # 使用分離的用戶ID
                     "content": str(row.get('content', '')).strip(),
                     "likes_count": row.get('likes_count', 0) if pd.notna(row.get('likes_count')) else 0,
                     "comments_count": row.get('comments_count', 0) if pd.notna(row.get('comments_count')) else 0,
@@ -630,11 +664,25 @@ class PlaywrightDataExportHandler:
                 }
                 results.append(result)
             
+            # 🔧 修復：從結果中智能提取目標用戶名
+            target_username = ""
+            if results:
+                # 嘗試從第一筆記錄獲取用戶名
+                first_result = results[0]
+                target_username = first_result.get('username', '')
+                
+                # 如果所有記錄的用戶名都相同，使用該用戶名
+                all_usernames = set(r.get('username', '') for r in results if r.get('username'))
+                if len(all_usernames) == 1:
+                    target_username = list(all_usernames)[0]
+                elif len(all_usernames) > 1:
+                    st.info(f"📊 檢測到多個用戶的資料：{', '.join(sorted(all_usernames))}")
+            
             # 包裝為完整結果格式
             final_results = {
-                            "crawl_id": f"imported_{PlaywrightUtils.get_current_taipei_time().strftime('%Y%m%d_%H%M%S')}",
-            "timestamp": PlaywrightUtils.get_current_taipei_time().isoformat(),
-                "target_username": results[0].get('username', '') if results else '',
+                "crawl_id": f"imported_{PlaywrightUtils.get_current_taipei_time().strftime('%Y%m%d_%H%M%S')}",
+                "timestamp": PlaywrightUtils.get_current_taipei_time().isoformat(),
+                "target_username": target_username,  # 🔧 修復：使用智能提取的用戶名
                 "source": "csv_import",
                 "crawler_type": "playwright",
                 "total_processed": len(results),

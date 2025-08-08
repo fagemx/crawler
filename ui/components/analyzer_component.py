@@ -11,6 +11,8 @@ import asyncio
 import re
 import pickle
 import hashlib
+import time
+import random
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 from pathlib import Path
@@ -61,6 +63,13 @@ class AnalyzerComponent:
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
             'X-Return-Format': 'markdown'
         }
+    
+    def _generate_unique_key(self, prefix: str) -> str:
+        """生成唯一的widget key"""
+        # 使用微秒級時間戳 + 隨機數確保唯一性
+        timestamp = int(time.time() * 1000000)
+        random_num = random.randint(1000, 9999)
+        return f"{prefix}_{timestamp}_{random_num}"
     
     def render(self):
         """渲染分析界面"""
@@ -1088,9 +1097,8 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
             
             # 新增分頁按鈕
             with cols[0]:
-                # 使用唯一的 key 避免衝突
-                current_time = datetime.now().strftime("%H%M%S")
-                if st.button("➕ 新分頁", key=f"new_tab_btn_{current_time}", help="創建新的分析任務"):
+                # 🔧 修復：使用統一的唯一key生成方式
+                if st.button("➕ 新分頁", key=self._generate_unique_key("new_tab_btn"), help="創建新的分析任務"):
                     self._create_new_tab()
                     safe_rerun()
             
@@ -1132,9 +1140,8 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
                 
                 # 關閉所有分頁按鈕
                 with cols[-2]:
-                    # 使用分頁數量作為 key 的一部分
-                    tab_count = len(st.session_state.analysis_tabs)
-                    if st.button("🗑️📑", key=f"close_all_tabs_btn_{tab_count}", help="關閉所有分頁"):
+                    # 🔧 修復：使用統一的唯一key生成方式
+                    if st.button("🗑️📑", key=self._generate_unique_key("close_all_tabs_btn"), help="關閉所有分頁"):
                         st.session_state.analysis_tabs = []
                         st.session_state.active_tab_id = None
                         self._clear_persistent_state()
@@ -1142,9 +1149,8 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
             
             # 診斷按鈕
             with cols[-1]:
-                # 使用當前分頁數作為 key 的一部分
-                tab_count = len(st.session_state.analysis_tabs)
-                if st.button("🔧", key=f"diagnose_btn_{tab_count}", help="診斷權限和儲存狀態"):
+                # 🔧 修復：使用統一的唯一key生成方式
+                if st.button("🔧", key=self._generate_unique_key("diagnose_btn"), help="診斷權限和儲存狀態"):
                     self._show_diagnostic_info()
         
         # 如果沒有分頁，創建第一個（在下次渲染時生效）

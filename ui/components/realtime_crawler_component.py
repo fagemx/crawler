@@ -206,9 +206,31 @@ class RealtimeCrawlerComponent:
                 shares = str(row.get('shares', '')).strip()
                 content = str(row.get('content', '')).strip()
                 
+                # 🔧 修復：處理用戶ID分離
+                original_post_id = str(row.get('post_id', ''))
+                username_from_csv = str(row.get('username', ''))
+                user_id_from_csv = str(row.get('user_id', '')).strip()
+                
+                # 提取用戶ID和真實貼文ID
+                if '_' in original_post_id and len(original_post_id.split('_')) >= 2:
+                    parts = original_post_id.split('_', 1)
+                    user_id = parts[0] if len(parts) > 1 else ''
+                    real_post_id = parts[1] if len(parts) > 1 else original_post_id
+                else:
+                    # 優先使用CSV中的user_id，其次使用username
+                    user_id = user_id_from_csv or username_from_csv
+                    real_post_id = original_post_id
+                
+                # 如果仍然沒有user_id，從post_id提取
+                if not user_id and original_post_id:
+                    if '_' in original_post_id:
+                        user_id = original_post_id.split('_')[0]
+                
                 result = {
-                    'username': str(row.get('username', '')),
-                    'post_id': str(row.get('post_id', '')),
+                    'username': user_id or username_from_csv,  # 🔧 修復：使用分離的user_id
+                    'user_id': user_id,  # 🔧 新增：分離的用戶ID
+                    'post_id': original_post_id,
+                    'real_post_id': real_post_id,  # 🔧 新增：真實貼文ID
                     'content': content,
                     'views': views,
                     'likes': likes,
@@ -654,7 +676,7 @@ async def export_user_csv(username):
             # 寫入CSV文件
             with open(csv_filepath, 'w', newline='', encoding='utf-8-sig') as csvfile:
                 fieldnames = [
-                    'username', 'post_id', 'url', 'content', 'views', 
+                    'username', 'user_id', 'post_id', 'real_post_id', 'url', 'content', 'views', 
                     'likes', 'comments', 'reposts', 'shares', 'source', 'created_at', 'fetched_at'
                 ]
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -664,9 +686,21 @@ async def export_user_csv(username):
                 
                 # 寫入數據
                 for post in posts:
-                    writer.writerow({{
+                    # 🔧 修復：分離post_id為user_id和real_post_id
+                    original_post_id = post['post_id']
+                    if '_' in original_post_id and len(original_post_id.split('_')) >= 2:
+                        parts = original_post_id.split('_', 1)
+                        user_id = parts[0] if len(parts) > 1 else username
+                        real_post_id = parts[1] if len(parts) > 1 else original_post_id
+                    else:
+                        user_id = username
+                        real_post_id = original_post_id
+                    
+                    writer.writerow({
                         'username': username,
-                        'post_id': post['post_id'],
+                        'user_id': user_id,  # 🔧 新增：分離的用戶ID
+                        'post_id': original_post_id,
+                        'real_post_id': real_post_id,  # 🔧 新增：真實貼文ID
                         'url': post['url'],
                         'content': post['content'] or '',
                         'views': post['views_count'] or '',
@@ -677,19 +711,19 @@ async def export_user_csv(username):
                         'source': post['source'] or '',
                         'created_at': str(post['created_at']) if post['created_at'] else '',
                         'fetched_at': str(post['fetched_at']) if post['fetched_at'] else ''
-                    }})
+                    })
             
-            result = {{
+            result = {
                 "success": True,
                 "csv_file": csv_filepath,
                 "post_count": len(posts),
                 "username": username
-            }}
+            }
             
             print(json.dumps(result))
             
     except Exception as e:
-        print(json.dumps({{"success": False, "error": str(e)}}))
+        print(json.dumps({"success": False, "error": str(e)}))
     finally:
         await crawl_manager.db.close_pool()
 
@@ -1216,20 +1250,39 @@ if __name__ == "__main__":
             st.error("❌ 無法獲取帳號信息")
             return
         
-        # 假設從第一個結果中提取用戶名
+        # 🔧 修復：從結果中提取用戶名和用戶ID
         target_username = None
+        target_user_id = None
+        
         if 'realtime_results_file' in st.session_state:
             try:
                 import json
                 with open(st.session_state.realtime_results_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                 target_username = data.get('target_username')
+                target_user_id = data.get('target_user_id')
             except:
                 pass
+        
+        # 🔧 修復：從當前結果中嘗試獲取用戶信息
+        if not target_username and isinstance(results, dict) and 'results' in results:
+            first_result = results['results'][0] if results['results'] else None
+            if first_result:
+                target_username = first_result.get('username')
+                target_user_id = first_result.get('user_id') or target_username
+        elif not target_username and isinstance(results, list) and results:
+            first_result = results[0] if results else None
+            if first_result:
+                target_username = first_result.get('username')
+                target_user_id = first_result.get('user_id') or target_username
         
         if not target_username:
             st.error("❌ 無法識別目標帳號")
             return
+        
+        # 如果沒有user_id，使用username作為fallback
+        if not target_user_id:
+            target_user_id = target_username
         
         # 添加排序設定
         st.write("**📊 排序設定**")
@@ -1284,20 +1337,20 @@ if __name__ == "__main__":
                 days_back = st.number_input("回溯天數", min_value=1, max_value=365, value=7, key="realtime_days_back")
             
             if st.button("📊 導出最近數據", key="realtime_export_recent"):
-                self._export_history_data(target_username, "recent", 
+                self._export_history_data(target_user_id, "recent", 
                                         days_back=days_back, limit=max_records, 
                                         sort_by=sort_by, sort_order=sort_order)
         
         elif export_type == "全部歷史":
             if st.button("📊 導出全部歷史", key="realtime_export_all"):
-                self._export_history_data(target_username, "all", 
+                self._export_history_data(target_user_id, "all", 
                                         limit=max_records, sort_by=sort_by, sort_order=sort_order)
         
         elif export_type == "統計分析":
             st.info("按日期統計的分析報告，包含平均觀看數、成功率等指標")
             
             if st.button("📈 導出統計分析", key="realtime_export_analysis"):
-                self._export_history_data(target_username, "analysis", 
+                self._export_history_data(target_user_id, "analysis", 
                                         sort_by=sort_by, sort_order=sort_order)
     
     def _export_history_data(self, username: str, export_type: str, **kwargs):
@@ -1417,7 +1470,7 @@ if __name__ == "__main__":
             import traceback
             st.error(f"詳細錯誤: {traceback.format_exc()}")
     
-    async def _fetch_realtime_history_from_db(self, username: str, export_type: str, **kwargs):
+    async def _fetch_realtime_history_from_db(self, user_identifier: str, export_type: str, **kwargs):
         """從資料庫獲取實時爬蟲的歷史數據"""
         try:
             from common.db_client import DatabaseClient
@@ -1426,16 +1479,17 @@ if __name__ == "__main__":
             await db.init_pool()
             
             async with db.get_connection() as conn:
-                # 構建查詢
+                # 🔧 修復：構建更智能的查詢，支援用戶ID和用戶名查詢
                 base_query = """
                     SELECT post_id, username, content, views_count, likes_count, comments_count, 
                            reposts_count, shares_count, calculated_score, tags, images, videos, url, 
                            created_at, fetched_at, post_published_at
                     FROM post_metrics_sql 
-                    WHERE username = $1
+                    WHERE (username = $1 OR post_id LIKE $2)
                 """
                 
-                params = [username]
+                # 🔧 修復：支援用戶ID模式查詢 (user_id_%)
+                params = [user_identifier, f"{user_identifier}_%"]
                 
                 # 根據導出類型添加條件
                 if export_type == "recent":
@@ -2087,7 +2141,7 @@ async def save_to_database():
         print(json.dumps(result))
         
     except Exception as e:
-        print(json.dumps({{"success": False, "error": str(e)}}))
+        print(json.dumps({"success": False, "error": str(e)}))
     finally:
         await crawl_manager.db.close_pool()
 

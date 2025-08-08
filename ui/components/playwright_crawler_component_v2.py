@@ -1757,17 +1757,34 @@ class PlaywrightCrawlerComponentV2:
             
             table_data = []
             for i, r in enumerate(posts, 1):
+                # 🔧 修復：分離 post_id 顯示
+                original_post_id = r.get('post_id', 'N/A')
+                if '_' in original_post_id and original_post_id != 'N/A':
+                    # 分離格式：username_realpostid
+                    parts = original_post_id.split('_', 1)
+                    extracted_username = parts[0] if len(parts) > 1 else ''
+                    real_post_id = parts[1] if len(parts) > 1 else original_post_id
+                else:
+                    extracted_username = ''
+                    real_post_id = original_post_id
+                
                 # 處理 tags 顯示
                 tags = r.get('tags', [])
                 tags_display = ", ".join(tags) if tags else "無"
                 
-                # 處理圖片數量
+                # 🔧 修復：處理圖片詳細資訊
                 images = r.get('images', [])
                 images_count = len(images) if images else 0
+                images_display = "、".join(images[:3]) + (f"...等{images_count}個" if images_count > 3 else "") if images else "無"
                 
-                # 處理影片數量
+                # 🔧 修復：處理影片詳細資訊
                 videos = r.get('videos', [])
                 videos_count = len(videos) if videos else 0
+                videos_display = "、".join(videos[:3]) + (f"...等{videos_count}個" if videos_count > 3 else "") if videos else "無"
+                
+                # 🔧 新增：貼文URL顯示
+                post_url = r.get('url', '')
+                post_url_display = post_url if post_url else "無"
                 
                 # 處理時間顯示 - 轉換為台北時間
                 created_at = r.get('created_at', '')
@@ -1821,8 +1838,9 @@ class PlaywrightCrawlerComponentV2:
                 
                 table_data.append({
                     "#": i,
-                    "貼文ID": r.get('post_id', 'N/A'),  # 🔧 移除ID截斷
-                    "用戶名": r.get('username', 'N/A'),
+                    "用戶ID": extracted_username or r.get('username', 'N/A'),  # 🔧 修復：顯示分離的用戶ID
+                    "貼文ID": real_post_id,  # 🔧 修復：顯示真實的貼文ID
+                    "貼文URL": post_url_display,  # 🔧 新增：貼文URL
                     "內容" if show_full_content else "內容預覽": r.get('content', 'N/A') if show_full_content else ((r.get('content', '')[:60] + "...") if r.get('content') and len(r.get('content', '')) > 60 else r.get('content', 'N/A')),
                     "觀看數": format_count(r.get('views_count', r.get('views', 'N/A'))),
                     "按讚": format_count(r.get('likes_count', r.get('likes', 'N/A'))),
@@ -1831,8 +1849,8 @@ class PlaywrightCrawlerComponentV2:
                     "分享": format_count(r.get('shares_count', r.get('shares', 'N/A'))),
                     "計算分數": calc_score_formatted,
                     "標籤": tags_display,
-                    "圖片數": images_count,
-                    "影片數": videos_count,
+                    "圖片": images_display,  # 🔧 修復：顯示圖片URL詳細資訊
+                    "影片": videos_display,  # 🔧 修復：顯示影片URL詳細資訊
                     "發布時間": published_taipei,  # 🔧 台北時間
                     "爬取時間": created_taipei,    # 🔧 台北時間
                     "狀態": "✅" if r.get('success') else "❌"
@@ -1844,11 +1862,15 @@ class PlaywrightCrawlerComponentV2:
                 use_container_width=True, 
                 height=400,
                 column_config={
+                    "用戶ID": st.column_config.TextColumn(width="small"),
                     "貼文ID": st.column_config.TextColumn(width="medium"),
+                    "貼文URL": st.column_config.LinkColumn(width="medium"),  # 🔧 新增：URL欄位
                     "內容" if show_full_content else "內容預覽": st.column_config.TextColumn(width="large"),
                     "標籤": st.column_config.TextColumn(width="medium"),
-                    "發布時間": st.column_config.TextColumn(width="medium"),
-                    "爬取時間": st.column_config.TextColumn(width="medium")
+                    "圖片": st.column_config.TextColumn(width="medium"),  # 🔧 新增：圖片欄位
+                    "影片": st.column_config.TextColumn(width="medium"),  # 🔧 新增：影片欄位
+                    "發布時間": st.column_config.TextColumn(width="small"),
+                    "爬取時間": st.column_config.TextColumn(width="small")
                 }
             )
         
@@ -1917,6 +1939,16 @@ class PlaywrightCrawlerComponentV2:
                     target_username = target.get('username', "")
                 
                 for r in posts:
+                    # 🔧 修復：分離 post_id 為 user_id 和 real_post_id
+                    original_post_id = r.get('post_id', '')
+                    if '_' in original_post_id and original_post_id:
+                        parts = original_post_id.split('_', 1)
+                        user_id = parts[0] if len(parts) > 1 else ''
+                        real_post_id = parts[1] if len(parts) > 1 else original_post_id
+                    else:
+                        user_id = r.get('username', '') or target_username
+                        real_post_id = original_post_id
+                    
                     # 處理 tags 陣列
                     tags_str = "|".join(r.get('tags', [])) if r.get('tags') else ""
                     
@@ -1953,8 +1985,10 @@ class PlaywrightCrawlerComponentV2:
                     
                     csv_data.append({
                         "url": r.get('url', ''),
-                        "post_id": r.get('post_id', ''),
-                        "username": r.get('username', '') or target_username,  # 🔧 修復：優先使用貼文中的username，回退到target_username
+                        "post_id": original_post_id,  # 🔧 保留原始格式供向後兼容
+                        "user_id": user_id,  # 🔧 新增：分離的用戶ID
+                        "real_post_id": real_post_id,  # 🔧 新增：真實的貼文ID
+                        "username": user_id or (r.get('username', '') or target_username),  # 🔧 修復：使用分離的user_id
                         "content": r.get('content', ''),  # 🔧 保持完整內容，不截斷
                         "likes_count": r.get('likes_count', r.get('likes', '')),
                         "comments_count": r.get('comments_count', r.get('comments', '')),
@@ -1965,8 +1999,8 @@ class PlaywrightCrawlerComponentV2:
                         "created_at": created_at,          # 🔧 台北時間
                         "post_published_at": post_published_at,  # 🔧 台北時間
                         "tags": tags_str,
-                        "images": images_str,
-                        "videos": videos_str,
+                        "images": images_str,  # 🔧 圖片URL清單
+                        "videos": videos_str,  # 🔧 影片URL清單
                         "source": r.get('source', 'playwright_agent'),
                         "crawler_type": r.get('crawler_type', 'playwright'),
                         "crawl_id": r.get('crawl_id', ''),
