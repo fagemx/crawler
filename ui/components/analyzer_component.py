@@ -18,6 +18,9 @@ from typing import List, Dict, Any, Optional
 from pathlib import Path
 import sys
 
+# 導入拆分出來的批量分析組件
+from .batch_analysis_component import BatchAnalysisComponent
+
 # 修復 safe_rerun() 兼容性問題
 def safe_rerun():
     """安全的重新運行函數，兼容舊版本 Streamlit"""
@@ -40,6 +43,9 @@ class AnalyzerComponent:
         
         # 創建已測試的提取器實例（用於解析方法）
         self.extractor = RealtimeCrawlerExtractor("dummy_user", 1, False)  # 只用於解析方法
+        
+        # 初始化批量分析組件
+        self.batch_analysis = BatchAnalysisComponent()
         
         # 初始化分頁系統
         self._init_tab_system()
@@ -74,10 +80,24 @@ class AnalyzerComponent:
     def render(self):
         """渲染分析界面"""
         st.header("📊 貼文結構分析")
-        st.markdown("**多任務分頁分析** - 同時處理多個 Threads 貼文的結構分析")
         
-        # 使用新的分頁系統
-        self._render_tab_system()
+        # 🎯 模式選擇
+        analysis_mode = st.radio(
+            "選擇分析模式",
+            options=["📝 單篇深度分析", "📊 批量結構分析"],
+            index=0,
+            horizontal=True,
+            help="單篇模式：深度分析特定貼文 | 批量模式：從實時爬蟲資料庫導入多篇貼文進行模式分析"
+        )
+        
+        if analysis_mode == "📝 單篇深度分析":
+            st.markdown("**多任務分頁分析** - 同時處理多個 Threads 貼文的結構分析")
+            # 使用現有的分頁系統
+            self._render_tab_system()
+        else:
+            st.markdown("**智能模式識別** - 從實時爬蟲數據中識別結構模式並生成創作指南")
+            # 使用拆分出來的批量分析組件
+            self.batch_analysis.render_batch_analysis_system()
         
         # 在所有 UI 組件渲染完成後清理衝突的 widget keys
         self._cleanup_widget_conflicts()
@@ -126,9 +146,14 @@ class AnalyzerComponent:
 https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
             """)
         
-        # 提交按鈕
-        if st.button("🔍 提取貼文內容", use_container_width=True, type="primary"):
-            self._process_input(username, post_id, direct_url)
+        # 提交按鈕 + 快速通道
+        col_a, col_b = st.columns(2)
+        with col_a:
+            if st.button("🔍 提取貼文內容", use_container_width=True, type="primary"):
+                self._process_input(username, post_id, direct_url)
+        with col_b:
+            if st.button("⚡ 快速通道", use_container_width=True):
+                self._run_quick_channel(username, post_id, direct_url)
     
     def _process_input(self, username: str, post_id: str, direct_url: str):
         """處理用戶輸入並組合URL"""
@@ -158,6 +183,67 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
         """驗證是否為有效的 Threads URL"""
         pattern = r'^https://www\.threads\.com/@[\w\._]+/post/[\w-]+$'
         return bool(re.match(pattern, url))
+
+    def _run_quick_channel(self, username: str, post_id: str, direct_url: str):
+        """快速通道：自動提取 → 分析 → 直接保存至引用清單，不顯示中間UI。"""
+        try:
+            # 1) 組合/驗證 URL
+            final_url = None
+            if direct_url and direct_url.strip():
+                if not self._is_valid_threads_url(direct_url.strip()):
+                    st.error("❌ 請輸入有效的 Threads URL")
+                    return
+                final_url = direct_url.strip()
+            elif username.strip() and post_id.strip():
+                clean_username = username.strip().lstrip('@')
+                clean_post_id = post_id.strip()
+                final_url = f"https://www.threads.com/@{clean_username}/post/{clean_post_id}"
+            else:
+                st.error("❌ 請先輸入 用戶名+貼文ID 或 完整URL")
+                return
+
+            # 2) 提取內容（同步）
+            with st.spinner("⚡ 快速提取中..."):
+                ok, raw = self._fetch_content_jina_api_sync(final_url)
+                if not ok:
+                    st.error(f"❌ 提取失敗：{raw}")
+                    return
+                post_data = self._parse_post_data_from_url(final_url, raw)
+                if not post_data:
+                    st.error("❌ 無法解析貼文內容")
+                    return
+
+            # 3) 調用結構分析（同步）
+            with st.spinner("🧠 正在分析..."):
+                req = {
+                    "post_content": post_data['content'],
+                    "post_id": post_data['post_id'],
+                    "username": post_data['username']
+                }
+                resp = requests.post(self.structure_analyzer_url, json=req, timeout=120)
+                if resp.status_code != 200:
+                    st.error(f"❌ 分析失敗：HTTP {resp.status_code}")
+                    st.code(resp.text)
+                    return
+                analysis_result = resp.json()
+
+            # 4) 直接保存至引用清單（沿用單篇保存邏輯）
+            # 構造最小化的 tab 物件以複用保存函式
+            quick_tab = {
+                'id': 'quick',
+                'title': f"@{post_data.get('username','unknown')}",
+                'status': 'completed',
+                'post_data': post_data,
+                'analysis_result': analysis_result
+            }
+            analysis_id = self._save_analysis_result(quick_tab, custom_name=f"@{post_data.get('username','unknown')}_{post_data.get('post_id','')[:8]}_quick")
+            if analysis_id:
+                st.success("✅ 已保存，並已加入『智能撰寫』的引用清單。")
+                st.balloons()
+            else:
+                st.warning("⚠️ 分析已完成，但保存索引失敗。")
+        except Exception as e:
+            st.error(f"❌ 快速通道失敗：{e}")
     
     def _extract_post_content(self, url: str):
         """使用 JINA API 提取貼文內容"""
@@ -171,7 +257,6 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
                     # 儲存到 session state
                     st.session_state.extracted_posts = [post_data]
                     st.success("✅ 貼文內容提取成功！")
-                    safe_rerun()
                 else:
                     st.error("❌ 無法解析貼文內容")
             else:
@@ -299,7 +384,6 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
                 st.session_state.selected_post_id = post['post_id']
                 st.session_state.selected_post_data = post
                 st.success("✅ 已選擇此貼文進行分析")
-                safe_rerun()
         
         st.divider()
     
@@ -345,7 +429,6 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
             
             if st.button("🔄 重新開始分析"):
                 self._reset_analysis_state()
-                safe_rerun()
     
     def _start_structure_analysis(self, selected_post: Dict[str, Any]):
         """開始結構分析"""
@@ -365,7 +448,7 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
             import traceback
             st.error(f"詳細錯誤: {traceback.format_exc()}")
         finally:
-            safe_rerun()
+            pass
     
     def _execute_structure_analysis_sync(self, selected_post: Dict[str, Any]):
         """執行結構分析請求 (同步版本)"""
@@ -506,7 +589,6 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
             st.session_state.structure_analysis_status = 'idle'
             st.session_state.structure_analysis_logs = []
             st.success("✅ 已取消分析")
-            safe_rerun()
         
         # 自動刷新
         import time
@@ -529,7 +611,6 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
         # 重置按鈕
         if st.button("🔄 重新分析", use_container_width=True):
             self._reset_analysis_state()
-            safe_rerun()
         
         # 優先顯示分析摘要
         self._render_analysis_summary_final(result)
@@ -1097,10 +1178,9 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
             
             # 新增分頁按鈕
             with cols[0]:
-                # 🔧 修復：使用統一的唯一key生成方式
-                if st.button("➕ 新分頁", key=self._generate_unique_key("new_tab_btn"), help="創建新的分析任務"):
+                # 🔧 修復：使用穩定的固定 key，避免每次渲染更換 key 導致事件無法捕捉
+                if st.button("➕ 新分頁", key="new_tab_btn", help="創建新的分析任務"):
                     self._create_new_tab()
-                    safe_rerun()
             
             # 現有分頁標籤
             for i, tab in enumerate(st.session_state.analysis_tabs):
@@ -1126,7 +1206,6 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
                         type="primary" if is_active else "secondary"
                     ):
                         st.session_state.active_tab_id = tab['id']
-                        safe_rerun()
             
             # 關閉分頁按鈕（只在有分頁時顯示）
             if st.session_state.analysis_tabs:
@@ -1140,8 +1219,8 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
                 
                 # 關閉所有分頁按鈕
                 with cols[-2]:
-                    # 🔧 修復：使用統一的唯一key生成方式
-                    if st.button("🗑️📑", key=self._generate_unique_key("close_all_tabs_btn"), help="關閉所有分頁"):
+                    # 🔧 修復：使用穩定的固定 key
+                    if st.button("🗑️📑", key="close_all_tabs_btn", help="關閉所有分頁"):
                         st.session_state.analysis_tabs = []
                         st.session_state.active_tab_id = None
                         self._clear_persistent_state()
@@ -1149,8 +1228,8 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
             
             # 診斷按鈕
             with cols[-1]:
-                # 🔧 修復：使用統一的唯一key生成方式
-                if st.button("🔧", key=self._generate_unique_key("diagnose_btn"), help="診斷權限和儲存狀態"):
+                # 🔧 修復：使用穩定的固定 key
+                if st.button("🔧", key="diagnose_btn", help="診斷權限和儲存狀態"):
                     self._show_diagnostic_info()
         
         # 如果沒有分頁，創建第一個（在下次渲染時生效）
@@ -1282,7 +1361,7 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
             import traceback
             st.error(f"詳細錯誤: {traceback.format_exc()}")
         
-        safe_rerun()
+        # 不再強制觸發全頁 rerun，避免頁面跳動
     
 
     
@@ -1363,7 +1442,6 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
         if st.button("🛑 取消分析", key=f"{tab['id']}_cancel_analysis", type="secondary"):
             self._update_tab_status(tab['id'], 'idle', analysis_result=None)
             st.success("✅ 已取消分析")
-            safe_rerun()
         
         # 自動刷新
         import time
@@ -1400,7 +1478,6 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
         st.error("❌ 處理過程中發生錯誤")
         if st.button(f"🔄 重試", key=f"{tab['id']}_retry"):
             self._update_tab_status(tab['id'], 'idle')
-            safe_rerun()
     
     def _start_tab_analysis(self, tab: Dict[str, Any]):
         """開始分頁分析"""
@@ -1423,7 +1500,7 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
             import traceback
             st.error(f"詳細錯誤: {traceback.format_exc()}")
         
-        safe_rerun()
+        # 不再強制觸發全頁 rerun，避免頁面跳動
     
     def _execute_tab_structure_analysis_sync(self, tab: Dict[str, Any]) -> Dict[str, Any]:
         """執行分頁的結構分析請求 (同步版本)"""
@@ -1543,14 +1620,12 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
                 if st.button("🔄 重置此分頁", key=f"{tab['id']}_reset", help="清空此分頁的所有數據，回到初始狀態"):
                     self._reset_tab(tab['id'])
                     st.success("✅ 分頁已重置")
-                    safe_rerun()
             
             with col2:
                 if st.button("🔄 重新分析", key=f"{tab['id']}_reanalyze", help="保留貼文內容，重新開始分析"):
                     if tab.get('post_data'):
                         self._update_tab_status(tab['id'], 'idle', analysis_result=None)
                         st.success("✅ 可以重新分析")
-                        safe_rerun()
                     else:
                         st.warning("⚠️ 沒有貼文數據可重新分析")
             
@@ -1571,7 +1646,6 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
                 if st.button("📋 複製分頁", key=f"{tab['id']}_duplicate", help="複製當前分頁到新分頁"):
                     self._duplicate_tab(tab)
                     st.success("✅ 分頁已複製")
-                    safe_rerun()
             
             # 分頁信息
             st.markdown("**🔍 分頁詳細信息：**")
@@ -1719,3 +1793,8 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
             writer_projects = st.session_state.get('writer_projects', [])
             st.text(f"📝 撰寫專案數: {len(writer_projects)}")
             st.text(f"🎯 活動專案 ID: {st.session_state.get('active_project_id', 'None')}")
+    
+    # === 批量分析功能已拆分到 batch_analysis_component.py ===
+    # 所有 _render_batch_* 相關函數已移除並重構為獨立組件
+    pass
+ 

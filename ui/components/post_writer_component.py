@@ -329,14 +329,42 @@ class PostWriterComponent:
         st.subheader("✍️ 內容創作")
         
         # 創作提示輸入
-        st.markdown("**💭 創作提示**")
+        prompt_col1, prompt_col2 = st.columns([4, 1])
+        
+        with prompt_col1:
+            st.markdown("**💭 創作提示**")
+        
+        with prompt_col2:
+            if st.button("🗑️ 清空提示", key=f"clear_prompt_{project['id']}", help="清空創作提示，重新開始", use_container_width=True):
+                project['user_prompt'] = ''
+                project['prompt_source'] = '手動輸入'
+                self._save_writer_persistent_state()
+                st.rerun()
+        
+        # 暫存當前提示內容
+        current_prompt = project.get('user_prompt', '')
+        
         project['user_prompt'] = st.text_area(
             "描述您想要創作的內容：",
-            value=project.get('user_prompt', ''),
+            value=current_prompt,
             height=100,
             placeholder="例如：我想寫一篇關於咖啡文化的貼文，重點介紹手沖咖啡的技巧和心得...",
             key=f"user_prompt_{project['id']}"
         )
+        
+        # 檢查用戶是否手動修改了提示內容
+        if project['user_prompt'] != current_prompt and project['user_prompt']:
+            # 如果用戶修改了內容，更新來源為手動輸入
+            if not project.get('prompt_source') or project.get('prompt_source') != '手動輸入':
+                project['prompt_source'] = '手動輸入'
+                self._save_writer_persistent_state()
+        
+        # 顯示提示來源信息
+        if project.get('user_prompt'):
+            prompt_source = project.get('prompt_source', '手動輸入')
+            st.caption(f"📝 提示來源：{prompt_source}")
+        else:
+            st.caption("💡 請輸入您的創作需求，系統會根據您的描述生成個性化內容")
         
         # 生成按鈕
         col1, col2, col3 = st.columns([1, 2, 1])
@@ -459,8 +487,10 @@ class PostWriterComponent:
                 with btn_col3:
                     if st.button("🔄 基於此重新創作", key=f"recreate_saved_{saved_post['id']}", use_container_width=True):
                         project['user_prompt'] = saved_post['prompt']
+                        project['prompt_source'] = f"精選貼文 {i+1}"
                         self._save_writer_persistent_state()
-                        st.success("✅ 已設定創作提示，請切換到「✍️ 內容創作」頁面")
+                        st.success("✅ 已更新創作提示，請切換到「✍️ 內容創作」頁面")
+                        st.info(f"💭 新的創作提示：{saved_post['prompt'][:50]}...")
                 
                 with btn_col4:
                     if st.button("🗑️ 從精選移除", key=f"remove_saved_{saved_post['id']}", use_container_width=True):

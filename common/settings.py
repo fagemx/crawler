@@ -26,6 +26,13 @@ class DatabaseSettings(BaseModel):
     max_overflow: int = Field(default=20)
     echo: bool = Field(default=False)
     
+    # 添加獨立的資料庫連接參數（從URL解析或環境變數）
+    host: str = Field(default="localhost")
+    port: int = Field(default=5432)
+    user: str = Field(default="postgres")
+    password: str = Field(default="password")
+    name: str = Field(default="social_media_db")
+    
     class Config:
         env_prefix = "DATABASE_"
 
@@ -251,6 +258,31 @@ class Settings(BaseSettings):
     def is_development(self) -> bool:
         """Checks if the application is in development mode."""
         return self.development_mode
+    
+    @property
+    def DATABASE_HOST(self) -> str:
+        """快捷訪問資料庫主機"""
+        return self.database.host
+    
+    @property
+    def DATABASE_PORT(self) -> int:
+        """快捷訪問資料庫端口"""
+        return self.database.port
+    
+    @property
+    def DATABASE_USER(self) -> str:
+        """快捷訪問資料庫用戶"""
+        return self.database.user
+    
+    @property
+    def DATABASE_PASSWORD(self) -> str:
+        """快捷訪問資料庫密碼"""
+        return self.database.password
+    
+    @property
+    def DATABASE_NAME(self) -> str:
+        """快捷訪問資料庫名稱"""
+        return self.database.name
 
 # Global settings instance
 settings = Settings()

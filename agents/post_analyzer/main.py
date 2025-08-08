@@ -25,8 +25,12 @@ from common.llm_manager import get_llm_manager, chat_completion
 from common.settings import get_settings
 from common.models import PostMetrics, PostMetricsBatch
 from agents.post_analyzer.analyzer_logic import PostAnalyzerAgent as StructureAnalyzerAgent
+from agents.post_analyzer.data_fetcher import PostDataFetcher
 
 app = FastAPI(title="Post Analyzer Agent", version="1.0.0")
+
+# 初始化組件
+data_fetcher = PostDataFetcher()
 
 class AnalyzeRequest(BaseModel):
     username: str = Field(..., description="要分析的用戶名稱")
@@ -37,6 +41,12 @@ class StructureAnalyzeRequest(BaseModel):
     post_content: str = Field(..., description="要分析的貼文內容")
     post_id: str = Field(..., description="貼文ID")
     username: str = Field(..., description="用戶名稱")
+
+class BatchStructureAnalyzeRequest(BaseModel):
+    username: str = Field(..., description="用戶名稱")
+    sort_method: str = Field(default="likes", description="排序方式：likes/views/score")
+    post_count: int = Field(default=25, description="分析的貼文數量")
+    posts_content: Optional[List[str]] = Field(None, description="可選：自定義貼文內容（留空則自動從數據庫獲取）")
 
 class AnalysisResult(BaseModel):
     batch_id: str
@@ -53,6 +63,24 @@ class StructureAnalysisResult(BaseModel):
     post_structure_guide: Dict[str, Any]
     analysis_summary: str
     analyzed_at: datetime
+
+class BatchStructureAnalysisResult(BaseModel):
+    username: str
+    analysis_type: str
+    pattern_count: int
+    total_posts: int
+    pattern_analysis: Dict[str, Any]
+    structure_templates: List[Dict[str, Any]]
+    analyzed_at: str
+
+class BatchSummaryRequest(BaseModel):
+    pattern_name: str
+    structure_guide: Dict[str, Any]
+    samples: List[str]
+
+class BatchSummaryResult(BaseModel):
+    pattern_name: str
+    summary_markdown: str
 
 class PostAnalyzerAgent:
     def __init__(self):
@@ -488,6 +516,70 @@ async def analyze_post_structure(request: StructureAnalyzeRequest):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"結構分析處理失敗: {str(e)}")
+
+@app.get("/available-users")
+async def get_available_users():
+    """獲取已爬取的用戶列表"""
+    try:
+        users = await data_fetcher.get_available_users()
+        return {"users": users, "count": len(users)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"獲取用戶列表失敗: {str(e)}")
+
+@app.post("/batch-structure-analyze", response_model=BatchStructureAnalysisResult)
+async def analyze_batch_post_structure(request: BatchStructureAnalyzeRequest):
+    """批量結構分析貼文"""
+    try:
+        # 如果沒有提供貼文內容，從數據庫獲取
+        if not request.posts_content:
+            posts_content = await data_fetcher.get_user_posts(
+                username=request.username,
+                post_count=request.post_count,
+                sort_method=request.sort_method
+            )
+            
+            if not posts_content:
+                raise HTTPException(
+                    status_code=404, 
+                    detail=f"未找到用戶 {request.username} 的貼文數據"
+                )
+        else:
+            posts_content = request.posts_content
+        
+        result = await structure_analyzer_agent.analyze_batch_structure(
+            posts_content=posts_content,
+            username=request.username
+        )
+        
+        if result.get("status") == "error":
+            raise HTTPException(status_code=500, detail=result.get("message"))
+        
+        return BatchStructureAnalysisResult(
+            username=result["username"],
+            analysis_type=result["analysis_type"],
+            pattern_count=result["pattern_count"],
+            total_posts=result["total_posts"],
+            pattern_analysis=result["pattern_analysis"],
+            structure_templates=result["structure_templates"],
+            # 移除 unified_guide，保持後端相容性：不再返回
+            analyzed_at=result["analyzed_at"]
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"批量結構分析處理失敗: {str(e)}")
+
+@app.post("/batch-summary", response_model=BatchSummaryResult)
+async def summarize_batch_template(request: BatchSummaryRequest):
+    """根據模板結構指南與樣本貼文（多篇）生成精煉摘要（Markdown）。"""
+    try:
+        summary = await structure_analyzer_agent.summarize_multi_posts(
+            pattern_name=request.pattern_name,
+            structure_guide=request.structure_guide,
+            sample_posts=request.samples
+        )
+        return BatchSummaryResult(pattern_name=request.pattern_name, summary_markdown=summary)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"批量摘要處理失敗: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

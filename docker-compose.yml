@@ -570,6 +570,7 @@ services:
       - PYTHONPATH=/app
       - AGENT_PORT=8007
       - MCP_SERVER_URL=http://mcp-server:10100
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/social_media_db
       - REDIS_URL=redis://redis:6379/0
       - NATS_URL=nats://nats:4222
     env_file:
@@ -577,6 +578,8 @@ services:
     volumes:
       - .:/app
     depends_on:
+      postgres:
+        condition: service_healthy
       redis:
         condition: service_healthy
       mcp-server:

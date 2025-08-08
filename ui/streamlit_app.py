@@ -127,27 +127,35 @@ class SocialMediaGeneratorApp:
             st.error("請檢查設定後重試")
     
     def render_main_content(self):
-        """渲染主要內容"""
-        # 標籤頁
-        tabs = st.tabs([
-            "🚀 實時智能爬蟲",
-            "🎭 Playwright 爬蟲",
-            "📊 內容分析",
-            "✍️ 智能撰寫"
-            # "📝 內容生成", 
-            # "🔧 系統監控"
-        ])
-        
-        with tabs[0]:
+        """渲染主要內容（改為可控導覽，避免 rerun 時回到第一分頁）"""
+        if 'main_nav' not in st.session_state:
+            st.session_state.main_nav = "🚀 實時智能爬蟲"
+
+        nav = st.radio(
+            "主功能選單",
+            options=[
+                "🚀 實時智能爬蟲",
+                "🎭 Playwright 爬蟲",
+                "📊 內容分析",
+                "✍️ 智能撰寫"
+            ],
+            index=[
+                "🚀 實時智能爬蟲",
+                "🎭 Playwright 爬蟲",
+                "📊 內容分析",
+                "✍️ 智能撰寫"
+            ].index(st.session_state.main_nav) if st.session_state.get('main_nav') else 0,
+            horizontal=True,
+            key="main_nav"
+        )
+
+        if nav == "🚀 實時智能爬蟲":
             self.realtime_crawler_component.render()
-        
-        with tabs[1]:
+        elif nav == "🎭 Playwright 爬蟲":
             self.playwright_crawler_component.render()
-            
-        with tabs[2]:
+        elif nav == "📊 內容分析":
             self.analyzer_component.render()
-            
-        with tabs[3]:
+        elif nav == "✍️ 智能撰寫":
             self.post_writer_component.render()
 
         # with tabs[4]:
