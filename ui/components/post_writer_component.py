@@ -264,6 +264,11 @@ class PostWriterComponent:
         
         with llm_col2:
             # 根據選擇的提供商顯示不同的模型選項
+            # 若啟用媒體素材（圖片或影片），強制使用 Gemini 系列，支持多模態
+            media_payload = project.get('media_payload') or {}
+            force_gemini = bool(media_payload.get('enabled') and ((media_payload.get('images')) or (media_payload.get('videos'))))
+            if force_gemini:
+                project['llm_provider'] = 'Gemini (Google)'
             if project.get('llm_provider', 'Gemini (Google)') == 'Gemini (Google)':
                 model_options = [
                     "gemini-2.0-flash",
@@ -285,7 +290,8 @@ class PostWriterComponent:
                 index=model_options.index(
                     project.get('llm_model', default_model) if project.get('llm_model') in model_options else default_model
                 ),
-                key=f"llm_model_{project['id']}"
+                key=f"llm_model_{project['id']}",
+                disabled=force_gemini
             )
         
         # 內容設定
@@ -339,8 +345,8 @@ class PostWriterComponent:
         """渲染內容創作區域"""
         st.subheader("✍️ 內容創作")
         
-        # 創作提示輸入
-        prompt_col1, prompt_col2 = st.columns([4, 1])
+        # 創作提示輸入 + 媒體匯入
+        prompt_col1, prompt_col_extra, prompt_col2 = st.columns([3, 2, 1])
         
         with prompt_col1:
             st.markdown("**💭 創作提示**")
@@ -351,6 +357,19 @@ class PostWriterComponent:
                 project['prompt_source'] = '手動輸入'
                 self._save_writer_persistent_state()
                 st.rerun()
+
+        # 媒體匯入（圖片/影片）— 折疊式
+        with prompt_col_extra:
+            with st.expander("📥 匯入媒體（可選）", expanded=False):
+                img_files = st.file_uploader("圖片", type=["jpg","jpeg","png","webp"], accept_multiple_files=True, key=f"img_upload_{project['id']}")
+                vid_files = st.file_uploader("影片", type=["mp4","mov","webm"], accept_multiple_files=True, key=f"vid_upload_{project['id']}")
+                enable_media = st.checkbox("啟用媒體素材", value=False, key=f"enable_media_{project['id']}")
+                # 保存到專案狀態（僅保存檔名與 mime 提示，不持久化原始檔案）
+                project['media_payload'] = {
+                    'enabled': enable_media,
+                    'images': [{'name': f.name, 'mime': f.type} for f in (img_files or [])],
+                    'videos': [{'name': f.name, 'mime': f.type} for f in (vid_files or [])],
+                }
         
         # 暫存當前提示內容
         current_prompt = project.get('user_prompt', '')
@@ -399,6 +418,30 @@ class PostWriterComponent:
                     st.text(generation['prompt'])
                     st.markdown("**生成內容：**")
                     st.markdown(generation['content'])
+                    
+                    # 顯示媒體素材使用與預覽（若有）
+                    media_info = generation.get('media')
+                    media_enabled_flag = generation.get('settings', {}).get('media_enabled')
+                    if media_enabled_flag or media_info:
+                        st.markdown("---")
+                        st.caption("✅ 已啟用媒體素材")
+                        if media_info:
+                            imgs = media_info.get('images') or []
+                            vids = media_info.get('videos') or []
+                            st.caption(f"媒體引用：圖片 {len(imgs)}，影片 {len(vids)}")
+                            # 預覽前幾個媒體
+                            if imgs:
+                                st.markdown("**圖片預覽**")
+                                for item in imgs[:4]:
+                                    url = item.get('url') or item.get('rustfs_url')
+                                    if url:
+                                        st.image(url, use_container_width=True)
+                            if vids:
+                                st.markdown("**影片預覽**")
+                                for item in vids[:2]:
+                                    url = item.get('url') or item.get('rustfs_url')
+                                    if url:
+                                        st.video(url)
                     
                     col1, col2 = st.columns(2)
                     with col1:
@@ -638,7 +681,8 @@ class PostWriterComponent:
                         'target_length': project.get('target_length'),
                         'tone': project.get('tone'),
                         'post_count': project.get('post_count', 5)
-                    }
+                    },
+                    'media': project.get('media_payload')
                 }
                 
                 # 如果有參考分析，添加到請求中
@@ -649,6 +693,40 @@ class PostWriterComponent:
                     if reference_content:
                         generation_data['reference_analysis'] = reference_content
                 
+                # 若啟用媒體素材：將上傳的檔案保存到 RustFS，並把可瀏覽 URL 寫入 media 欄位
+                media_payload = project.get('media_payload') or {}
+                if media_payload.get('enabled') and ((media_payload.get('images')) or (media_payload.get('videos'))):
+                    try:
+                        from services.rustfs_client import RustFSClient
+                        client = RustFSClient()
+                        uploaded_images, uploaded_videos = [], []
+                        # 重新從 widgets 取檔案物件
+                        img_files = st.session_state.get(f"img_upload_{project['id']}") or []
+                        vid_files = st.session_state.get(f"vid_upload_{project['id']}") or []
+                        # 單執行緒同步等待上傳（Streamlit 內簡化處理）
+                        import nest_asyncio, asyncio as _aio
+                        nest_asyncio.apply()
+                        loop = _aio.get_event_loop()
+                        for f in img_files:
+                            data = f.read()
+                            res = loop.run_until_complete(client.upload_user_media(f.name, data, f.type))
+                            uploaded_images.append(res)
+                        for f in vid_files:
+                            data = f.read()
+                            res = loop.run_until_complete(client.upload_user_media(f.name, data, f.type))
+                            uploaded_videos.append(res)
+                        # 更新 generation_data.media 為可瀏覽 URL 清單
+                        generation_data['media'] = {
+                            'enabled': True,
+                            'images': uploaded_images,
+                            'videos': uploaded_videos,
+                        }
+                        # 標註：已啟用媒體素材
+                        generation_data['settings']['media_enabled'] = True
+                    except Exception as up_err:
+                        st.warning(f"媒體上傳失敗，將以文字創作為主：{up_err}")
+                        generation_data['settings']['media_enabled'] = False
+
                 # 調用真正的生成服務 (同步方式)
                 generated_posts = asyncio.run(self._call_content_generator_service(generation_data))
                 
@@ -661,6 +739,9 @@ class PostWriterComponent:
                         'settings': generation_data['settings'],
                         'created_at': datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M:%S")
                     }
+                    # 保存引用的媒體（若有）供瀏覽
+                    if generation_data.get('media') and generation_data['media'].get('enabled'):
+                        generation_record['media'] = generation_data['media']
                     
                     if 'generation_history' not in project:
                         project['generation_history'] = []

@@ -10,6 +10,8 @@ from urllib.parse import urlparse, urlunparse
 import hashlib
 import mimetypes
 from typing import Optional, Dict, Any, List
+import uuid
+from datetime import datetime
 from pathlib import Path
 import httpx
 import asyncio
@@ -464,6 +466,19 @@ class RustFSClient:
             s3.put_object(Bucket=self.bucket_name, Key=key, Body=content, ContentType=content_type)
             return f"{self.base_url}/{self.bucket_name}/{key}"
         return await asyncio.to_thread(_put)
+
+    async def upload_user_media(self, filename: str, content: bytes, content_type: str) -> Dict[str, str]:
+        """
+        上傳使用者在撰寫器匯入的媒體到 RustFS，返回 key 與可瀏覽 URL。
+        路徑格式：user-media/YYYYMMDD/uuid_filename
+        """
+        safe_name = ''.join(ch for ch in filename if ch.isalnum() or ch in ('-', '_', '.', ' ')).strip().replace(' ', '_')
+        day = datetime.utcnow().strftime('%Y%m%d')
+        unique = uuid.uuid4().hex[:12]
+        key = f"user-media/{day}/{unique}_{safe_name}"
+        rustfs_url = await self._upload_to_rustfs(key, content, content_type or 'application/octet-stream')
+        browse_url = self.get_public_or_presigned_url(key, prefer_presigned=True)
+        return {"key": key, "rustfs_url": rustfs_url, "url": browse_url, "content_type": content_type or ""}
 
     def make_object_url(self, key: str) -> str:
         """回傳未簽名的物件 URL（適用於已設公開讀取的 bucket）。"""

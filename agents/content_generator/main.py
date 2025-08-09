@@ -38,6 +38,7 @@ class ContentGenerationRequest(BaseModel):
     llm_config: Optional[Dict[str, Any]] = None
     settings: Dict[str, Any]
     reference_analysis: Optional[Dict[str, Any]] = None
+    media: Optional[Dict[str, Any]] = None  # {enabled: bool, images: [{name,mime}], videos: [{name,mime}]}
 
 class ContentGenerationResponse(BaseModel):
     generated_posts: List[str]
@@ -64,7 +65,8 @@ async def generate_content(request: ContentGenerationRequest):
             user_prompt=request.user_prompt,
             settings=request.settings,
             post_count=post_count,
-            reference_analysis=request.reference_analysis
+            reference_analysis=request.reference_analysis,
+            media=request.media
         )
         
         logger.info("調用 LLM 生成內容...")
@@ -115,7 +117,8 @@ def _build_five_stage_prompt(
     user_prompt: str,
     settings: Dict[str, Any],
     post_count: int = 5,
-    reference_analysis: Optional[Dict[str, Any]] = None
+    reference_analysis: Optional[Dict[str, Any]] = None,
+    media: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
     構建五段式 prompt 結構
@@ -162,6 +165,17 @@ def _build_five_stage_prompt(
         stage_4 = "**第一次分析結果**: 無參考分析"
         stage_5 = "**第二次分析結果**: 無參考分析"
     
+    # 第六段：媒體素材（可選）
+    stage_6 = ""
+    if media and media.get('enabled'):
+        media_notes = []
+        if media.get('images'):
+            media_notes.append("可搭配圖片內容設計貼文，如果沒有特別要求以文字文主。圖片內容可自由參考，自然呼應即可。")
+        if media.get('videos'):
+            media_notes.append("可搭配影片內容設計貼文，如果沒有特別要求以文字文主。影片內容可自由參考，自然呼應即可。")
+        notes_text = "\n".join(media_notes) if media_notes else ""
+        stage_6 = f"**媒體素材提示**:\n{notes_text}"
+
     # 組合完整 prompt
     full_prompt = f"""{stage_1}
 
@@ -172,6 +186,8 @@ def _build_five_stage_prompt(
 {stage_4}
 
 {stage_5}
+
+{stage_6}
 
 請根據以上信息，生成 5 個不同風格的貼文版本。每個版本用 "【版本X】" 標示，內容要符合指定的風格和長度要求。"""
     

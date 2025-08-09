@@ -123,9 +123,9 @@ class MediaDescribeService:
                 described = {d["media_id"] for d in desc_rows}
                 rows = [r for r in rows if r["media_id"] not in described]
 
-        # 規則篩選（第一段）：若 only_primary
+        # 規則篩選（第一段）：若 only_primary（僅對圖片生效，影片不過濾）
         if only_primary and rows:
-            # 對缺少標記的項目進行規則打分，並即時寫回 metadata
+            # 對缺少標記的項目進行規則打分，並即時寫回 metadata（僅 image）
             to_update = []
             for r in rows:
                 if r.get("is_primary") is None and r.get("media_type") == 'image':
@@ -149,9 +149,12 @@ class MediaDescribeService:
                             media_id, str(score), 'true' if is_primary else 'false', reason
                         )
 
-            # 最終按照標記/分數過濾
+            # 最終按照標記/分數過濾：影片直接保留；圖片才依門檻
             filtered = []
             for r in rows:
+                if r.get("media_type") != 'image':
+                    filtered.append(r)
+                    continue
                 score = r.get("primary_score")
                 is_primary = r.get("is_primary")
                 if is_primary is True:
