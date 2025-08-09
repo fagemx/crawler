@@ -1,7 +1,7 @@
 from typing import List, Dict, Any, Optional, Tuple
 import asyncio
 
-from common.db_client import get_db_client
+from common.db_client import DatabaseClient, get_db_client
 from services.rustfs_client import get_rustfs_client
 
 
@@ -10,8 +10,10 @@ class MediaDownloadService:
 
     async def get_account_media_stats(self, limit: int = 50) -> List[Dict[str, Any]]:
         """彙總各帳號圖片/影片總數、已配對、已完成、待下載數。"""
-        db = await get_db_client()
-        query = f"""
+        db = DatabaseClient()
+        await db.init_pool()
+        try:
+            query = f"""
         WITH pv AS (
             SELECT username,
                    url AS post_url,
@@ -52,7 +54,9 @@ class MediaDownloadService:
         ORDER BY (GREATEST(a.total_images - COALESCE(p.completed_images,0),0) + GREATEST(a.total_videos - COALESCE(p.completed_videos,0),0)) DESC
         LIMIT {limit}
         """
-        return await db.fetch_all(query)
+            return await db.fetch_all(query)
+        finally:
+            await db.close_pool()
 
     async def build_download_plan(
         self,
@@ -64,7 +68,8 @@ class MediaDownloadService:
         only_unpaired: bool = False,
     ) -> Dict[str, List[str]]:
         """建立下載計畫：回傳 {post_url: [media_url,...]} 的映射。"""
-        db = await get_db_client()
+        db = DatabaseClient()
+        await db.init_pool()
 
         type_filters = []
         if "image" in media_types:
@@ -118,44 +123,47 @@ class MediaDownloadService:
         WHERE media_type IN ({type_sql})
         """
 
-        rows = await db.fetch_all(pv_cte, username)
+        try:
+            rows = await db.fetch_all(pv_cte, username)
 
-        # 過濾條件：已完成 / 未配對
-        if skip_completed or only_unpaired:
-            # 取 media_files 對應狀態
-            url_set = [r["media_url"] for r in rows]
-            if url_set:
-                placeholders = ",".join([f"${i+1}" for i in range(len(url_set))])
-                mf_rows = await db.fetch_all(
-                    f"""
-                    SELECT original_url, download_status
-                    FROM media_files
-                    WHERE original_url IN ({placeholders})
-                    """,
-                    *url_set
-                )
-                status_map = {m["original_url"]: m.get("download_status") for m in mf_rows}
+            # 過濾條件：已完成 / 未配對
+            if skip_completed or only_unpaired:
+                # 取 media_files 對應狀態
+                url_set = [r["media_url"] for r in rows]
+                if url_set:
+                    placeholders = ",".join([f"${i+1}" for i in range(len(url_set))])
+                    mf_rows = await db.fetch_all(
+                        f"""
+                        SELECT original_url, download_status
+                        FROM media_files
+                        WHERE original_url IN ({placeholders})
+                        """,
+                        *url_set
+                    )
+                    status_map = {m["original_url"]: m.get("download_status") for m in mf_rows}
+                else:
+                    status_map = {}
             else:
                 status_map = {}
-        else:
-            status_map = {}
 
-        plan: Dict[str, List[str]] = {}
-        seen: set = set()
-        for r in rows:
-            media_url = r["media_url"]
-            if media_url in seen:
-                continue
-            seen.add(media_url)
+            plan: Dict[str, List[str]] = {}
+            seen: set = set()
+            for r in rows:
+                media_url = r["media_url"]
+                if media_url in seen:
+                    continue
+                seen.add(media_url)
 
-            if skip_completed and status_map.get(media_url) == "completed":
-                continue
-            if only_unpaired and media_url in status_map:
-                continue
+                if skip_completed and status_map.get(media_url) == "completed":
+                    continue
+                if only_unpaired and media_url in status_map:
+                    continue
 
-            post_url = r["post_url"]
-            plan.setdefault(post_url, []).append(media_url)
-        return plan
+                post_url = r["post_url"]
+                plan.setdefault(post_url, []).append(media_url)
+            return plan
+        finally:
+            await db.close_pool()
 
     async def run_download(self, plan: Dict[str, List[str]], concurrency_per_post: int = 3) -> Dict[str, Any]:
         """執行下載計畫，逐貼文批次下載到 RustFS。"""

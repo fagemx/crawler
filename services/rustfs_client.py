@@ -13,7 +13,9 @@ from typing import Optional, Dict, Any, List
 from pathlib import Path
 import httpx
 import asyncio
-from urllib.parse import urlparse
+import boto3
+from botocore.client import Config as BotoConfig
+from botocore.exceptions import ClientError
 
 from common.settings import get_settings
 from common.db_client import get_db_client
@@ -29,8 +31,10 @@ class RustFSClient:
         self.access_key = os.getenv("RUSTFS_ACCESS_KEY", "rustfsadmin")
         self.secret_key = os.getenv("RUSTFS_SECRET_KEY", "rustfsadmin")
         self.bucket_name = os.getenv("RUSTFS_BUCKET", "social-media-content")
+        self.region = os.getenv("RUSTFS_REGION", "us-east-1")
         # 自動偵測：若本機無法解析 rustfs，改用 localhost
         self._auto_select_endpoint()
+        self._s3_client = None
 
     def _auto_select_endpoint(self):
         try:
@@ -48,50 +52,61 @@ class RustFSClient:
             pass
         
     async def initialize(self):
-        """初始化 RustFS 客戶端，建立 bucket"""
+        """初始化：使用 S3 檢查/建立 bucket"""
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                # 檢查 bucket 是否存在，不存在則建立
-                response = await client.head(
-                    f"{self.base_url}/{self.bucket_name}",
-                    auth=(self.access_key, self.secret_key)
-                )
-                
-                if response.status_code == 404:
-                    # 建立 bucket
-                    await client.put(
-                        f"{self.base_url}/{self.bucket_name}",
-                        auth=(self.access_key, self.secret_key)
-                    )
-                    print(f"✅ Created RustFS bucket: {self.bucket_name}")
-                else:
-                    print(f"✅ RustFS bucket exists: {self.bucket_name}")
-                    
+            s3 = boto3.client(
+                's3', endpoint_url=self.base_url,
+                aws_access_key_id=self.access_key,
+                aws_secret_access_key=self.secret_key,
+                config=BotoConfig(signature_version='s3v4'),
+                region_name=self.region
+            )
+            def _head():
+                try:
+                    s3.head_bucket(Bucket=self.bucket_name)
+                    return True
+                except ClientError as e:
+                    code = e.response.get('Error', {}).get('Code')
+                    if code in ('404', 'NoSuchBucket'):
+                        return False
+                    if code in ('403', 'AccessDenied'):
+                        return True
+                    raise
+            exists = await asyncio.to_thread(_head)
+            if not exists:
+                def _create():
+                    try:
+                        s3.create_bucket(Bucket=self.bucket_name)
+                        return True
+                    except ClientError as e:
+                        if e.response.get('Error', {}).get('Code') in ('BucketAlreadyOwnedByYou', 'BucketAlreadyExists'):
+                            return True
+                        raise
+                await asyncio.to_thread(_create)
         except Exception as e:
             print(f"❌ Failed to initialize RustFS: {e}")
             raise
 
     def health_check(self) -> Dict[str, Any]:
-        """RustFS 健康檢查（同步）"""
+        """RustFS 健檢（S3 HeadBucket）"""
         try:
-            import requests
-            # 簡單檢查 endpoint 可達
-            # 健檢使用 HEAD 並移除 Authorization（避免某些實作對未簽名 GET 嚴格檢查）
-            resp = requests.head(self.base_url + "/", timeout=5)
-            ok = resp.status_code < 500
-            return {
-                "status": "healthy" if ok else "unhealthy",
-                "endpoint": self.base_url,
-                "bucket": self.bucket_name,
-                "http_status": resp.status_code,
-            }
+            s3 = boto3.client(
+                's3', endpoint_url=self.base_url,
+                aws_access_key_id=self.access_key,
+                aws_secret_access_key=self.secret_key,
+                config=BotoConfig(signature_version='s3v4'),
+                region_name=self.region
+            )
+            try:
+                s3.head_bucket(Bucket=self.bucket_name)
+                return {"status": "healthy", "endpoint": self.base_url, "bucket": self.bucket_name}
+            except ClientError as e:
+                code = e.response.get('Error', {}).get('Code')
+                if code in ('404', 'NoSuchBucket', '403', 'AccessDenied'):
+                    return {"status": "healthy", "endpoint": self.base_url, "bucket": self.bucket_name, "note": code}
+                return {"status": "unhealthy", "endpoint": self.base_url, "bucket": self.bucket_name, "error": code}
         except Exception as e:
-            return {
-                "status": "unhealthy",
-                "endpoint": self.base_url,
-                "bucket": self.bucket_name,
-                "error": str(e),
-            }
+            return {"status": "unhealthy", "endpoint": self.base_url, "bucket": self.bucket_name, "error": str(e)}
     
     def _generate_key(self, post_url: str, original_url: str, media_type: str) -> str:
         """生成 RustFS 存儲鍵值"""
@@ -279,17 +294,17 @@ class RustFSClient:
     
     async def _upload_to_rustfs(self, key: str, content: bytes, content_type: str) -> str:
         """上傳檔案到 RustFS"""
-        async with httpx.AsyncClient(timeout=120.0) as client:
-            response = await client.put(
-                f"{self.base_url}/{self.bucket_name}/{key}",
-                content=content,
-                headers={'Content-Type': content_type},
-                auth=(self.access_key, self.secret_key)
-            )
-            response.raise_for_status()
-            
-            # 返回訪問 URL
+        s3 = boto3.client(
+            's3', endpoint_url=self.base_url,
+            aws_access_key_id=self.access_key,
+            aws_secret_access_key=self.secret_key,
+            config=BotoConfig(signature_version='s3v4'),
+            region_name=self.region
+        )
+        def _put():
+            s3.put_object(Bucket=self.bucket_name, Key=key, Body=content, ContentType=content_type)
             return f"{self.base_url}/{self.bucket_name}/{key}"
+        return await asyncio.to_thread(_put)
     
     async def _extract_media_metadata(self, content: bytes, media_type: str) -> Dict[str, Any]:
         """提取媒體檔案元數據"""

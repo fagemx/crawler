@@ -35,10 +35,12 @@ class MediaProcessorComponent:
 
         # 帳號統計（摘要）
         try:
-            import asyncio
             from agents.vision.media_download_service import MediaDownloadService
+            import nest_asyncio
+            import asyncio
+            nest_asyncio.apply()
             svc = MediaDownloadService()
-            stats = asyncio.run(svc.get_account_media_stats(limit=50))
+            stats = asyncio.get_event_loop().run_until_complete(svc.get_account_media_stats(limit=50))
             if stats:
                 import pandas as pd
                 df = pd.DataFrame(stats)
@@ -69,9 +71,11 @@ class MediaProcessorComponent:
         if st.button("開始下載", type="primary"):
             try:
                 from agents.vision.media_download_service import MediaDownloadService
+                import nest_asyncio
                 import asyncio
+                nest_asyncio.apply()
                 svc = MediaDownloadService()
-                plan = asyncio.run(svc.build_download_plan(
+                plan = asyncio.get_event_loop().run_until_complete(svc.build_download_plan(
                     username=target_username,
                     media_types=media_types,
                     sort_by=sort_by,
@@ -82,7 +86,7 @@ class MediaProcessorComponent:
                 if not plan:
                     st.info("沒有需要下載的媒體")
                     return
-                result = asyncio.run(svc.run_download(plan, concurrency_per_post=int(concurrency)))
+                result = asyncio.get_event_loop().run_until_complete(svc.run_download(plan, concurrency_per_post=int(concurrency)))
                 st.success(f"下載完成：成功 {result['success']}，失敗 {result['failed']} / 共 {result['total']}")
             except Exception as e:
                 st.error(f"下載執行失敗：{e}")
@@ -118,9 +122,11 @@ class MediaProcessorComponent:
         if st.button("開始描述", type="primary", key="start_desc"):
             try:
                 from agents.vision.media_describe_service import MediaDescribeService
+                import nest_asyncio
                 import asyncio
+                nest_asyncio.apply()
                 svc = MediaDescribeService()
-                items = asyncio.run(svc.build_describe_plan(
+                items = asyncio.get_event_loop().run_until_complete(svc.build_describe_plan(
                     username=target_username,
                     media_types=media_types,
                     sort_by=sort_by,
@@ -130,7 +136,7 @@ class MediaProcessorComponent:
                 if not items:
                     st.info("沒有待描述的媒體")
                     return
-                result = asyncio.run(svc.run_describe(items, overwrite=True))
+                result = asyncio.get_event_loop().run_until_complete(svc.run_describe(items, overwrite=True))
                 st.success(f"描述完成：成功 {result['success']}，失敗 {result['failed']} / 共 {result['total']}")
             except Exception as e:
                 st.error(f"描述執行失敗：{e}")
