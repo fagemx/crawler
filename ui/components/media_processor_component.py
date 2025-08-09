@@ -60,49 +60,6 @@ class MediaProcessorComponent:
         with col4:
             top_k = st.selectbox("Top-N", ["全部", 10, 25, 50], index=2)
 
-        # 進階：單篇刷新/下載
-        st.markdown("---")
-        st.caption("進階：單篇重爬 / 刷新媒體 URL")
-        colr1, colr2, colr3 = st.columns([3, 1, 1])
-        with colr1:
-            single_post_url = st.text_input("貼文 URL（https://www.threads.net/@user/post/XXXX）", key="single_post_url")
-        with colr2:
-            do_refresh = st.button("🔄 單篇刷新URL", key="btn_refresh_single")
-        with colr3:
-            do_refresh_and_download = st.button("⬇️ 刷新並下載", key="btn_refresh_and_download")
-
-        if do_refresh and single_post_url:
-            try:
-                from agents.vision.media_download_service import MediaDownloadService
-                import nest_asyncio
-                import asyncio
-                nest_asyncio.apply()
-                svc = MediaDownloadService()
-                refreshed = asyncio.get_event_loop().run_until_complete(svc.refresh_post_media_urls(single_post_url))
-                imgs = len(refreshed.get("images") or [])
-                vids = len(refreshed.get("videos") or [])
-                st.success(f"已刷新：images={imgs}, videos={vids}")
-            except Exception as e:
-                st.error(f"刷新失敗：{e}")
-
-        if do_refresh_and_download and single_post_url:
-            try:
-                from agents.vision.media_download_service import MediaDownloadService
-                import nest_asyncio
-                import asyncio
-                nest_asyncio.apply()
-                svc = MediaDownloadService()
-                refreshed = asyncio.get_event_loop().run_until_complete(svc.refresh_post_media_urls(single_post_url))
-                urls = (refreshed.get("images") or []) + (refreshed.get("videos") or [])
-                if not urls:
-                    st.info("刷新後未獲得媒體 URL")
-                else:
-                    plan = {single_post_url: urls}
-                    result = asyncio.get_event_loop().run_until_complete(svc.run_download(plan, concurrency_per_post=3))
-                    st.success(f"下載完成：成功 {result['success']}，失敗 {result['failed']} / 共 {result['total']}")
-            except Exception as e:
-                st.error(f"刷新並下載失敗：{e}")
-
         col5, col6, col7 = st.columns(3)
         with col5:
             concurrency = st.selectbox("並發數", [3, 5, 10], index=0)
@@ -110,6 +67,9 @@ class MediaProcessorComponent:
             skip_completed = st.checkbox("跳過已完成", value=True)
         with col7:
             only_unpaired = st.checkbox("僅未配對", value=False, help="無 media_files 記錄才視為未配對")
+
+        # 下載目標：全部 / 僅重試失敗
+        retry_failed_only = st.checkbox("只重試失敗", value=False, help="僅針對 media_files.download_status='failed' 的項目重新下載")
 
         if st.button("開始下載", type="primary"):
             try:
@@ -125,6 +85,7 @@ class MediaProcessorComponent:
                     top_k=None if top_k == "全部" else int(top_k),
                     skip_completed=skip_completed,
                     only_unpaired=only_unpaired,
+                    retry_failed_only=retry_failed_only,
                 ))
                 if not plan:
                     st.info("沒有需要下載的媒體")
@@ -134,6 +95,50 @@ class MediaProcessorComponent:
                 st.success(f"下載完成：成功 {result['success']}，失敗 {result['failed']} / 共 {result['total']}")
             except Exception as e:
                 st.error(f"下載執行失敗：{e}")
+
+        # 進階：單篇刷新/下載（折疊，不常用）
+        st.markdown("---")
+        with st.expander("進階：單篇重爬 / 刷新媒體 URL", expanded=False):
+            st.caption("建議僅在批次下載遇到 403/過期時使用。")
+            colr1, colr2, colr3 = st.columns([3, 1, 1])
+            with colr1:
+                single_post_url = st.text_input("貼文 URL（https://www.threads.net/@user/post/XXXX）", key="single_post_url")
+            with colr2:
+                do_refresh = st.button("🔄 單篇刷新URL", key="btn_refresh_single")
+            with colr3:
+                do_refresh_and_download = st.button("⬇️ 刷新並下載", key="btn_refresh_and_download")
+
+            if do_refresh and single_post_url:
+                try:
+                    from agents.vision.media_download_service import MediaDownloadService
+                    import nest_asyncio
+                    import asyncio
+                    nest_asyncio.apply()
+                    svc = MediaDownloadService()
+                    refreshed = asyncio.get_event_loop().run_until_complete(svc.refresh_post_media_urls(single_post_url))
+                    imgs = len(refreshed.get("images") or [])
+                    vids = len(refreshed.get("videos") or [])
+                    st.success(f"已刷新：images={imgs}, videos={vids}")
+                except Exception as e:
+                    st.error(f"刷新失敗：{e}")
+
+            if do_refresh_and_download and single_post_url:
+                try:
+                    from agents.vision.media_download_service import MediaDownloadService
+                    import nest_asyncio
+                    import asyncio
+                    nest_asyncio.apply()
+                    svc = MediaDownloadService()
+                    refreshed = asyncio.get_event_loop().run_until_complete(svc.refresh_post_media_urls(single_post_url))
+                    urls = (refreshed.get("images") or []) + (refreshed.get("videos") or [])
+                    if not urls:
+                        st.info("刷新後未獲得媒體 URL")
+                    else:
+                        plan = {single_post_url: urls}
+                        result = asyncio.get_event_loop().run_until_complete(svc.run_download(plan, concurrency_per_post=3))
+                        st.success(f"下載完成：成功 {result['success']}，失敗 {result['failed']} / 共 {result['total']}")
+                except Exception as e:
+                    st.error(f"刷新並下載失敗：{e}")
 
     # ---------- 描述器 ----------
     def _render_describer(self):

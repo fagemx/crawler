@@ -204,7 +204,13 @@ class RustFSClient:
                 pass
             
             # 下載檔案
-            async with httpx.AsyncClient(timeout=60.0) as client:
+            # 強化下載層：帶上 UA/Referer，必要時攜帶 Cookies（若後續擴充）
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+                "Referer": "https://www.threads.net/",
+                "Accept": "*/*",
+            }
+            async with httpx.AsyncClient(timeout=60.0, headers=headers) as client:
                 print(f"📥 Downloading: {media_url}")
                 
                 # 下載原始檔案
@@ -219,7 +225,15 @@ class RustFSClient:
                 file_extension = self._get_file_extension(media_url, content_type)
                 
                 # 上傳到 RustFS
-                rustfs_url = await self._upload_to_rustfs(rustfs_key, file_content, content_type)
+                try:
+                    rustfs_url = await self._upload_to_rustfs(rustfs_key, file_content, content_type)
+                except ClientError as s3e:
+                    # 若物件已存在（重試/並發重複），改為取已存在的 URL
+                    err_code = s3e.response.get('Error', {}).get('Code') if hasattr(s3e, 'response') else None
+                    if err_code in ('EntityAlreadyExists', 'BucketAlreadyOwnedByYou'):
+                        rustfs_url = f"{self.base_url}/{self.bucket_name}/{rustfs_key}"
+                    else:
+                        raise
                 
                 # 獲取媒體檔案的元數據（寬度、高度、時長等）
                 metadata = await self._extract_media_metadata(file_content, media_type)
@@ -353,14 +367,19 @@ class RustFSClient:
     ) -> int:
         """記錄媒體檔案到資料庫"""
         async with db_client.get_connection() as conn:
-            media_id = await conn.fetchval("""
+            media_id = await conn.fetchval(
+                """
                 INSERT INTO media_files (
                     post_url, original_url, media_type, rustfs_key, download_status
                 )
                 VALUES ($1, $2, $3, $4, $5)
-                RETURNING id
-            """, post_url, original_url, media_type, rustfs_key, status)
-            
+                ON CONFLICT (rustfs_key) DO UPDATE SET
+                    original_url = EXCLUDED.original_url,
+                    media_type = EXCLUDED.media_type
+                RETURNING media_files.id
+                """,
+                post_url, original_url, media_type, rustfs_key, status,
+            )
             return media_id
     
     async def _update_media_file(

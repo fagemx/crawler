@@ -79,6 +79,7 @@ class MediaDownloadService:
         top_k: Optional[int] = None,
         skip_completed: bool = True,
         only_unpaired: bool = False,
+        retry_failed_only: bool = False,
     ) -> Dict[str, List[str]]:
         """建立下載計畫：回傳 {post_url: [media_url,...]} 的映射。"""
         db = DatabaseClient()
@@ -92,6 +93,36 @@ class MediaDownloadService:
         if not type_filters:
             return {}
         type_sql = ",".join(type_filters)
+
+        # 僅重試失敗：改由 media_files 取清單
+        if retry_failed_only:
+            try:
+                type_filters = set(media_types)
+                rows = await db.fetch_all(
+                    """
+                    SELECT mf.post_url AS post_url, mf.original_url AS media_url, mf.media_type
+                    FROM media_files mf
+                    JOIN playwright_post_metrics ppm ON ppm.url = mf.post_url
+                    WHERE ppm.username = $1 AND mf.download_status = 'failed'
+                    ORDER BY mf.id ASC
+                    """,
+                    username,
+                )
+
+                plan: Dict[str, List[str]] = {}
+                seen: set = set()
+                for r in rows:
+                    media_url = r["media_url"]
+                    mtype = r.get("media_type") or "image"
+                    if type_filters and mtype not in type_filters:
+                        continue
+                    if media_url in seen:
+                        continue
+                    seen.add(media_url)
+                    plan.setdefault(r["post_url"], []).append(media_url)
+                return plan
+            finally:
+                await db.close_pool()
 
         # 先鎖定貼文集合（排序 Top-N）
         post_filter_cte = ""

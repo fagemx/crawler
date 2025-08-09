@@ -7,11 +7,19 @@
 import streamlit as st
 import sys
 import os
+import asyncio
 from pathlib import Path
 
 # 添加專案根目錄到 Python 路徑
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
+
+# Windows: 修正 asyncio 子行程政策，避免 Playwright 在 Windows 出現 NotImplementedError
+if sys.platform == "win32":
+    try:
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    except Exception:
+        pass
 
 # 導入組件
 # from ui.components.crawler_component import ThreadsCrawlerComponent  # 舊版本
