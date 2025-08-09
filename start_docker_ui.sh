@@ -67,6 +67,16 @@ start_core_services() {
     sleep 10
 }
 
+# 套用資料庫初始化/修復（冪等）
+apply_db_init() {
+    echo -e "${BLUE}🛠  套用資料庫初始化/修復腳本...${NC}"
+    if [ -f scripts/init-db.sql ]; then
+        docker compose exec -T postgres psql -U postgres -d social_media_db < scripts/init-db.sql || true
+    else
+        echo -e "${YELLOW}⚠️  找不到 scripts/init-db.sql，略過${NC}"
+    fi]
+}
+
 # 啟動 UI 服務
 start_ui() {
     echo -e "${BLUE}🎨 構建和啟動 Streamlit UI...${NC}"
@@ -108,6 +118,7 @@ main() {
     check_docker
     stop_existing
     start_core_services
+    apply_db_init
     start_ui
     wait_and_show_status
 }

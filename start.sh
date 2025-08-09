@@ -21,6 +21,16 @@ echo "🌐 訪問: http://localhost:8501"
 # 等待服務啟動
 sleep 10
 
+# 一次性/冪等：套用資料庫修復/初始化腳本
+if docker ps --format '{{.Names}}' | grep -q '^social-media-postgres$'; then
+  echo "🛠  套用資料庫初始化/修復腳本..."
+  if [ -f scripts/init-db.sql ]; then
+    docker exec -i social-media-postgres psql -U postgres -d social_media_db < scripts/init-db.sql || true
+  else
+    echo "⚠️  找不到 scripts/init-db.sql，略過資料庫修復"
+  fi
+fi
+
 # 檢查服務狀態
 echo "📊 服務狀態:"
 docker compose ps
