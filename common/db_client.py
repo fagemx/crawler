@@ -34,6 +34,15 @@ class DatabaseClient:
                 max_size=self.settings.database.pool_size,
                 command_timeout=60
             )
+        else:
+            # 若池已存在但處於關閉狀態，重新建立
+            if getattr(self.pool, "_closed", False):
+                self.pool = await asyncpg.create_pool(
+                    self.settings.database.url,
+                    min_size=5,
+                    max_size=self.settings.database.pool_size,
+                    command_timeout=60
+                )
     
     async def close_pool(self):
         """關閉連接池"""

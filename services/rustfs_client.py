@@ -76,7 +76,8 @@ class RustFSClient:
         try:
             import requests
             # 簡單檢查 endpoint 可達
-            resp = requests.get(self.base_url + "/", timeout=5, auth=(self.access_key, self.secret_key))
+            # 健檢使用 HEAD 並移除 Authorization（避免某些實作對未簽名 GET 嚴格檢查）
+            resp = requests.head(self.base_url + "/", timeout=5)
             ok = resp.status_code < 500
             return {
                 "status": "healthy" if ok else "unhealthy",

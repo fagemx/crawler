@@ -125,14 +125,14 @@ class MediaDownloadService:
             # 取 media_files 對應狀態
             url_set = [r["media_url"] for r in rows]
             if url_set:
-                placeholders = ",".join([f"${i+2}" for i in range(len(url_set))])
+                placeholders = ",".join([f"${i+1}" for i in range(len(url_set))])
                 mf_rows = await db.fetch_all(
                     f"""
                     SELECT original_url, download_status
                     FROM media_files
                     WHERE original_url IN ({placeholders})
                     """,
-                    username, *url_set
+                    *url_set
                 )
                 status_map = {m["original_url"]: m.get("download_status") for m in mf_rows}
             else:
@@ -176,6 +176,13 @@ class MediaDownloadService:
                         failed += 1
                     details.append({"post_url": post_url, **res})
             except Exception as e:
+                # 嘗試重新初始化 db 連線池（處理 pool is closed）
+                try:
+                    db = await get_db_client()
+                    await db.close_pool()
+                    await db.init_pool()
+                except Exception:
+                    pass
                 # 整批失敗：計入失敗數
                 batch_failed = len(media_urls)
                 failed += batch_failed
