@@ -84,7 +84,7 @@ class AnalyzerComponent:
         # 🎯 模式選擇
         analysis_mode = st.radio(
             "選擇分析模式",
-            options=["📝 單篇深度分析", "📊 批量結構分析"],
+            options=["📊 批量結構分析", "📝 單篇深度分析"],
             index=0,
             horizontal=True,
             help="單篇模式：深度分析特定貼文 | 批量模式：從實時爬蟲資料庫導入多篇貼文進行模式分析"
@@ -146,14 +146,14 @@ class AnalyzerComponent:
 https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
             """)
         
-        # 提交按鈕 + 快速通道
+        # 提交按鈕 + 快速通道（同列，等寬；快速通道置左、主色）
         col_a, col_b = st.columns(2)
         with col_a:
-            if st.button("🔍 提取貼文內容", use_container_width=True, type="primary"):
-                self._process_input(username, post_id, direct_url)
-        with col_b:
-            if st.button("⚡ 快速通道", use_container_width=True):
+            if st.button("⚡ 快速通道", use_container_width=True, type="primary"):
                 self._run_quick_channel(username, post_id, direct_url)
+        with col_b:
+            if st.button("🔍 提取貼文內容", use_container_width=True):
+                self._process_input(username, post_id, direct_url)
     
     def _process_input(self, username: str, post_id: str, direct_url: str):
         """處理用戶輸入並組合URL"""
@@ -1304,6 +1304,10 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
                     self._extract_post_from_url(tab, url)
                 else:
                     st.error("請輸入有效的 URL")
+
+            # 分頁快速通道（URL）
+            if st.button("⚡ 快速通道", key=f"{tab_id}_quick_url"):
+                self._run_quick_channel_for_tab(tab)
         
         else:  # 用戶名 + 貼文ID
             col1, col2 = st.columns(2)
@@ -1328,6 +1332,10 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
                     self._extract_post_from_url(tab, url)
                 else:
                     st.error("請輸入用戶名和貼文ID")
+
+            # 分頁快速通道（用戶名 + 貼文ID）
+            if st.button("⚡ 快速通道", key=f"{tab_id}_quick_manual"):
+                self._run_quick_channel_for_tab(tab)
     
     def _extract_post_from_url(self, tab: Dict[str, Any], url: str):
         """從URL提取貼文內容"""
@@ -1501,6 +1509,65 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
             st.error(f"詳細錯誤: {traceback.format_exc()}")
         
         # 不再強制觸發全頁 rerun，避免頁面跳動
+
+    def _run_quick_channel_for_tab(self, tab: Dict[str, Any]):
+        """分頁快速通道：根據當前分頁輸入，直接提取→分析→回寫結果。"""
+        try:
+            tab_id = tab['id']
+            input_method = st.session_state.get(f"{tab_id}_input_method", "🔗 完整 URL")
+
+            if input_method == "🔗 完整 URL":
+                url = (st.session_state.get(f"{tab_id}_url_input") or "").strip()
+                if not url:
+                    st.error("❌ 請先輸入完整 URL")
+                    return
+                if not self._is_valid_threads_url(url):
+                    st.error("❌ Threads URL 格式不正確")
+                    return
+                final_url = url
+            else:
+                username = (st.session_state.get(f"{tab_id}_username_input") or "").strip().lstrip('@')
+                post_id = (st.session_state.get(f"{tab_id}_post_id_input") or "").strip()
+                if not username or not post_id:
+                    st.error("❌ 請先輸入用戶名與貼文ID")
+                    return
+                final_url = f"https://www.threads.com/@{username}/post/{post_id}"
+
+            # 1) 提取內容
+            with st.spinner("⚡ 快速提取中..."):
+                ok, raw = self._fetch_content_jina_api_sync(final_url)
+                if not ok:
+                    st.error(f"❌ 提取失敗：{raw}")
+                    return
+                post_data = self._parse_post_data_from_url(final_url, raw)
+                if not post_data:
+                    st.error("❌ 無法解析貼文內容")
+                    return
+
+            # 更新分頁顯示與狀態
+            username = post_data.get('username', 'unknown')
+            tab['title'] = f"@{username}"
+            self._update_tab_status(tab_id, 'idle', post_data=post_data)
+
+            # 2) 結構分析
+            with st.spinner("🧠 正在分析..."):
+                req = {
+                    "post_content": post_data['content'],
+                    "post_id": post_data['post_id'],
+                    "username": post_data['username']
+                }
+                resp = requests.post(self.structure_analyzer_url, json=req, timeout=120)
+                if resp.status_code != 200:
+                    st.error(f"❌ 分析失敗：HTTP {resp.status_code}")
+                    st.code(resp.text)
+                    return
+                analysis_result = resp.json()
+
+            # 3) 寫回分頁結果
+            self._update_tab_status(tab_id, 'completed', analysis_result=analysis_result)
+            st.success("✅ 快速通道完成！已生成分析結果。")
+        except Exception as e:
+            st.error(f"❌ 快速通道失敗：{e}")
     
     def _execute_tab_structure_analysis_sync(self, tab: Dict[str, Any]) -> Dict[str, Any]:
         """執行分頁的結構分析請求 (同步版本)"""

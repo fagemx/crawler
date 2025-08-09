@@ -119,16 +119,16 @@ class BatchAnalysisComponent:
                 """
                 st.success(preview_text)
         
-        # 開始分析按鈕 + 快速通道
+        # 快速通道（左，主色） + 開始分析（右，次色）
         if st.session_state.batch_analysis_state['selected_user']:
             st.markdown("---")
-            col_run, col_quick = st.columns(2)
-            with col_run:
-                if st.button("🚀 開始批量結構分析", type="primary", use_container_width=True):
-                    self._start_batch_analysis()
+            col_quick, col_run = st.columns(2)
             with col_quick:
-                if st.button("⚡ 快速通道", use_container_width=True):
+                if st.button("⚡ 快速通道", type="primary", use_container_width=True):
                     self._run_quick_channel_batch()
+            with col_run:
+                if st.button("🚀 開始批量結構分析", use_container_width=True):
+                    self._start_batch_analysis()
         else:
             st.markdown("---")
             st.info("👆 請先載入並選擇要分析的用戶")
