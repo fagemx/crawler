@@ -45,6 +45,7 @@ RUN pip install --no-cache-dir \
     lxml>=4.9.0 \
     python-multipart>=0.0.6 \
     click>=8.1.0 \
+    nest-asyncio>=1.5.8 \
     playwright>=1.40.0
 
 # 安裝 Playwright 瀏覽器（跳過系統依賴，因為已手動安裝）

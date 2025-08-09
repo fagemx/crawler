@@ -1002,6 +1002,8 @@ class PlaywrightCrawlerComponentV2:
         try:
             # 轉換結果格式
             converted_results = PlaywrightUtils.convert_playwright_results(final_data)
+            # 顯示前去重（內容相同、不同貼文ID → 保留觀看數高者）
+            converted_results = PlaywrightUtils.deduplicate_results_by_content_keep_max_views(converted_results)
             
             # 🔧 修復：優先使用轉換後的用戶名，避免覆蓋正確數據
             if not converted_results.get("target_username"):
@@ -1058,7 +1060,12 @@ class PlaywrightCrawlerComponentV2:
                 st.info("💡 您可以稍後使用 '💾 備用保存' 按鈕重試")
                 st.error(f"🔍 詳細錯誤: {str(db_error)}")  # 顯示詳細錯誤供調試
             
-            # 顯示結果
+            # 顯示結果（顯示時也排除 dedup_filtered 指紋）
+            if converted_results.get('results'):
+                converted_results['results'] = [
+                    r for r in converted_results['results']
+                    if (r.get('source') or 'playwright_agent') != 'playwright_dedup_filtered'
+                ]
             self._show_results(converted_results)
 
             # 若資料庫保存成功且勾選自動下載，立即觸發下載

@@ -269,3 +269,109 @@ class PlaywrightUtils:
                 return int(float(clean_value))
         except:
             return None
+
+    # -------------------- 去重工具：顯示/存前防禦性守門 --------------------
+    @staticmethod
+    def _normalize_content(text: str) -> str:
+        """輕度正規化 content：去頭尾空白並壓縮中間空白為單一空格"""
+        if not isinstance(text, str):
+            return ""
+        # 去頭尾空白，並將連續空白壓縮為單一空格
+        return " ".join(text.strip().split())
+
+    @staticmethod
+    def deduplicate_results_by_content_keep_max_views(results_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        防禦性守門：依據「相同 content、不同 post_id → 保留 views 較高者」過濾。
+        - 只在 content 非空時才參與同組比較
+        - 比較主鍵：同 (username, normalized_content)
+        - views 比較：優先使用 views_count，回退解析 views 字串
+        - 平手時以 likes_count 作為次序，仍平手則保留先到者
+
+        參數:
+            results_data: 具有 key "results" 的字典結構
+        回傳:
+            新的 results_data（淺複製），其中 "results" 已過濾
+        """
+        try:
+            results_list = list(results_data.get("results", []) or [])
+            if not results_list:
+                return results_data
+
+            target_username = results_data.get("target_username", "")
+
+            # 以 (username, normalized_content) 分組
+            groups = {}
+            singles = []
+
+            for item in results_list:
+                content = item.get("content") or ""
+                normalized = PlaywrightUtils._normalize_content(content)
+                # 僅對非空內容進行分組去重
+                if not normalized:
+                    singles.append(item)
+                    continue
+
+                username = item.get("username") or target_username or ""
+                key = (username, normalized)
+                groups.setdefault(key, []).append(item)
+
+            deduped = []
+
+            # 保留每組中 views 最大者
+            def views_of(x: Dict[str, Any]) -> int:
+                v = x.get("views_count")
+                if v is None or v == "":
+                    v = x.get("views")
+                parsed = PlaywrightUtils.parse_number_safe(v)
+                return int(parsed or 0)
+
+            def likes_of(x: Dict[str, Any]) -> int:
+                l = x.get("likes_count")
+                if l is None or l == "":
+                    l = x.get("likes")
+                parsed = PlaywrightUtils.parse_number_safe(l)
+                return int(parsed or 0)
+
+            dropped = []
+            for _, items in groups.items():
+                if len(items) == 1:
+                    deduped.append(items[0])
+                else:
+                    # 先以 views 由大到小排序，平手再以 likes 由大到小
+                    items_sorted = sorted(
+                        items,
+                        key=lambda x: (views_of(x), likes_of(x)),
+                        reverse=True,
+                    )
+                    deduped.append(items_sorted[0])
+                    dropped.extend(items_sorted[1:])
+
+            # 合併單筆（無內容或未分組）+ 去重後結果
+            final_results = singles + deduped
+
+            # 回寫到新的資料結構，避免外部引用被就地修改
+            new_data = dict(results_data)
+            new_data["results"] = final_results
+            # 記錄被丟棄的清單（作為增量跳過的標記用途）
+            if dropped:
+                new_data["dedup_filtered"] = [
+                    {
+                        "post_id": x.get("post_id", ""),
+                        "url": x.get("url", ""),
+                        "username": x.get("username", "") or target_username,
+                        "views_count": views_of(x),
+                        "likes_count": likes_of(x),
+                        "content": "",  # 不保存內容
+                        "source": "playwright_dedup_filtered",
+                    }
+                    for x in dropped
+                    if x and (x.get("post_id") or x.get("url"))
+                ]
+            # 若有統計欄位，順便更新
+            new_data["total_processed"] = len(final_results)
+            new_data["api_success_count"] = len(final_results)
+            return new_data
+        except Exception:
+            # 出錯則返回原資料，避免中斷主流程
+            return results_data

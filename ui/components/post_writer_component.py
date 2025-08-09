@@ -435,13 +435,16 @@ class PostWriterComponent:
                                 for item in imgs[:4]:
                                     url = item.get('url') or item.get('rustfs_url')
                                     if url:
-                                        st.image(url, use_container_width=True)
+                                        st.image(url, width=320)
                             if vids:
                                 st.markdown("**影片預覽**")
-                                for item in vids[:2]:
+                                vids_to_show = vids[:2]
+                                cols = st.columns(max(1, min(2, len(vids_to_show))))
+                                for idx, item in enumerate(vids_to_show):
                                     url = item.get('url') or item.get('rustfs_url')
                                     if url:
-                                        st.video(url)
+                                        with cols[idx % len(cols)]:
+                                            st.video(url)
                     
                     col1, col2 = st.columns(2)
                     with col1:

@@ -715,12 +715,24 @@ class SystemMonitoringComponent:
 
         # 篩選條件
         c1, c2, c3, c4 = st.columns(4)
+        options_cache_key = "user_ops_options"
+        if options_cache_key not in st.session_state:
+            # 初始化空值，避免首次渲染阻塞
+            st.session_state[options_cache_key] = {"menu_names": [], "action_types": [], "user_ids": []}
+            try:
+                resp_opt = httpx.get(f"{base_url}/user/ops/options", timeout=5.0)
+                if resp_opt.status_code == 200:
+                    st.session_state[options_cache_key] = resp_opt.json()
+            except Exception:
+                pass
+        opts = st.session_state[options_cache_key]
+
         with c1:
-            menu = st.text_input("主功能選單包含關鍵字", value="")
+            menu = st.selectbox("主功能選單", options=[""] + opts.get("menu_names", []), index=0)
         with c2:
-            action_type = st.text_input("動作類型(navigate/click/submit...)", value="")
+            action_type = st.selectbox("動作類型", options=[""] + (opts.get("action_types", []) or ["navigate","click","submit","export"]), index=0)
         with c3:
-            user_id = st.text_input("使用者ID", value="")
+            user_id = st.selectbox("使用者ID", options=[""] + opts.get("user_ids", []), index=0)
         with c4:
             limit = st.number_input("顯示筆數", min_value=10, max_value=500, value=100, step=10)
 

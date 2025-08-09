@@ -41,6 +41,7 @@ class PlaywrightDatabaseHandler:
                 results = results_data.get("results", [])
                 target_username = results_data.get("target_username", "")
                 crawl_id = results_data.get("crawl_id", "")
+                dedup_filtered = results_data.get("dedup_filtered", [])  # 由去重工具提供的被丟棄清單（只存指紋）
                 
                 if results and target_username:
                     saved_count = 0
@@ -84,7 +85,7 @@ class PlaywrightDatabaseHandler:
                             ON playwright_post_metrics(crawl_id)
                         """)
                         
-                        # 插入數據
+                        # 插入數據（保留後的）
                         for result in results:
                             try:
                                 # 解析數字字段
@@ -158,6 +159,37 @@ class PlaywrightDatabaseHandler:
                                 
                             except Exception as e:
                                 self._log(f"⚠️ 保存單個貼文失敗 {result.get('post_id', 'N/A')}: {e}")
+                                continue
+
+                        # 追加：插入被去重丟棄的貼文作為「已看過指紋」，標記 source='playwright_dedup_filtered'
+                        # 僅保存最少欄位：post_id/url/username/views/likes/crawl_id，content 留空
+                        for dropped in dedup_filtered:
+                            try:
+                                # 解析數字欄位（保守）
+                                views_count = PlaywrightUtils.parse_number_safe(dropped.get('views_count'))
+                                likes_count = PlaywrightUtils.parse_number_safe(dropped.get('likes_count'))
+
+                                await conn.execute("""
+                                    INSERT INTO playwright_post_metrics (
+                                        username, post_id, url, content, 
+                                        views_count, likes_count, comments_count, reposts_count, shares_count,
+                                        calculated_score, post_published_at, tags, images, videos,
+                                        source, crawler_type, crawl_id, created_at
+                                    ) VALUES ($1, $2, $3, $4, $5, $6, NULL, NULL, NULL, NULL, NULL, '[]', '[]', '[]',
+                                              'playwright_dedup_filtered', 'playwright', $7, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (username, post_id, crawler_type)
+                                    DO NOTHING
+                                """,
+                                    dropped.get('username') or target_username,
+                                    dropped.get('post_id', ''),
+                                    dropped.get('url', ''),
+                                    '',  # content 留空，不佔空間
+                                    views_count,
+                                    likes_count,
+                                    crawl_id,
+                                )
+                            except Exception as e:
+                                self._log(f"⚠️ 記錄去重丟棄指紋失敗 {dropped.get('post_id','N/A')}: {e}")
                                 continue
                         
                         # 更新 Playwright 爬取檢查點表
@@ -239,6 +271,7 @@ class PlaywrightDatabaseHandler:
                         COUNT(DISTINCT crawl_id) as total_crawls,
                         MAX(fetched_at) as latest_activity
                     FROM playwright_post_metrics
+                    WHERE COALESCE(source, '') <> 'playwright_dedup_filtered'
                 """
                 
                 total_stats_row = await conn.fetchrow(total_stats_query)
@@ -260,6 +293,7 @@ class PlaywrightDatabaseHandler:
                         AVG(views_count) as avg_views,
                         AVG(likes_count) as avg_likes
                     FROM playwright_post_metrics 
+                    WHERE COALESCE(source, '') <> 'playwright_dedup_filtered'
                     GROUP BY username 
                     ORDER BY latest_crawl DESC
                     LIMIT 50
@@ -311,6 +345,7 @@ class PlaywrightDatabaseHandler:
                            url, source, crawler_type, crawl_id, created_at, fetched_at
                     FROM playwright_post_metrics 
                     WHERE username = $1 
+                      AND COALESCE(source, '') <> 'playwright_dedup_filtered'
                     ORDER BY fetched_at DESC
                 """
                 

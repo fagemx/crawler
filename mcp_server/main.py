@@ -746,6 +746,28 @@ async def list_user_operations(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/user/ops/options")
+async def list_user_ops_options():
+    """提供下拉選單可用的選項（去重）。"""
+    try:
+        with Session(engine) as session:
+            menus = session.exec(text("SELECT DISTINCT menu_name FROM user_operation_log ORDER BY menu_name ASC LIMIT 200")).all()
+            actions = session.exec(text("SELECT DISTINCT action_type FROM user_operation_log ORDER BY action_type ASC LIMIT 200")).all()
+            users = session.exec(text("SELECT DISTINCT user_id FROM user_operation_log WHERE user_id IS NOT NULL ORDER BY user_id ASC LIMIT 200")).all()
+
+        # 轉為簡單 list
+        def flatten(rows):
+            return [row[0] for row in rows if row and row[0] is not None]
+
+        return {
+            "menu_names": flatten(menus),
+            "action_types": flatten(actions),
+            "user_ids": flatten(users),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 if __name__ == "__main__":
     uvicorn.run(
         "mcp_server.main:app",
