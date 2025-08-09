@@ -196,6 +196,12 @@ class RustFSClient:
             media_id = await self._record_media_file(
                 db_client, post_url, media_url, media_type, rustfs_key, "pending"
             )
+            # 若歷史環境缺 created_at 預設，避免 NULL 導致後續違反 not-null
+            try:
+                async with db_client.get_connection() as conn:
+                    await conn.execute("UPDATE media_files SET created_at = NOW() WHERE id = $1 AND created_at IS NULL", media_id)
+            except Exception:
+                pass
             
             # 下載檔案
             async with httpx.AsyncClient(timeout=60.0) as client:

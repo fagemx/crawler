@@ -613,6 +613,17 @@ ALTER TABLE IF EXISTS media_files
   ADD COLUMN IF NOT EXISTS downloaded_at TIMESTAMPTZ,
   ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'::jsonb;
 
+-- media_files created_at 預設補齊（避免 NOT NULL 無預設導致插入失敗）
+DO $$ BEGIN
+  PERFORM 1
+  FROM information_schema.columns
+  WHERE table_name='media_files' AND column_name='created_at';
+  IF FOUND THEN
+    EXECUTE 'ALTER TABLE media_files ALTER COLUMN created_at SET DEFAULT now()';
+    EXECUTE 'UPDATE media_files SET created_at = NOW() WHERE created_at IS NULL';
+  END IF;
+END $$;
+
 -- media_files 索引補齊
 CREATE INDEX IF NOT EXISTS idx_media_files_original_url ON media_files(original_url);
 CREATE INDEX IF NOT EXISTS idx_media_files_rustfs_key ON media_files(rustfs_key);
