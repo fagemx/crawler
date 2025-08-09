@@ -51,7 +51,7 @@ async def _ensure_table_exists():
         try:
             from .db_client import get_db_client  # 延遲導入
             db = await get_db_client()
-            # 建表（若不存在），採最小穩定欄位集合
+            # 單條語句執行，避免多語句執行被拒
             await db.execute(
                 """
                 CREATE TABLE IF NOT EXISTS llm_usage (
@@ -69,14 +69,14 @@ async def _ensure_table_exists():
                     status TEXT NOT NULL DEFAULT 'success',
                     error TEXT,
                     metadata JSONB
-                );
-                CREATE INDEX IF NOT EXISTS idx_llm_usage_ts ON llm_usage (ts DESC);
-                CREATE INDEX IF NOT EXISTS idx_llm_usage_svc ON llm_usage (service);
-                CREATE INDEX IF NOT EXISTS idx_llm_usage_provider ON llm_usage (provider);
-                CREATE INDEX IF NOT EXISTS idx_llm_usage_model ON llm_usage (model);
-                CREATE INDEX IF NOT EXISTS idx_llm_usage_status ON llm_usage (status);
+                )
                 """
             )
+            await db.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_ts ON llm_usage (ts DESC)")
+            await db.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_svc ON llm_usage (service)")
+            await db.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_provider ON llm_usage (provider)")
+            await db.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_model ON llm_usage (model)")
+            await db.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_status ON llm_usage (status)")
             _TABLE_READY = True
         except Exception:
             # 不影響主流程
