@@ -559,6 +559,7 @@ class MediaProcessorComponent:
         # 介面：單篇立即描述（上移）
         with st.expander("🔧 單篇立即描述", expanded=False):
             sp_url = st.text_input("貼文 URL（https://www.threads.net/@user/post/XXXX）", key="single_desc_url")
+            st.caption("此模式並發數固定為 1（不受上方並發設定影響）")
             col_s1, col_s2, col_s3, col_s4 = st.columns(4)
             with col_s1:
                 sp_types = st.multiselect("媒體類型", ["image", "video"], default=["image"], key="single_desc_types")

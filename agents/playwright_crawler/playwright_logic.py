@@ -56,6 +56,10 @@ if not logging.getLogger().handlers:
 
 class PlaywrightLogic:
     """使用 Playwright 進行爬蟲的核心邏輯（重構版）"""
+    def __init__(self):
+        self.playwright = None
+        self.browser = None
+        self.context = None
     
     def __init__(self):
         self.browser = None
@@ -493,7 +497,8 @@ class PlaywrightLogic:
 
     async def _setup_browser_and_auth(self, auth_json_content: Dict, task_id: str):
         """設置瀏覽器和認證"""
-        playwright = await async_playwright().start()
+        # 保存 playwright 實例，便於完整清理，避免 Windows Proactor 殘留管道
+        self.playwright = await async_playwright().start()
         # 🎬 2025新版Threads影片提取優化 - 無手勢自動播放
         launch_args = [
             "--autoplay-policy=no-user-gesture-required",
@@ -506,7 +511,7 @@ class PlaywrightLogic:
         ]
         try:
             # 優先使用系統 Chrome 渠道，避免缺少 headless_shell 造成的啟動失敗
-            self.browser = await playwright.chromium.launch(
+            self.browser = await self.playwright.chromium.launch(
                 channel="chrome",
                 headless=True,
                 args=launch_args,
@@ -514,7 +519,7 @@ class PlaywrightLogic:
         except Exception as launch_via_channel_error:
             logging.warning(f"⚠️ 無法透過 Chrome 渠道啟動，改用預設 chromium：{launch_via_channel_error}")
             # 回退到內建的 chromium（需要已安裝對應瀏覽器）
-            self.browser = await playwright.chromium.launch(
+            self.browser = await self.playwright.chromium.launch(
                 headless=True,
                 args=launch_args,
             )
@@ -531,15 +536,36 @@ class PlaywrightLogic:
     async def _cleanup(self, task_id: str):
         """清理資源"""
         try:
+            # 先關閉 context，再關閉 browser，最後停止 playwright
+            if self.context:
+                try:
+                    await self.context.close()
+                except Exception:
+                    pass
+                finally:
+                    self.context = None
+
             if self.browser:
-                await self.browser.close()
+                try:
+                    await self.browser.close()
+                except Exception:
+                    pass
+                finally:
+                    self.browser = None
             
             # 刪除臨時認證檔案
             auth_file = Path(tempfile.gettempdir()) / f"{task_id}_auth.json"
             if auth_file.exists():
                 auth_file.unlink()
                 logging.info(f"🗑️ [Task: {task_id}] 已刪除臨時認證檔案: {auth_file}")
-            self.context = None
+
+            if self.playwright:
+                try:
+                    await self.playwright.stop()
+                except Exception:
+                    pass
+                finally:
+                    self.playwright = None
         except Exception as e:
             logging.warning(f"⚠️ [Task: {task_id}] 清理資源時發生錯誤: {e}") 
 

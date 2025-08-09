@@ -454,5 +454,6 @@ class MediaDescribeService:
                     filtered.append(r)
             rows = filtered
 
+        # 單篇模式：強制以並發數 1 的語義執行（上層 UI 已固定，這裡維持逐項順序處理）
         return await self.run_describe(rows, overwrite=overwrite)
 
