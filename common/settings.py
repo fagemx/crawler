@@ -160,8 +160,12 @@ class PlaywrightSettings(BaseSettings):
     )
     enable_details_filling: bool = Field(default=True, description="是否啟用詳細數據補齊（likes, content, images等）")
     
-    class Config:
-        env_prefix = "PLAYWRIGHT_"
+    # 允許忽略未知鍵，避免如 PLAYWRIGHT_BROWSERS_PATH 這類環境變數
+    # 透過 env_nested_delimiter 解析為 playwright.browsers.path 時觸發 extra_forbidden
+    model_config = SettingsConfigDict(
+        env_prefix="PLAYWRIGHT_",
+        extra='ignore'
+    )
 
 
 class SecuritySettings(BaseSettings):

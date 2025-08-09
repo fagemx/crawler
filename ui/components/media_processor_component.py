@@ -18,6 +18,11 @@ class MediaProcessorComponent:
     # ---------- 下載器 ----------
     def _render_downloader(self):
         st.subheader("📥 媒體下載器（RustFS）")
+        
+        # 清理自動刷新標記（避免無限循環）
+        if 'refresh_stats_after_download' in st.session_state:
+            del st.session_state.refresh_stats_after_download
+            
         # 健檢
         try:
             from services.rustfs_client import get_rustfs_client
@@ -100,71 +105,6 @@ class MediaProcessorComponent:
 
         # 下載目標：全部 / 僅重試失敗
         retry_failed_only = st.checkbox("只重試失敗", value=False, help="僅針對 media_files.download_status='failed' 的項目重新下載")
-        
-        # 🆕 新增：查看失敗記錄
-        st.markdown("---")
-        st.subheader("🔍 失敗記錄查詢")
-        col_f1, col_f2 = st.columns([2, 1])
-        with col_f1:
-            failed_username = st.text_input("查詢失敗記錄的帳號", value=target_username, key="failed_lookup_user")
-        with col_f2:
-            if st.button("🔍 查看失敗記錄", key="view_failed"):
-                try:
-                    from common.db_client import get_db_client
-                    import asyncio, nest_asyncio
-                    nest_asyncio.apply()
-                    db = asyncio.get_event_loop().run_until_complete(get_db_client())
-                    
-                    # 查詢失敗的下載記錄
-                    failed_records = asyncio.get_event_loop().run_until_complete(db.fetch_all("""
-                        SELECT DISTINCT mf.post_url, COUNT(*) as failed_count,
-                               STRING_AGG(DISTINCT mf.media_type, ', ') as media_types,
-                               STRING_AGG(DISTINCT SUBSTRING(mf.download_error FROM 1 FOR 50), '; ') as errors
-                        FROM media_files mf 
-                        JOIN playwright_post_metrics ppm ON ppm.url = mf.post_url
-                        WHERE ppm.username = $1 AND mf.download_status = 'failed'
-                        GROUP BY mf.post_url
-                        ORDER BY failed_count DESC
-                        LIMIT 20
-                    """, failed_username))
-                    
-                    if failed_records:
-                        st.write(f"🚨 找到 {len(failed_records)} 個有失敗記錄的貼文：")
-                        for record in failed_records:
-                            with st.expander(f"貼文：{record['post_url'][-20:]}... (失敗 {record['failed_count']} 個媒體)", expanded=False):
-                                st.text(f"📄 完整URL：{record['post_url']}")
-                                st.text(f"🎬 失敗媒體類型：{record['media_types']}")
-                                st.text(f"❌ 錯誤摘要：{record['errors']}")
-                                col_action1, col_action2 = st.columns(2)
-                                with col_action1:
-                                    if st.button("📋 複製URL", key=f"copy_failed_{hash(record['post_url'])}"):
-                                        st.code(record['post_url'])
-                                with col_action2:
-                                    if st.button("🔄 立即重試", key=f"retry_failed_{hash(record['post_url'])}"):
-                                        # 觸發該貼文的重新下載
-                                        try:
-                                            from agents.vision.media_download_service import MediaDownloadService
-                                            svc = MediaDownloadService()
-                                            # 只下載失敗的媒體
-                                            plan = asyncio.get_event_loop().run_until_complete(svc.build_download_plan(
-                                                username=failed_username,
-                                                media_types=["image", "video"],
-                                                retry_failed_only=True
-                                            ))
-                                            # 過濾出這個貼文的失敗項目
-                                            post_plan = {k: v for k, v in plan.items() if k == record['post_url']}
-                                            if post_plan:
-                                                result = asyncio.get_event_loop().run_until_complete(svc.run_download(post_plan))
-                                                st.success(f"重試完成：成功 {result['success']}，失敗 {result['failed']}")
-                                            else:
-                                                st.info("該貼文沒有需要重試的項目")
-                                        except Exception as e:
-                                            st.error(f"重試失敗：{e}")
-                    else:
-                        st.info(f"🎉 帳號 @{failed_username} 沒有失敗的下載記錄")
-                        
-                except Exception as e:
-                    st.error(f"查詢失敗記錄時出錯：{e}")
 
         if st.button("開始下載", type="primary"):
             try:
@@ -195,6 +135,79 @@ class MediaProcessorComponent:
         st.markdown("---")
         with st.expander("進階：單篇重爬 / 刷新媒體 URL", expanded=False):
             st.caption("建議僅在批次下載遇到 403/過期時使用。")
+            
+            # 🆕 失敗記錄查詢（放在這裡更符合邏輯）
+            st.subheader("🔍 查看失敗記錄")
+            st.caption("找出需要重試的失敗貼文，獲取具體的貼文URL")
+            col_f1, col_f2 = st.columns([2, 1])
+            with col_f1:
+                failed_username = st.text_input("查詢失敗記錄的帳號", value=target_username, key="failed_lookup_user")
+            with col_f2:
+                if st.button("🔍 查看失敗記錄", key="view_failed"):
+                    try:
+                        from common.db_client import get_db_client
+                        import asyncio, nest_asyncio
+                        nest_asyncio.apply()
+                        db = asyncio.get_event_loop().run_until_complete(get_db_client())
+                        
+                        # 查詢失敗的下載記錄
+                        failed_records = asyncio.get_event_loop().run_until_complete(db.fetch_all("""
+                            SELECT DISTINCT mf.post_url, COUNT(*) as failed_count,
+                                   STRING_AGG(DISTINCT mf.media_type, ', ') as media_types,
+                                   STRING_AGG(DISTINCT SUBSTRING(mf.download_error FROM 1 FOR 50), '; ') as errors
+                            FROM media_files mf 
+                            JOIN playwright_post_metrics ppm ON ppm.url = mf.post_url
+                            WHERE ppm.username = $1 AND mf.download_status = 'failed'
+                            GROUP BY mf.post_url
+                            ORDER BY failed_count DESC
+                            LIMIT 20
+                        """, failed_username))
+                        
+                        if failed_records:
+                            st.write(f"🚨 找到 {len(failed_records)} 個有失敗記錄的貼文：")
+                            for record in failed_records:
+                                with st.expander(f"貼文：{record['post_url'][-20:]}... (失敗 {record['failed_count']} 個媒體)", expanded=False):
+                                    st.text(f"📄 完整URL：{record['post_url']}")
+                                    st.text(f"🎬 失敗媒體類型：{record['media_types']}")
+                                    st.text(f"❌ 錯誤摘要：{record['errors']}")
+                                    col_action1, col_action2 = st.columns(2)
+                                    with col_action1:
+                                        if st.button("📋 複製URL", key=f"copy_failed_{hash(record['post_url'])}"):
+                                            # 顯示可選中複製的URL
+                                            st.text_input("貼文URL（可選中複製）", value=record['post_url'], key=f"copyable_url_{hash(record['post_url'])}")
+                                            st.info("✅ URL已顯示在上方文字框中，請選中並複製 (Ctrl+A, Ctrl+C)")
+                                    with col_action2:
+                                        if st.button("🔄 立即重試", key=f"retry_failed_{hash(record['post_url'])}"):
+                                            # 觸發該貼文的重新下載
+                                            try:
+                                                from agents.vision.media_download_service import MediaDownloadService
+                                                svc = MediaDownloadService()
+                                                # 只下載失敗的媒體
+                                                plan = asyncio.get_event_loop().run_until_complete(svc.build_download_plan(
+                                                    username=failed_username,
+                                                    media_types=["image", "video"],
+                                                    retry_failed_only=True
+                                                ))
+                                                # 過濾出這個貼文的失敗項目
+                                                post_plan = {k: v for k, v in plan.items() if k == record['post_url']}
+                                                if post_plan:
+                                                    result = asyncio.get_event_loop().run_until_complete(svc.run_download(post_plan))
+                                                    st.success(f"重試完成：成功 {result['success']}，失敗 {result['failed']}")
+                                                else:
+                                                    st.info("該貼文沒有需要重試的項目")
+                                            except Exception as e:
+                                                st.error(f"重試失敗：{e}")
+                        else:
+                            st.info(f"🎉 帳號 @{failed_username} 沒有失敗的下載記錄")
+                            
+                    except Exception as e:
+                        st.error(f"查詢失敗記錄時出錯：{e}")
+            
+            # 分隔線
+            st.markdown("---")
+            
+            # 單篇刷新功能
+            st.subheader("🔄 單篇刷新")
             colr1, colr2, colr3 = st.columns([3, 1, 1])
             with colr1:
                 single_post_url = st.text_input("貼文 URL（https://www.threads.net/@user/post/XXXX）", key="single_post_url")
@@ -242,6 +255,14 @@ class MediaProcessorComponent:
                             result = asyncio.get_event_loop().run_until_complete(svc.run_download(plan, concurrency_per_post=3))
                             st.success(f"✅ 下載完成：成功 {result['success']}，失敗 {result['failed']} / 共 {result['total']}")
                             
+                            # 🆕 如果有成功下載，自動重新整理頁面以更新統計
+                            if result['success'] > 0:
+                                st.info("🔄 下載成功！正在重新整理統計資料...")
+                                # 使用session state觸發刷新，避免無限循環
+                                if 'refresh_stats_after_download' not in st.session_state:
+                                    st.session_state.refresh_stats_after_download = True
+                                    st.rerun()
+                            
                             # 顯示失敗詳情
                             if result['failed'] > 0:
                                 failed_details = [d for d in result['details'] if d.get('status') == 'failed']
@@ -254,7 +275,8 @@ class MediaProcessorComponent:
                                             if detail.get('post_url'):
                                                 copy_url = detail['post_url']
                                                 if st.button(f"📋 複製貼文URL", key=f"copy_{hash(copy_url)}", help="複製此貼文URL用於單篇重試"):
-                                                    st.code(copy_url)
+                                                    st.text_input("貼文URL（可選中複製）", value=copy_url, key=f"copyable_detail_url_{hash(copy_url)}")
+                                                    st.info("✅ URL已顯示在上方文字框中，請選中並複製 (Ctrl+A, Ctrl+C)")
                                             st.markdown("---")
                                             
                 except Exception as e:

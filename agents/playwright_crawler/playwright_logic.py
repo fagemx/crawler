@@ -495,22 +495,29 @@ class PlaywrightLogic:
         """設置瀏覽器和認證"""
         playwright = await async_playwright().start()
         # 🎬 2025新版Threads影片提取優化 - 無手勢自動播放
-        self.browser = await playwright.chromium.launch(
-            headless=True,
-            args=[
-                # ❶ 取消使用者手勢限制（關鍵）
-                "--autoplay-policy=no-user-gesture-required",
-                # ❷ 停用背景媒體暫停
-                "--disable-background-media-suspend",
-                "--disable-features=MediaSessionService",
-                # ❸ 強制網頁永遠處於「可見」
-                "--force-prefers-reduced-motion=0",
-                # ❹ 反偵測增強
-                "--disable-blink-features=AutomationControlled",
-                "--disable-web-security",
-                "--disable-features=VizDisplayCompositor"
-            ]
-        )
+        launch_args = [
+            "--autoplay-policy=no-user-gesture-required",
+            "--disable-background-media-suspend",
+            "--disable-features=MediaSessionService",
+            "--force-prefers-reduced-motion=0",
+            "--disable-blink-features=AutomationControlled",
+            "--disable-web-security",
+            "--disable-features=VizDisplayCompositor",
+        ]
+        try:
+            # 優先使用系統 Chrome 渠道，避免缺少 headless_shell 造成的啟動失敗
+            self.browser = await playwright.chromium.launch(
+                channel="chrome",
+                headless=True,
+                args=launch_args,
+            )
+        except Exception as launch_via_channel_error:
+            logging.warning(f"⚠️ 無法透過 Chrome 渠道啟動，改用預設 chromium：{launch_via_channel_error}")
+            # 回退到內建的 chromium（需要已安裝對應瀏覽器）
+            self.browser = await playwright.chromium.launch(
+                headless=True,
+                args=launch_args,
+            )
         # 創建context（自動播放通過launch args控制）
         self.context = await self.browser.new_context()
         
