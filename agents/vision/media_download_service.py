@@ -3,6 +3,19 @@ import asyncio
 
 from common.db_client import DatabaseClient, get_db_client
 from services.rustfs_client import get_rustfs_client
+from datetime import datetime
+import json
+import re
+
+# 可選：直接使用爬蟲的細節抽取器與邏輯，實作單篇刷新
+try:
+    from agents.playwright_crawler.extractors.details_extractor import DetailsExtractor
+    from agents.playwright_crawler.playwright_logic import PlaywrightLogic
+    from common.config import get_auth_file_path
+    from common.models import PostMetrics
+    _PLAYWRIGHT_AVAILABLE = True
+except Exception:
+    _PLAYWRIGHT_AVAILABLE = False
 
 
 class MediaDownloadService:
@@ -197,11 +210,173 @@ class MediaDownloadService:
                 for u in media_urls:
                     details.append({"post_url": post_url, "original_url": u, "status": "failed", "error": str(e)})
 
+            # 若該貼文有 403/Forbidden 的失敗，嘗試「刷新URL後重試」
+            post_failed_errors = [d for d in details if d.get("post_url") == post_url and d.get("status") == "failed"]
+            if any("403" in (d.get("error") or "") or "Forbidden" in (d.get("error") or "") for d in post_failed_errors):
+                try:
+                    refreshed = await self.refresh_post_media_urls(post_url)
+                    new_urls = []
+                    # 以需求的媒體類型為主，若不可得則全量
+                    if refreshed.get("images"):
+                        new_urls.extend(refreshed["images"])
+                    if refreshed.get("videos"):
+                        new_urls.extend(refreshed["videos"])
+                    # 重試下載
+                    if new_urls:
+                        retry_results = await client.download_and_store_media(post_url, new_urls, max_concurrent=concurrency_per_post)
+                        for rr in retry_results:
+                            if rr.get("status") == "completed":
+                                success += 1
+                            else:
+                                failed += 1
+                            details.append({"post_url": post_url, **rr, "retry_after_refresh": True})
+                except Exception as re_err:
+                    details.append({"post_url": post_url, "status": "failed", "error": f"refresh-retry-failed: {re_err}"})
+
         return {
             "total": total_media,
             "success": success,
             "failed": failed,
             "details": details,
         }
+
+    # ---------------- 刷新 URL 能力 ----------------
+    async def refresh_post_media_urls(self, post_url: str) -> Dict[str, Any]:
+        """
+        單篇刷新：用 Playwright 重開貼文頁，抓取最新 images/videos，更新到 playwright_post_metrics。
+        回傳 {username, post_id, images, videos, updated}
+        """
+        if not _PLAYWRIGHT_AVAILABLE:
+            raise RuntimeError("Playwright 模組不可用，無法刷新 URL")
+
+        # 從 URL 解析 username/code
+        username, code = self._parse_username_code(post_url)
+        post_id = f"{username}_{code}" if username and code else code or post_url
+
+        # 準備 Playwright 環境
+        logic = PlaywrightLogic()
+        auth_path = get_auth_file_path()
+        with open(auth_path, "r", encoding="utf-8") as f:
+            auth_json = json.load(f)
+
+        task_id = f"refresh_{int(datetime.utcnow().timestamp())}"
+        await logic._setup_browser_and_auth(auth_json, task_id)  # 使用現有私有方法完成初始化
+
+        try:
+            extractor = DetailsExtractor()
+            # 建立最小 PostMetrics 物件
+            pm = PostMetrics(
+                post_id=post_id,
+                username=username or "unknown",
+                url=post_url,
+                content=None,
+                likes_count=None,
+                comments_count=None,
+                reposts_count=None,
+                shares_count=None,
+                images=[],
+                videos=[],
+                created_at=datetime.utcnow(),
+            )
+
+            await extractor.fill_post_details_from_page([pm], logic.context, task_id=task_id, username=pm.username)
+
+            # 更新 DB: playwright_post_metrics（只更新 images/videos/content/post_published_at/tags）
+            await self._upsert_playwright_post(
+                pm.username, pm.post_id, pm.url, pm.content,
+                pm.views_count, pm.likes_count, pm.comments_count, pm.reposts_count, pm.shares_count,
+                pm.calculated_score, pm.post_published_at, pm.tags, pm.images, pm.videos
+            )
+
+            return {
+                "username": pm.username,
+                "post_id": pm.post_id,
+                "images": pm.images,
+                "videos": pm.videos,
+                "updated": True,
+            }
+        finally:
+            try:
+                if logic.context:
+                    await logic.context.close()
+            except Exception:
+                pass
+            try:
+                if logic.browser:
+                    await logic.browser.close()
+            except Exception:
+                pass
+
+    async def _upsert_playwright_post(
+        self,
+        username: str,
+        post_id: str,
+        url: str,
+        content: Optional[str],
+        views_count: Optional[int],
+        likes_count: Optional[int],
+        comments_count: Optional[int],
+        reposts_count: Optional[int],
+        shares_count: Optional[int],
+        calculated_score: Optional[float],
+        post_published_at: Optional[datetime],
+        tags: List[str],
+        images: List[str],
+        videos: List[str],
+    ) -> None:
+        """將刷新結果寫回 playwright_post_metrics。"""
+        db = DatabaseClient()
+        await db.init_pool()
+        try:
+            tags_json = json.dumps(tags or [], ensure_ascii=False)
+            images_json = json.dumps(images or [], ensure_ascii=False)
+            videos_json = json.dumps(videos or [], ensure_ascii=False)
+
+            await db.execute(
+                """
+                INSERT INTO playwright_post_metrics (
+                    username, post_id, url, content,
+                    views_count, likes_count, comments_count, reposts_count, shares_count,
+                    calculated_score, post_published_at, tags, images, videos,
+                    source, crawler_type, crawl_id, created_at
+                ) VALUES (
+                    $1, $2, $3, $4,
+                    $5, $6, $7, $8, $9,
+                    $10, $11, $12, $13, $14,
+                    'playwright_agent', 'playwright', NULL, NOW()
+                )
+                ON CONFLICT (username, post_id, crawler_type)
+                DO UPDATE SET
+                    url = EXCLUDED.url,
+                    content = EXCLUDED.content,
+                    views_count = EXCLUDED.views_count,
+                    likes_count = EXCLUDED.likes_count,
+                    comments_count = EXCLUDED.comments_count,
+                    reposts_count = EXCLUDED.reposts_count,
+                    shares_count = EXCLUDED.shares_count,
+                    calculated_score = EXCLUDED.calculated_score,
+                    post_published_at = EXCLUDED.post_published_at,
+                    tags = EXCLUDED.tags,
+                    images = EXCLUDED.images,
+                    videos = EXCLUDED.videos,
+                    crawl_id = EXCLUDED.crawl_id,
+                    created_at = EXCLUDED.created_at,
+                    fetched_at = CURRENT_TIMESTAMP
+                """,
+                username, post_id, url, content,
+                views_count, likes_count, comments_count, reposts_count, shares_count,
+                calculated_score, post_published_at, tags_json, images_json, videos_json,
+            )
+        finally:
+            await db.close_pool()
+
+    def _parse_username_code(self, post_url: str) -> Tuple[Optional[str], Optional[str]]:
+        try:
+            m = re.search(r"/@([^/]+)/post/([^/?#]+)", post_url)
+            if not m:
+                return None, None
+            return m.group(1), m.group(2)
+        except Exception:
+            return None, None
 
 

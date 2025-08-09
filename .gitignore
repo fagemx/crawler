@@ -116,6 +116,7 @@ storage/rustfs/.rustfs.sys/buckets/
 agents/playwright_crawler/debug/
 extraction_results/
 playwright_results/
+storage/
 
 # 臨時和快取文件
 temp/

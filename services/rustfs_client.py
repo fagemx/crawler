@@ -385,9 +385,9 @@ class RustFSClient:
                     width = $5,
                     height = $6,
                     duration = $7,
-                    download_status = $8,
+                    download_status = $8::text,
                     download_error = $9,
-                    downloaded_at = CASE WHEN $8 = 'completed' THEN now() ELSE downloaded_at END,
+                    downloaded_at = CASE WHEN $8::text = 'completed' THEN now() ELSE downloaded_at END,
                     metadata = $10
                 WHERE id = $1
             """, 
