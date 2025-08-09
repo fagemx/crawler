@@ -8,7 +8,6 @@ import streamlit as st
 import sys
 import os
 from pathlib import Path
-import asyncio
 
 # 添加專案根目錄到 Python 路徑
 project_root = Path(__file__).parent.parent
@@ -23,7 +22,6 @@ from ui.components.monitoring_component import SystemMonitoringComponent
 from ui.components.content_generator_component import ContentGeneratorComponent
 from ui.components.analyzer_component import AnalyzerComponent
 from ui.components.post_writer_component import PostWriterComponent
-from common.db_client import get_db_client
 
 # 設置頁面配置
 st.set_page_config(
@@ -57,8 +55,6 @@ class SocialMediaGeneratorApp:
         st.title("🎯 社交媒體內容生成器")
         st.markdown("**Threads 爬蟲** + **智能內容生成** + **系統監控** = 完整的內容創作解決方案")
         st.divider()
-        # 置頂顯示今日 LLM 成本與用量（💰 Token 費用面板摘要）
-        self._render_top_llm_cost_kpis()
     
     def render_sidebar(self):
         """渲染側邊欄"""
@@ -100,9 +96,6 @@ class SocialMediaGeneratorApp:
             st.write("- 👁️ Vision: 8005")
             st.write("- 📊 MCP Server: 10100")
 
-            st.markdown("---")
-            st.subheader("💰 今日費用摘要")
-            self._render_compact_cost_kpis()
     
     def _render_sidebar_progress(self):
         """在側邊欄渲染簡化的進度顯示"""
@@ -196,53 +189,6 @@ class SocialMediaGeneratorApp:
         self.render_sidebar()
         self.render_main_content()
 
-    # ================================
-    # LLM 成本摘要（置頂 + 側邊欄簡版）
-    # ================================
-    def _fetch_top_line_cost(self):
-        async def _run():
-            try:
-                db = await get_db_client()
-                row = await db.fetch_one(
-                    """
-                    SELECT 
-                        COALESCE(SUM(cost),0) AS usd_cost,
-                        COALESCE(SUM(total_tokens),0) AS tokens,
-                        COUNT(*) AS requests
-                    FROM llm_usage
-                    WHERE ts::date = CURRENT_DATE
-                    """
-                )
-                return row or {"usd_cost": 0.0, "tokens": 0, "requests": 0}
-            except Exception:
-                return None
-        return asyncio.run(_run())
-
-    def _render_top_llm_cost_kpis(self):
-        stats = self._fetch_top_line_cost()
-        c1, c2, c3 = st.columns(3)
-        if stats is None:
-            with c1:
-                st.metric("成本 (USD)", "—")
-            with c2:
-                st.metric("Token 總量", "—")
-            with c3:
-                st.metric("請求數", "—")
-            st.caption("提示：尚未連上資料庫或尚無 llm_usage 資料。完成一次內容生成/分析後再查看。")
-            return
-        with c1:
-            st.metric("成本 (USD)", f"{stats.get('usd_cost', 0.0):.4f}")
-        with c2:
-            st.metric("Token 總量", f"{stats.get('tokens', 0):,}")
-        with c3:
-            st.metric("請求數", f"{stats.get('requests', 0)}")
-
-    def _render_compact_cost_kpis(self):
-        stats = self._fetch_top_line_cost()
-        if stats is None:
-            st.write("成本：—  |  Tokens：—  |  次數：—")
-            return
-        st.write(f"成本：${stats.get('usd_cost', 0.0):.4f}  |  Tokens：{stats.get('tokens', 0):,}  |  次數：{stats.get('requests', 0)}")
 
 
 # 主程式

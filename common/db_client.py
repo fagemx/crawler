@@ -9,6 +9,7 @@
 
 import asyncio
 import asyncpg
+from asyncpg import exceptions as pg_exc
 import json  # <<< 導入 json 模組
 from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime
@@ -50,21 +51,46 @@ class DatabaseClient:
             yield conn
     
     async def fetch_all(self, query: str, *args) -> List[Dict]:
-        """執行查詢並返回所有結果"""
-        async with self.get_connection() as conn:
+        """執行查詢並返回所有結果（含連線重試）"""
+        async def _op(conn):
             rows = await conn.fetch(query, *args)
             return [dict(row) for row in rows]
+        return await self._run_with_retry(_op)
     
     async def fetch_one(self, query: str, *args) -> Optional[Dict]:
-        """執行查詢並返回第一個結果"""
-        async with self.get_connection() as conn:
+        """執行查詢並返回第一個結果（含連線重試）"""
+        async def _op(conn):
             row = await conn.fetchrow(query, *args)
             return dict(row) if row else None
+        return await self._run_with_retry(_op)
     
     async def execute(self, query: str, *args) -> str:
-        """執行SQL命令（INSERT, UPDATE, DELETE等）"""
-        async with self.get_connection() as conn:
+        """執行SQL命令（INSERT, UPDATE, DELETE等）（含連線重試）"""
+        async def _op(conn):
             return await conn.execute(query, *args)
+        return await self._run_with_retry(_op)
+
+    async def _run_with_retry(self, op_coro):
+        """連線操作重試：處理連線被關閉/同時操作衝突等情況"""
+        last_err = None
+        for attempt in range(2):
+            try:
+                async with self.get_connection() as conn:
+                    return await op_coro(conn)
+            except (pg_exc.ConnectionDoesNotExistError, pg_exc.InterfaceError, ConnectionResetError) as e:
+                last_err = e
+                # 重建連線池後重試一次
+                try:
+                    await self.close_pool()
+                    await self.init_pool()
+                except Exception:
+                    pass
+                await asyncio.sleep(0.1)
+                continue
+        # 超過重試次數，拋出原錯誤
+        if last_err:
+            raise last_err
+        raise RuntimeError("Unknown database operation error without exception")
     
     # ============================================================================
     # Tier-1: 貼文基本資料 (posts 表)

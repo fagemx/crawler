@@ -32,29 +32,35 @@ class SystemMonitoringComponent:
     
     def render(self):
         """渲染監控界面"""
+        # 先顯示：僅費用面板（本月統計 + 模型卡片 + 調用歷史）
+        st.subheader("💰 Token 費用面板")
+        self._render_llm_cost_panel_only()
+
+        st.markdown("---")
+        # 再顯示：主要服務連線狀態（獨立，不與費用共用版面）
+        st.subheader("🔌 主要服務連線狀態")
+        self._render_simple_connection_status()
+
+        st.markdown("---")
         st.header("📊 MCP 系統監控中心")
         st.markdown("基於 test_mcp_complete.py 的完整系統監控，展示核心基礎設施和 Agent 生態系統。")
-        
+
         # 控制面板
         self._render_control_panel()
-        
+
         # 系統概覽
         self._render_system_overview()
-        
+
         # 詳細監控
         col1, col2 = st.columns(2)
-        
+
         with col1:
             self._render_mcp_server_status()
             self._render_agent_registry()
-        
+
         with col2:
             self._render_individual_agents()
             self._render_infrastructure_status()
-
-        st.markdown("---")
-        st.subheader("💰 Token 費用面板 與 🔌 連線狀態")
-        self._render_llm_cost_and_connection_panel()
         
         # 詳細日誌
         self._render_detailed_logs()
@@ -351,49 +357,59 @@ class SystemMonitoringComponent:
         return report
 
     # ================================
-    # 子面板：LLM 費用 + 連線狀態
+    # 子面板：LLM 費用（獨立）
     # ================================
-    def _render_llm_cost_and_connection_panel(self):
-        col_left, col_right = st.columns(2)
-        with col_left:
-            self._render_llm_cost_panel()
-        with col_right:
-            self._render_simple_connection_status()
-
-    def _render_llm_cost_panel(self):
-        st.markdown("**💰 Token 費用面板（今日）**")
+    def _render_llm_cost_panel_only(self):
+        st.markdown("**📅 本月彙總**")
+        # 工具列：初始化/修復表結構
+        tool_cols = st.columns([1, 1, 6])
+        with tool_cols[0]:
+            if st.button("🛠 初始化/修復表", key="init_llm_usage_schema_btn"):
+                # 使用 try-catch 防止 'another operation is in progress'，序列化操作
+                try:
+                    ok, err = self._init_llm_usage_schema()
+                    if ok:
+                        st.success("已完成 llm_usage 表與索引初始化/修復")
+                        st.rerun()
+                    else:
+                        st.error(f"初始化失敗：{err}")
+                except Exception as e:
+                    st.error(f"初始化失敗：{e}")
         try:
-            stats = self._fetch_llm_usage_stats()
+            stats = self._fetch_llm_monthly_stats()
             if not stats:
-                st.info("尚無 LLM 使用紀錄，或資料表尚未建立。")
+                st.info("尚無 LLM 使用紀錄，或資料表尚未建立。可先點擊上方『🛠 初始化/修復表』。")
                 return
 
+            # 本月 KPI
             top_line = stats.get("top_line", {})
             c1, c2, c3 = st.columns(3)
             with c1:
-                st.metric("請求數", f"{top_line.get('requests', 0)}")
+                st.metric("本月成本 (USD)", f"{top_line.get('usd_cost', 0.0):.4f}")
             with c2:
-                st.metric("Token 總量", f"{top_line.get('tokens', 0):,}")
+                st.metric("本月 Token 總量", f"{top_line.get('tokens', 0):,}")
             with c3:
-                st.metric("成本 (USD)", f"{top_line.get('usd_cost', 0.0):.4f}")
+                st.metric("本月請求數", f"{top_line.get('requests', 0)}")
 
-            st.caption("按服務 Top 5")
-            rows = stats.get("by_service", [])
-            if rows:
-                for row in rows:
-                    st.write(f"- {row['service']}: ${row['usd_cost']:.4f} · {row['tokens']:,} tokens · {row['requests']} 次")
+            # 本月模型統計卡片
+            st.markdown("**🧩 模型統計（本月）**")
+            models = stats.get("by_model", [])
+            if models:
+                for i in range(0, len(models), 3):
+                    row = models[i:i+3]
+                    cols = st.columns(len(row))
+                    for idx, item in enumerate(row):
+                        with cols[idx]:
+                            st.container(border=True)
+                            st.markdown(f"**{item['provider']}/{item['model']}**")
+                            st.write(f"Tokens：{int(item['tokens']):,}")
+                            st.write(f"成本：${float(item['usd_cost']):.4f}")
+                            st.caption(f"請求數：{item['requests']}")
             else:
-                st.write("- 無資料")
+                st.info("本月尚無模型統計資料")
 
-            st.caption("按供應商/模型 Top 5")
-            rows = stats.get("by_model", [])
-            if rows:
-                for row in rows:
-                    st.write(f"- {row['provider']}/{row['model']}: ${row['usd_cost']:.4f} · {row['tokens']:,} tokens · {row['requests']} 次")
-            else:
-                st.write("- 無資料")
-
-            st.caption("最近 20 筆")
+            # 調用歷史（最近 50 筆）
+            st.markdown("**🕒 最近 50 筆調用**")
             recent = stats.get("recent", [])
             if recent:
                 st.dataframe(recent, use_container_width=True, hide_index=True)
@@ -462,6 +478,91 @@ class SystemMonitoringComponent:
                 return {"top_line": top_line or {}, "by_service": by_service or [], "by_model": by_model or [], "recent": recent or []}
             except Exception:
                 return {}
+
+        return asyncio.run(_run())
+
+    def _fetch_llm_monthly_stats(self) -> Dict[str, Any]:
+        """本月度彙總 + 模型統計 + 最近 50 筆"""
+        async def _run() -> Dict[str, Any]:
+            try:
+                db = await get_db_client()
+                top_line = await db.fetch_one(
+                    """
+                    SELECT 
+                        COALESCE(SUM(cost),0) AS usd_cost,
+                        COALESCE(SUM(total_tokens),0) AS tokens,
+                        COUNT(*) AS requests
+                    FROM llm_usage
+                    WHERE date_trunc('month', ts) = date_trunc('month', now())
+                    """
+                )
+                by_model = await db.fetch_all(
+                    """
+                    SELECT provider, model,
+                           SUM(cost) AS usd_cost,
+                           SUM(total_tokens) AS tokens,
+                           COUNT(*) AS requests
+                    FROM llm_usage
+                    WHERE date_trunc('month', ts) = date_trunc('month', now())
+                    GROUP BY provider, model
+                    ORDER BY usd_cost DESC, tokens DESC
+                    LIMIT 30
+                    """
+                )
+                recent = await db.fetch_all(
+                    """
+                    SELECT 
+                        to_char(ts AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Taipei', 'YYYY-MM-DD HH24:MI:SS') AS 時間,
+                        service AS 服務,
+                        provider AS 供應商,
+                        model AS 模型,
+                        total_tokens AS tokens,
+                        cost AS usd,
+                        status AS 狀態
+                    FROM llm_usage
+                    ORDER BY ts DESC
+                    LIMIT 50
+                    """
+                )
+                return {"top_line": top_line or {}, "by_model": by_model or [], "recent": recent or []}
+            except Exception:
+                return {}
+
+        return asyncio.run(_run())
+
+    def _init_llm_usage_schema(self) -> tuple[bool, str]:
+        async def _run() -> tuple[bool, str]:
+            try:
+                db = await get_db_client()
+                # 建表（單語句），再逐一建索引
+                await db.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS llm_usage (
+                        id BIGSERIAL PRIMARY KEY,
+                        ts TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                        service TEXT NOT NULL,
+                        provider TEXT NOT NULL,
+                        model TEXT NOT NULL,
+                        request_id TEXT,
+                        prompt_tokens INTEGER DEFAULT 0,
+                        completion_tokens INTEGER DEFAULT 0,
+                        total_tokens INTEGER DEFAULT 0,
+                        cost NUMERIC(12,6) DEFAULT 0,
+                        latency_ms INTEGER DEFAULT 0,
+                        status TEXT NOT NULL DEFAULT 'success',
+                        error TEXT,
+                        metadata JSONB
+                    )
+                    """
+                )
+                await db.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_ts ON llm_usage (ts DESC)")
+                await db.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_svc ON llm_usage (service)")
+                await db.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_provider ON llm_usage (provider)")
+                await db.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_model ON llm_usage (model)")
+                await db.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_status ON llm_usage (status)")
+                return True, ""
+            except Exception as e:
+                return False, str(e)
 
         return asyncio.run(_run())
 
