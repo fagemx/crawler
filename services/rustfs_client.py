@@ -5,6 +5,8 @@ RustFS 客戶端服務
 """
 
 import os
+import socket
+from urllib.parse import urlparse, urlunparse
 import hashlib
 import mimetypes
 from typing import Optional, Dict, Any, List
@@ -27,6 +29,23 @@ class RustFSClient:
         self.access_key = os.getenv("RUSTFS_ACCESS_KEY", "rustfsadmin")
         self.secret_key = os.getenv("RUSTFS_SECRET_KEY", "rustfsadmin")
         self.bucket_name = os.getenv("RUSTFS_BUCKET", "social-media-content")
+        # 自動偵測：若本機無法解析 rustfs，改用 localhost
+        self._auto_select_endpoint()
+
+    def _auto_select_endpoint(self):
+        try:
+            parsed = urlparse(self.base_url)
+            host = parsed.hostname or ""
+            if host.lower() == "rustfs":
+                try:
+                    socket.gethostbyname(host)
+                except OSError:
+                    # 無法解析容器域名，回退本機端口
+                    new_netloc = f"localhost:{parsed.port or 9000}"
+                    self.base_url = urlunparse((parsed.scheme, new_netloc, "", "", "", ""))
+        except Exception:
+            # 靜默失敗，維持原端點
+            pass
         
     async def initialize(self):
         """初始化 RustFS 客戶端，建立 bucket"""

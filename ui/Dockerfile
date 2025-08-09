@@ -61,8 +61,11 @@ RUN mkdir -p /app/storage/analysis_results \
     && mkdir -p /app/storage/rustfs-logs \
     && chmod -R 755 /app/storage
 
-# 設置 Python 路徑
-ENV PYTHONPATH=/app
+# 設置 Python 路徑與預設 RustFS 端點（UI 在 host network）
+ENV PYTHONPATH=/app \
+    STREAMLIT_SERVER_PORT=8501 \
+    RUSTFS_ENDPOINT=http://localhost:9000 \
+    RUSTFS_BUCKET=social-media-content
 
 # 健康檢查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

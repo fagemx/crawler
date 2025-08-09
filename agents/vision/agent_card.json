@@ -1,8 +1,8 @@
 {
   "name": "vision",
   "role": "vision",
-  "version": "1.0.0",
-  "description": "Vision Agent - 使用 Screenshot + Gemini 2.5 Flash 提取缺失的社交媒體互動數據",
+  "version": "1.1.0",
+  "description": "Vision Agent - 圖片/影片下載與描述（RustFS + Gemini 2.5）",
   "url": "http://vision-agent:8005",
   "capabilities": {
     "image_analysis": true,
@@ -10,7 +10,9 @@
     "screenshot_capture": true,
     "visual_metrics_extraction": true,
     "gemini_vision": true,
-    "rustfs_integration": true
+    "rustfs_integration": true,
+    "media_download": true,
+    "media_describe": true
   },
   "skills": [
     {
