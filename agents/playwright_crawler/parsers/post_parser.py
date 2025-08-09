@@ -8,7 +8,7 @@
 import json
 import logging
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional, Any
 
 from common.models import PostMetrics
@@ -139,6 +139,13 @@ def parse_post_data(thread_item: Dict[str, Any], username: str) -> Optional[Post
     # 統一 post_id 格式：使用 username_code 而不是原始的數字 ID
     unified_post_id = f"{username}_{code}"
     
+    # 統一台北時間：timestamp→UTC→台北，或無值時用台北現在
+    if created_at and isinstance(created_at, (int, float)):
+        utc_dt = datetime.fromtimestamp(created_at, tz=timezone.utc)
+        created_taipei = utc_dt.astimezone(timezone(timedelta(hours=8))).replace(tzinfo=None)
+    else:
+        created_taipei = datetime.now(timezone(timedelta(hours=8))).replace(tzinfo=None)
+
     return PostMetrics(
         url=url,
         post_id=unified_post_id,  # 使用統一格式的 post_id
@@ -150,7 +157,7 @@ def parse_post_data(thread_item: Dict[str, Any], username: str) -> Optional[Post
         reposts_count=repost_count,   # 已經通過 parse_number() 處理
         shares_count=share_count,     # 已經通過 parse_number() 處理
         content=content,
-        created_at=datetime.fromtimestamp(created_at) if created_at and isinstance(created_at, (int, float)) else datetime.utcnow(),
+        created_at=created_taipei,
         images=images,
         videos=videos,
         # 新增：直接從 API 解析 views_count（按指引優先嘗試 API）

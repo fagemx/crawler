@@ -8,7 +8,7 @@ import asyncio
 import json
 import time
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 import sys
@@ -187,7 +187,7 @@ class PlaywrightCrawlerComponent:
         """線程安全的日誌添加"""
         try:
             with st.session_state.playwright_crawl_lock:
-                timestamp = datetime.now().strftime("%H:%M:%S")
+                timestamp = datetime.now(timezone(timedelta(hours=8))).strftime("%H:%M:%S")
                 log_message = f"[{timestamp}] {message}"
                 st.session_state.playwright_crawl_logs.append(log_message)
                 
@@ -205,7 +205,7 @@ class PlaywrightCrawlerComponent:
                 st.session_state.playwright_crawl_stage = stage
                 
                 if log_message:
-                    timestamp = datetime.now().strftime("%H:%M:%S")
+                    timestamp = datetime.now(timezone(timedelta(hours=8))).strftime("%H:%M:%S")
                     full_log = f"[{timestamp}] {log_message}"
                     st.session_state.playwright_crawl_logs.append(full_log)
                     
@@ -597,14 +597,13 @@ class PlaywrightCrawlerComponent:
         if 'playwright_results' in st.session_state:
             try:
                 json_content = json.dumps(
-                    st.session_state.playwright_results, 
-                    ensure_ascii=False, 
+                    st.session_state.playwright_results,
+                    ensure_ascii=False,
                     indent=2
                 )
-                
-                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                timestamp = datetime.now(timezone(timedelta(hours=8))).strftime('%Y%m%d_%H%M%S')
                 download_filename = f"playwright_crawl_results_{timestamp}.json"
-                
+
                 st.download_button(
                     label="💾 下載JSON",
                     data=json_content,
@@ -613,7 +612,7 @@ class PlaywrightCrawlerComponent:
                     help="下載爬取結果JSON文件",
                     key="download_playwright_json_btn"
                 )
-                
+
             except Exception as e:
                 st.error(f"❌ 準備下載文件失敗: {e}")
         else:
@@ -670,7 +669,7 @@ class PlaywrightCrawlerComponent:
             df.to_csv(csv_buffer, index=False, encoding='utf-8-sig')
             csv_content = csv_buffer.getvalue()
             
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            timestamp = datetime.now(timezone(timedelta(hours=8))).strftime('%Y%m%d_%H%M%S')
             filename = f"playwright_crawl_results_{timestamp}.csv"
             
             st.download_button(

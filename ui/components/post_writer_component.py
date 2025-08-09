@@ -7,7 +7,7 @@ import streamlit as st
 import httpx
 import json
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import time
 from typing import List, Dict, Any, Optional
 from pathlib import Path
@@ -36,6 +36,17 @@ class PostWriterComponent:
         
         # 載入持久化狀態
         self._load_writer_persistent_state()
+
+    def _cleanup_deleted_reference_ids(self, deleted_ids: List[str]):
+        """清理所有專案中已被刪除的參考分析引用"""
+        try:
+            projects = st.session_state.get('writer_projects', [])
+            for p in projects:
+                if p.get('reference_analysis_id') in deleted_ids:
+                    p['reference_analysis_id'] = None
+                    p['reference_analysis'] = None
+        except Exception:
+            pass
     
     def _init_writer_workspace(self):
         """初始化撰寫工作區"""
@@ -405,7 +416,7 @@ class PostWriterComponent:
             'content': generation['content'],
             'prompt': generation['prompt'],
             'created_at': generation['created_at'],
-            'saved_at': datetime.now().isoformat(),
+            'saved_at': datetime.now(timezone(timedelta(hours=8))).replace(tzinfo=None).isoformat(),
             'settings': generation.get('settings', {}),
             'version_info': f"版本 {generation.get('version', '未知')}"
         }
@@ -531,7 +542,7 @@ class PostWriterComponent:
                     st.download_button(
                         label="📁 下載所有精選貼文",
                         data=all_content,
-                        file_name=f"所有精選貼文_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
+                        file_name=f"所有精選貼文_{datetime.now(timezone(timedelta(hours=8))).strftime('%Y%m%d_%H%M%S')}.txt",
                         mime="text/plain"
                     )
             
@@ -551,7 +562,7 @@ class PostWriterComponent:
         new_project = {
             'id': project_id,
             'title': f"撰寫專案 {st.session_state.project_counter}",
-            'created_at': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            'created_at': datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M:%S"),
             'status': 'draft',
             'reference_analysis_id': None,
             'reference_analysis': None,
@@ -642,7 +653,7 @@ class PostWriterComponent:
                         'content': post_content,
                         'version': f"版本 {i + 1}",
                         'settings': generation_data['settings'],
-                        'created_at': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        'created_at': datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M:%S")
                     }
                     
                     if 'generation_history' not in project:
@@ -708,7 +719,7 @@ class PostWriterComponent:
                 'writer_projects': st.session_state.get('writer_projects', []),
                 'active_project_id': st.session_state.get('active_project_id'),
                 'project_counter': st.session_state.get('project_counter', 0),
-                'last_updated': datetime.now().isoformat()
+                'last_updated': datetime.now(timezone(timedelta(hours=8))).replace(tzinfo=None).isoformat()
             }
             
             with open(self.projects_state_file, 'w', encoding='utf-8') as f:
@@ -806,6 +817,88 @@ class PostWriterComponent:
                 st.success("✅ 持久化狀態已清除")
                 st.rerun()
         
+        # 參考分析管理
+        st.markdown("---")
+        st.markdown("**📊 參考分析管理**")
+        saved_analyses = self.analyzer_component.get_saved_analysis_options()
+        if not saved_analyses:
+            st.info("目前沒有任何已保存的參考分析。請先到『📊 內容分析』頁面保存分析。")
+        else:
+            st.caption(f"共 {len(saved_analyses)} 筆參考分析")
+
+            # 批次選取刪除
+            multi_cols = st.columns([3, 1])
+            with multi_cols[0]:
+                multi_options = [f"{a['label']}（{a['created_at'][:16]}）" for a in saved_analyses]
+                selected_idx_list = st.multiselect(
+                    "選擇要刪除的參考分析：",
+                    options=list(range(len(saved_analyses))),
+                    format_func=lambda i: multi_options[i],
+                    key="ref_analysis_multi_delete"
+                )
+            with multi_cols[1]:
+                if st.button("🗑️ 批量刪除", use_container_width=True) and selected_idx_list:
+                    deleted_ids = []
+                    for i in selected_idx_list:
+                        analysis_id = saved_analyses[i]['analysis_id']
+                        try:
+                            # 呼叫分析組件的刪除函式
+                            self.analyzer_component._delete_analysis_result(analysis_id)
+                            deleted_ids.append(analysis_id)
+                        except Exception as e:
+                            st.error(f"刪除失敗：{e}")
+                    if deleted_ids:
+                        self._cleanup_deleted_reference_ids(deleted_ids)
+                        self._save_writer_persistent_state()
+                        st.success(f"✅ 已刪除 {len(deleted_ids)} 筆參考分析")
+                        st.rerun()
+
+            # 清單檢視與單筆操作
+            for analysis in saved_analyses:
+                with st.expander(f"{analysis['label']}（{analysis['created_at'][:16]}）", expanded=False):
+                    col_a, col_b, col_c = st.columns([1, 1, 6])
+                    with col_a:
+                        if st.button("🗑️ 刪除", key=f"del_ref_{analysis['analysis_id']}", use_container_width=True):
+                            try:
+                                self.analyzer_component._delete_analysis_result(analysis['analysis_id'])
+                                self._cleanup_deleted_reference_ids([analysis['analysis_id']])
+                                self._save_writer_persistent_state()
+                                st.success("✅ 已刪除")
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"刪除失敗：{e}")
+                    with col_b:
+                        if st.button("👁️ 預覽", key=f"view_ref_{analysis['analysis_id']}", use_container_width=True):
+                            content = self.analyzer_component.get_analysis_content_for_llm(analysis['analysis_id'])
+                            if content:
+                                st.markdown("**原始貼文**")
+                                st.json(content.get('original_post', {}))
+                                st.markdown("**結構指南**")
+                                st.json(content.get('structure_guide', {}))
+                                st.markdown("**分析摘要**")
+                                st.write(content.get('analysis_summary', {}))
+                            else:
+                                st.warning("未找到內容，可能已被刪除。")
+                    with col_c:
+                        st.caption(f"ID: {analysis['analysis_id']}")
+
+            # 全部清空
+            clear_col1, clear_col2 = st.columns([3, 1])
+            with clear_col1:
+                st.caption("若需要可清空所有已保存參考分析（不影響撰寫專案）")
+            with clear_col2:
+                if st.button("🗑️ 清空所有參考分析", use_container_width=True):
+                    try:
+                        ids = [a['analysis_id'] for a in saved_analyses]
+                        for aid in ids:
+                            self.analyzer_component._delete_analysis_result(aid)
+                        self._cleanup_deleted_reference_ids(ids)
+                        self._save_writer_persistent_state()
+                        st.success("✅ 已清空所有參考分析")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"清空失敗：{e}")
+
         # 專案詳細信息
         if project:
             st.markdown("---")
@@ -860,7 +953,7 @@ class PostWriterComponent:
         new_project.update({
             'id': new_project_id,
             'title': f"{source_project['title']} (副本)",
-            'created_at': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            'created_at': datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M:%S"),
             'status': 'draft',
             'generation_history': []
         })

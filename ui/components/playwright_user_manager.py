@@ -8,7 +8,7 @@ import asyncio
 import pandas as pd
 import io
 import json
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from typing import Any, Dict
 
 from .playwright_database_handler import PlaywrightDatabaseHandler
@@ -72,7 +72,7 @@ class PlaywrightUserManager:
             csv_content = self._dataframe_to_csv(df)
             
             # 直接顯示下載按鈕
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            timestamp = datetime.now(timezone(timedelta(hours=8))).strftime('%Y%m%d_%H%M%S')
             filename = f"user_posts_{username}_{timestamp}.csv"
             
             st.download_button(
@@ -133,7 +133,7 @@ class PlaywrightUserManager:
             csv_content = self._dataframe_to_csv(df)
             
             # 提供下載
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            timestamp = datetime.now(timezone(timedelta(hours=8))).strftime('%Y%m%d_%H%M%S')
             filename = f"user_posts_{username}_{timestamp}.csv"
             
             st.download_button(

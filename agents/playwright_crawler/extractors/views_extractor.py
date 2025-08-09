@@ -9,7 +9,7 @@
 import asyncio
 import logging
 import random
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 from playwright.async_api import BrowserContext
 
@@ -73,7 +73,7 @@ class ViewsExtractor:
                     if views_count and views_count > 0:
                         if post.views_count is None or post.views_count <= 0:
                             post.views_count = views_count
-                            post.views_fetched_at = datetime.utcnow()
+                            post.views_fetched_at = datetime.now(timezone(timedelta(hours=8))).replace(tzinfo=None)
                             logging.info(f"  ✅ 成功獲取 {post.post_id} 的瀏覽數: {views_count:,} (方法: {extraction_method})")
                             
                             # 發布進度
@@ -93,7 +93,7 @@ class ViewsExtractor:
                         if post.views_count is None:
                             logging.warning(f"  ❌ 無法獲取 {post.post_id} 的瀏覽數")
                             post.views_count = -1
-                            post.views_fetched_at = datetime.utcnow()
+                            post.views_fetched_at = datetime.now(timezone(timedelta(hours=8))).replace(tzinfo=None)
                     
                     # 保守的隨機延遲避免反爬蟲（稍微縮短但保持安全）
                     delay = random.uniform(1.5, 3.5)  # 縮短0.5秒但保持隨機性
@@ -102,7 +102,7 @@ class ViewsExtractor:
                 except Exception as e:
                     logging.error(f"  ❌ 處理 {post.post_id} 時發生錯誤: {e}")
                     post.views_count = -1
-                    post.views_fetched_at = datetime.utcnow()
+                    post.views_fetched_at = datetime.now(timezone(timedelta(hours=8))).replace(tzinfo=None)
                 finally:
                     if page:
                         await page.close()

@@ -13,7 +13,7 @@ import pickle
 import hashlib
 import time
 import random
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 import sys
@@ -92,6 +92,24 @@ class AnalyzerComponent:
         
         if analysis_mode == "📝 單篇深度分析":
             st.markdown("**多任務分頁分析** - 同時處理多個 Threads 貼文的結構分析")
+            # 調整主要按鈕主色為橘紅（本頁的主按鈕）
+            st.markdown(
+                """
+                <style>
+                div.stButton > button[kind="primary"],
+                div[data-testid="stButton"] > button[kind="primary"] {
+                    background-color: #ff7043 !important;
+                    border-color: #ff7043 !important;
+                }
+                div.stButton > button[kind="primary"]:hover,
+                div[data-testid="stButton"] > button[kind="primary"]:hover {
+                    background-color: #f4511e !important;
+                    border-color: #f4511e !important;
+                }
+                </style>
+                """,
+                unsafe_allow_html=True,
+            )
             # 使用現有的分頁系統
             self._render_tab_system()
         else:
@@ -146,7 +164,7 @@ class AnalyzerComponent:
 https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
             """)
         
-        # 提交按鈕 + 快速通道（同列，等寬；快速通道置左、主色）
+        # 提交按鈕 + 快速通道（同列，等寬；快速通道置左、主色橘紅）
         col_a, col_b = st.columns(2)
         with col_a:
             if st.button("⚡ 快速通道", use_container_width=True, type="primary"):
@@ -306,7 +324,7 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
                 'likes_count': likes_count or '未知',
                 'comments_count': '未知',
                 'raw_markdown': markdown_content,
-                'extracted_at': datetime.now().isoformat()
+                'extracted_at': datetime.now(timezone(timedelta(hours=8))).replace(tzinfo=None).isoformat()
             }
             
         except Exception as e:
@@ -340,7 +358,7 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
                 'likes_count': likes_count or '未知',
                 'comments_count': '未知',  # 暫不提取評論數
                 'raw_markdown': markdown_content,
-                'extracted_at': datetime.now().isoformat()
+                'extracted_at': datetime.now(timezone(timedelta(hours=8))).replace(tzinfo=None).isoformat()
             }
             
         except Exception as e:
@@ -794,7 +812,7 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
                 'analysis_tabs': st.session_state.get('analysis_tabs', []),
                 'active_tab_id': st.session_state.get('active_tab_id'),
                 'tab_counter': st.session_state.get('tab_counter', 0),
-                'saved_at': datetime.now().isoformat()
+                'saved_at': datetime.now(timezone(timedelta(hours=8))).replace(tzinfo=None).isoformat()
             }
             
             with open(self.state_file, 'w', encoding='utf-8') as f:
@@ -880,7 +898,7 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
             # 創建分析結果數據
             analysis_data = {
                 "analysis_id": analysis_id,
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone(timedelta(hours=8))).replace(tzinfo=None).isoformat(),
                 "tab_info": {
                     "tab_id": tab['id'],
                     "tab_title": tab['title'],
@@ -921,12 +939,12 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
                 post_id_short = post_data.get('post_id', 'unknown')[:8]
                 display_name = f"@{username}_{post_id_short}"
             
-            index_entry = {
+                index_entry = {
                 "analysis_id": analysis_id,
                 "display_name": display_name,
                 "username": post_data.get('username', ''),
                 "post_id": post_data.get('post_id', ''),
-                "created_at": datetime.now().isoformat(),
+                    "created_at": datetime.now(timezone(timedelta(hours=8))).replace(tzinfo=None).isoformat(),
                 "file_path": f"analysis_{analysis_id}.json"
             }
             
@@ -1038,7 +1056,7 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
         new_tab = {
             'id': tab_id,
             'title': title,
-            'created_at': datetime.now().strftime("%H:%M:%S"),
+            'created_at': datetime.now(timezone(timedelta(hours=8))).strftime("%H:%M:%S"),
             'status': 'idle',  # idle, extracting, analyzing, completed, error
             'post_data': None,
             'analysis_result': None
@@ -1223,6 +1241,8 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
                     if st.button("🗑️📑", key="close_all_tabs_btn", help="關閉所有分頁"):
                         st.session_state.analysis_tabs = []
                         st.session_state.active_tab_id = None
+                        # 重設分頁計數器，讓新建分頁從 1 開始
+                        st.session_state.tab_counter = 0
                         self._clear_persistent_state()
                         # 不在這裡調用 rerun，讓後續邏輯處理
             
@@ -1297,17 +1317,19 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
                 key=f"{tab_id}_url_input"
             )
             
-            if st.button(f"🔍 提取貼文內容", key=f"{tab_id}_extract_url", type="primary"):
-                if url:
-                    # 自動保存輸入狀態
-                    self._save_persistent_state()
-                    self._extract_post_from_url(tab, url)
-                else:
-                    st.error("請輸入有效的 URL")
-
-            # 分頁快速通道（URL）
-            if st.button("⚡ 快速通道", key=f"{tab_id}_quick_url"):
-                self._run_quick_channel_for_tab(tab)
+            btn_col1, btn_col2 = st.columns(2)
+            with btn_col1:
+                # 分頁快速通道（URL）- 左側主色橘紅
+                if st.button("⚡ 快速通道", key=f"{tab_id}_quick_url", use_container_width=True, type="primary"):
+                    self._run_quick_channel_for_tab(tab)
+            with btn_col2:
+                if st.button(f"🔍 提取貼文內容", key=f"{tab_id}_extract_url", use_container_width=True):
+                    if url:
+                        # 自動保存輸入狀態
+                        self._save_persistent_state()
+                        self._extract_post_from_url(tab, url)
+                    else:
+                        st.error("請輸入有效的 URL")
         
         else:  # 用戶名 + 貼文ID
             col1, col2 = st.columns(2)
@@ -1324,18 +1346,20 @@ https://www.threads.com/@netflixtw/post/DNCWbR5PeQk
                     key=f"{tab_id}_post_id_input"
                 )
             
-            if st.button(f"🔍 提取貼文內容", key=f"{tab_id}_extract_manual", type="primary"):
-                if username and post_id:
-                    # 自動保存輸入狀態
-                    self._save_persistent_state()
-                    url = f"https://www.threads.com/@{username}/post/{post_id}"
-                    self._extract_post_from_url(tab, url)
-                else:
-                    st.error("請輸入用戶名和貼文ID")
-
-            # 分頁快速通道（用戶名 + 貼文ID）
-            if st.button("⚡ 快速通道", key=f"{tab_id}_quick_manual"):
-                self._run_quick_channel_for_tab(tab)
+            btn2_col1, btn2_col2 = st.columns(2)
+            with btn2_col1:
+                # 分頁快速通道（用戶名 + 貼文ID）- 左側主色橘紅
+                if st.button("⚡ 快速通道", key=f"{tab_id}_quick_manual", use_container_width=True, type="primary"):
+                    self._run_quick_channel_for_tab(tab)
+            with btn2_col2:
+                if st.button(f"🔍 提取貼文內容", key=f"{tab_id}_extract_manual", use_container_width=True):
+                    if username and post_id:
+                        # 自動保存輸入狀態
+                        self._save_persistent_state()
+                        url = f"https://www.threads.com/@{username}/post/{post_id}"
+                        self._extract_post_from_url(tab, url)
+                    else:
+                        st.error("請輸入用戶名和貼文ID")
     
     def _extract_post_from_url(self, tab: Dict[str, Any], url: str):
         """從URL提取貼文內容"""

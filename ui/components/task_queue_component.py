@@ -5,7 +5,7 @@
 import streamlit as st
 import time
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 from common.task_queue_manager import get_task_queue_manager, TaskStatus, QueuedTask
 
@@ -92,7 +92,7 @@ class TaskQueueComponent:
                     st.write(f"⏱️ 總計: {task.execution_time}")
                 
                 # 創建時間
-                created_time = datetime.fromtimestamp(task.created_at)
+                created_time = datetime.fromtimestamp(task.created_at, tz=timezone.utc).astimezone(timezone(timedelta(hours=8)))
                 st.caption(f"創建: {created_time.strftime('%H:%M:%S')}")
             
             with col4:

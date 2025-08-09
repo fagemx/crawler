@@ -42,9 +42,16 @@ from .helpers.scrolling import (
 DEBUG_DIR = Path(__file__).parent / "debug"
 DEBUG_DIR.mkdir(exist_ok=True)
 
-# 設定日誌（避免重複配置）
+# 設定日誌（避免重複配置），強制使用台北時區顯示 asctime
+class TaipeiTimezoneFormatter(logging.Formatter):
+    def converter(self, timestamp):
+        tz = timezone(timedelta(hours=8))
+        return datetime.fromtimestamp(timestamp, tz).timetuple()
+
 if not logging.getLogger().handlers:
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    for handler in logging.getLogger().handlers:
+        handler.setFormatter(TaipeiTimezoneFormatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
 
 
 class PlaywrightLogic:
@@ -85,7 +92,7 @@ class PlaywrightLogic:
             max_scroll_rounds: 最大滾動輪次，防止無限滾動
         """
         if task_id is None:
-            task_id = f"task_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            task_id = f"task_{get_taipei_time().strftime('%Y%m%d_%H%M%S')}"
         
         # 內部台北時間函數
         def get_taipei_time():
@@ -528,7 +535,7 @@ class PlaywrightLogic:
             raw_data = {
                 "task_id": task_id,
                 "username": username, 
-                "timestamp": datetime.now().isoformat(),
+                "timestamp": get_taipei_time().isoformat(),
                 "total_found": total_found,
                 "returned_count": len(final_posts),
                 "posts": [
@@ -551,7 +558,7 @@ class PlaywrightLogic:
                 ]
             }
             
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = get_taipei_time().strftime("%Y%m%d_%H%M%S")
             raw_file = DEBUG_DIR / f"crawl_data_{timestamp}_{task_id[:8]}.json"
             raw_file.write_text(json.dumps(raw_data, indent=2, ensure_ascii=False), encoding="utf-8")
             logging.info(f"💾 [Task: {task_id}] 已保存原始抓取資料至: {raw_file}")

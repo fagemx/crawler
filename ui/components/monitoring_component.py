@@ -18,7 +18,8 @@ class SystemMonitoringComponent:
     
     def log(self, level: str, message: str, details: Any = None):
         """統一的日誌記錄方法（模仿 test_mcp_complete.py）"""
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        tz = datetime.timezone(datetime.timedelta(hours=8))
+        timestamp = datetime.datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
         log_entry = {
             "timestamp": timestamp,
             "level": level,
@@ -323,9 +324,10 @@ class SystemMonitoringComponent:
             log_stats[level] = log_stats.get(level, 0) + 1
         
         # 生成詳細報告
+        tz = datetime.timezone(datetime.timedelta(hours=8))
         report = {
             "test_summary": {
-                "測試時間": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "測試時間": datetime.datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S"),
                 "測試項目數": total_tests,
                 "成功項目": successful_tests,
                 "失敗項目": failed_tests,

@@ -13,7 +13,7 @@ import requests
 import tempfile
 import shutil
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 import sys
@@ -451,8 +451,8 @@ class PlaywrightCrawlerComponent:
             
             # 創建結果數據
             converted_results = {
-                "crawl_id": f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{str(uuid.uuid4())[:8]}",
-                "timestamp": datetime.now().isoformat(),
+                "crawl_id": f"{datetime.now(timezone(timedelta(hours=8))).strftime('%Y%m%d_%H%M%S')}_{str(uuid.uuid4())[:8]}",
+                "timestamp": datetime.now(timezone(timedelta(hours=8))).replace(tzinfo=None).isoformat(),
                 "target_username": "unknown",  # 需要從某處獲取
                 "crawler_type": "playwright",
                 "total_processed": 0,
@@ -512,7 +512,7 @@ class PlaywrightCrawlerComponent:
                 "has_reposts": bool(post.get("reposts_count")),
                 "has_shares": bool(post.get("shares_count")),
                 "content_length": len(post.get("content", "")),
-                "extracted_at": datetime.now().isoformat(),
+                "extracted_at": datetime.now(timezone(timedelta(hours=8))).replace(tzinfo=None).isoformat(),
                 "created_at": post.get("created_at", ""),
                 "username": username
             }
@@ -520,13 +520,13 @@ class PlaywrightCrawlerComponent:
         
         # 生成唯一ID（時間戳 + 隨機字符）
         import uuid
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        timestamp = datetime.now(timezone(timedelta(hours=8))).strftime('%Y%m%d_%H%M%S')
         unique_id = str(uuid.uuid4())[:8]
         
         # 包裝為 Playwright 專用結構
         return {
             "crawl_id": f"{timestamp}_{unique_id}",
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone(timedelta(hours=8))).replace(tzinfo=None).isoformat(),
             "target_username": username,
             "crawler_type": "playwright",
             "max_posts": len(posts),
@@ -727,7 +727,7 @@ class PlaywrightCrawlerComponent:
         if 'playwright_crawl_logs' not in st.session_state:
             st.session_state.playwright_crawl_logs = []
         
-        timestamp = datetime.now().strftime("%H:%M:%S")
+        timestamp = datetime.now(timezone(timedelta(hours=8))).strftime("%H:%M:%S")
         log_message = f"[{timestamp}] {message}"
         st.session_state.playwright_crawl_logs.append(log_message)
     
@@ -800,7 +800,7 @@ class PlaywrightCrawlerComponent:
                     'has_reposts': bool(reposts and reposts != 'nan' and reposts != ''),
                     'has_shares': bool(shares and shares != 'nan' and shares != ''),
                     'content_length': len(content) if content else 0,
-                    'extracted_at': datetime.now().isoformat()
+                    'extracted_at': datetime.now(timezone(timedelta(hours=8))).replace(tzinfo=None).isoformat()
                 }
                 results.append(result)
             
@@ -809,7 +809,7 @@ class PlaywrightCrawlerComponent:
                 'results': results,
                 'total_count': len(results),
                 'username': results[0]['username'] if results else '',
-                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'timestamp': datetime.now(timezone(timedelta(hours=8))).strftime('%Y-%m-%d %H:%M:%S'),
                 'source': f"CSV文件: {uploaded_file.name}"
             }
             
@@ -946,7 +946,7 @@ class PlaywrightCrawlerComponent:
                 )
                 
                 # 生成下載文件名（包含時間戳）
-                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                timestamp = datetime.now(timezone(timedelta(hours=8))).strftime('%Y%m%d_%H%M%S')
                 download_filename = f"playwright_crawl_results_{timestamp}.json"
                 
                 # 使用 st.download_button 提供下載
@@ -1048,7 +1048,7 @@ class PlaywrightCrawlerComponent:
                     df = df.sort_values(sort_by)
             
             # 生成CSV文件
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            timestamp = datetime.now(timezone(timedelta(hours=8))).strftime('%Y%m%d_%H%M%S')
             csv_filename = f"playwright_crawl_results_{timestamp}.csv"
             
             # 保存文件
