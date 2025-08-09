@@ -50,6 +50,26 @@ CREATE TABLE IF NOT EXISTS media_files (
     metadata        JSONB DEFAULT '{}'
 );
 
+-- 媒體描述結果（Gemini 產出）
+CREATE TABLE IF NOT EXISTS media_descriptions (
+    id               SERIAL PRIMARY KEY,
+    media_id         INTEGER NOT NULL REFERENCES media_files(id) ON DELETE CASCADE,
+    post_url         TEXT,
+    username         TEXT,
+    media_type       TEXT NOT NULL CHECK (media_type IN ('image','video')),
+    model            TEXT DEFAULT 'gemini-2.5-pro',
+    prompt           TEXT,
+    response_json    JSONB DEFAULT '{}',
+    language         TEXT DEFAULT 'zh-TW',
+    status           TEXT DEFAULT 'completed' CHECK (status IN ('completed','failed')),
+    error            TEXT,
+    created_at       TIMESTAMPTZ DEFAULT now(),
+    updated_at       TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_media_desc_media_id ON media_descriptions(media_id);
+CREATE INDEX IF NOT EXISTS idx_media_desc_username ON media_descriptions(username);
+CREATE INDEX IF NOT EXISTS idx_media_desc_created_at ON media_descriptions(created_at DESC);
+
 -- Agent 處理記錄（追蹤處理狀態）
 CREATE TABLE IF NOT EXISTS processing_log (
     id           SERIAL PRIMARY KEY,
@@ -555,3 +575,75 @@ CREATE INDEX IF NOT EXISTS idx_playwright_crawler_type ON playwright_post_metric
 
 -- 完成初始化
 SELECT 'Database initialization completed successfully!' as status;
+
+-- ============================================================================
+-- Schema repair (idempotent) - 保證既有環境補齊缺漏欄位/索引
+-- 注意：以下均為 IF NOT EXISTS，重複執行安全
+-- ============================================================================
+
+-- playwright_post_metrics 欄位補齊
+ALTER TABLE IF EXISTS playwright_post_metrics
+  ADD COLUMN IF NOT EXISTS views_count INTEGER,
+  ADD COLUMN IF NOT EXISTS likes_count INTEGER,
+  ADD COLUMN IF NOT EXISTS comments_count INTEGER,
+  ADD COLUMN IF NOT EXISTS reposts_count INTEGER,
+  ADD COLUMN IF NOT EXISTS shares_count INTEGER,
+  ADD COLUMN IF NOT EXISTS calculated_score DECIMAL,
+  ADD COLUMN IF NOT EXISTS post_published_at TIMESTAMP,
+  ADD COLUMN IF NOT EXISTS tags TEXT,
+  ADD COLUMN IF NOT EXISTS images TEXT,
+  ADD COLUMN IF NOT EXISTS videos TEXT,
+  ADD COLUMN IF NOT EXISTS source VARCHAR(100) DEFAULT 'playwright_agent',
+  ADD COLUMN IF NOT EXISTS crawler_type VARCHAR(50) DEFAULT 'playwright',
+  ADD COLUMN IF NOT EXISTS crawl_id VARCHAR(255),
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMP,
+  ADD COLUMN IF NOT EXISTS fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+
+-- media_files 欄位補齊
+ALTER TABLE IF EXISTS media_files
+  ADD COLUMN IF NOT EXISTS file_extension TEXT,
+  ADD COLUMN IF NOT EXISTS rustfs_key TEXT,
+  ADD COLUMN IF NOT EXISTS rustfs_url TEXT,
+  ADD COLUMN IF NOT EXISTS file_size BIGINT,
+  ADD COLUMN IF NOT EXISTS width INTEGER,
+  ADD COLUMN IF NOT EXISTS height INTEGER,
+  ADD COLUMN IF NOT EXISTS duration INTEGER,
+  ADD COLUMN IF NOT EXISTS download_status TEXT DEFAULT 'pending',
+  ADD COLUMN IF NOT EXISTS download_error TEXT,
+  ADD COLUMN IF NOT EXISTS downloaded_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'::jsonb;
+
+-- media_files 索引補齊
+CREATE INDEX IF NOT EXISTS idx_media_files_original_url ON media_files(original_url);
+CREATE INDEX IF NOT EXISTS idx_media_files_rustfs_key ON media_files(rustfs_key);
+
+-- post_metrics_sql 欄位補齊（增量表）
+ALTER TABLE IF EXISTS post_metrics_sql
+  ADD COLUMN IF NOT EXISTS likes_count INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS comments_count INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS reposts_count INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS shares_count INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS views_count BIGINT DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS calculated_score DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS images JSONB DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS videos JSONB DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS fetched_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS views_fetched_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'unknown',
+  ADD COLUMN IF NOT EXISTS processing_stage TEXT DEFAULT 'initial',
+  ADD COLUMN IF NOT EXISTS is_complete BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS post_published_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS tags JSONB DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS reader_status TEXT DEFAULT 'pending',
+  ADD COLUMN IF NOT EXISTS dom_status TEXT DEFAULT 'pending',
+  ADD COLUMN IF NOT EXISTS reader_processed_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS dom_processed_at TIMESTAMPTZ;
+
+-- playwright_post_metrics 唯一鍵與索引補齊
+DO $$ BEGIN
+  ALTER TABLE playwright_post_metrics
+    ADD CONSTRAINT IF NOT EXISTS uniq_playwright_user_post_type UNIQUE (username, post_id, crawler_type);
+EXCEPTION WHEN others THEN NULL; END $$;
+CREATE INDEX IF NOT EXISTS idx_playwright_username_created ON playwright_post_metrics(username, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_playwright_crawl_id ON playwright_post_metrics(crawl_id);

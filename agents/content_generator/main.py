@@ -90,7 +90,9 @@ async def generate_content(request: ContentGenerationRequest):
             model=model_name,
             provider=provider,
             max_tokens=4096,
-            temperature=0.8
+            temperature=0.8,
+            # 用於成本面板的使用場景標記
+            usage_scene="post-writing"
         )
         
         # 解析生成的多個貼文版本

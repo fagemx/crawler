@@ -139,7 +139,8 @@ class SocialMediaGeneratorApp:
                 "🎭 Playwright 爬蟲",
                 "📊 內容分析",
                 "✍️ 智能撰寫",
-                "🛠 監控面板"
+                "🛠 監控面板",
+                "👁️ 媒體處理器"
             ],
             index=[
                 "🚀 實時智能爬蟲",
@@ -162,6 +163,9 @@ class SocialMediaGeneratorApp:
             self.post_writer_component.render()
         elif nav == "🛠 監控面板":
             self.monitoring_component.render()
+        elif nav == "👁️ 媒體處理器":
+            from ui.components.media_processor_component import MediaProcessorComponent
+            MediaProcessorComponent().render()
 
         # with tabs[4]:
         #     self.content_generator_component.render()

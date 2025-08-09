@@ -29,8 +29,9 @@ class GeminiVisionAnalyzer:
         # 配置 Gemini
         genai.configure(api_key=self.api_key)
         
-        # 使用 Gemini 2.0 Flash
-        self.model = genai.GenerativeModel("gemini-2.0-flash")
+        # 預設使用 Gemini 2.5 Pro（可由環境切換），保留舊版為備援
+        model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-pro")
+        self.model = genai.GenerativeModel(model_name)
         
         # 安全設定 - 允許所有內容類型
         self.safety_settings = {
@@ -65,29 +66,33 @@ class GeminiVisionAnalyzer:
 
         # 影片內容描述系統提示
         self.video_prompt = """
-        請詳細描述這個 Threads 社交媒體影片的內容：
+請用繁體中文，依下列「描述重點」完成分析，並輸出為一個 JSON 陣列（segments）。不需固定段數，覆蓋影片主要內容即可：
 
-        描述重點：
-        1. **影片概要**：影片的主要內容和主題
-        2. **場景描述**：影片中的場景、環境、背景
-        3. **動作和事件**：影片中發生的動作、事件序列
-        4. **人物和對象**：出現的人物、物件及其互動
-        5. **音視覺效果**：視覺效果、轉場、文字覆蓋等
-        6. **文字內容**：影片中出現的所有文字（字幕、標題、註解等）
-        7. **情感和氛圍**：影片傳達的情感、氛圍或訊息
+描述重點：
+1. 影片位置：影片時間位置
+2. 內容描述：影片中的主題內容，或場景、環境、背景
+3. 動作和事件：影片中發生的動作、事件序列
+4. 人物和對象：出現的人物、物件及其互動
+5. 音視覺效果：視覺效果、轉場、文字覆蓋等
+6. 文字內容：影片中出現的所有文字（字幕、標題、註解等）
+7. 情感和氛圍：影片傳達的情感、氛圍或訊息
 
-        描述格式：
-        {
-          "video_summary": "影片概要",
-          "scene_description": "場景描述",
-          "actions_and_events": "動作和事件",
-          "characters_and_objects": "人物和對象",
-          "visual_effects": "視覺效果",
-          "text_content": "文字內容",
-          "mood_and_message": "情感和訊息"
-        }
+輸出範例（JSON 陣列，段數不限，可自由增減欄位）：
+[
+  {
+    "startTime": "mm:ss",
+    "endTime": "mm:ss",
+    "visual_description": "聚焦敘事/元素/傳達的畫面與動作",
+    "dialogue": {
+      "english": "英文原文（無則留空）",
+      "chinese_subtitle": "中文對白/字幕（無則留空）"
+    }
+  }
+]
 
-        請用繁體中文回應，描述要詳細且準確，特別注意影片的時間序列和動態變化。
+要求：
+- 儘量只輸出 JSON 陣列本體；若無法，仍以 JSON 為主即可。
+- 時間允許 3–5 秒粒度，段數依內容自定。
         """
 
         # 從截圖中提取瀏覽次數的系統提示
@@ -183,7 +188,7 @@ class GeminiVisionAnalyzer:
             raise Exception(f"Gemini Vision 提取瀏覽次數失敗: {str(e)}")
 
     
-    async def analyze_media(self, media_bytes: bytes, mime_type: str) -> Dict[str, Any]:
+    async def analyze_media(self, media_bytes: bytes, mime_type: str, extra_text: str = None) -> Dict[str, Any]:
         """
         分析媒體（圖片或影片）並描述內容
         
@@ -204,7 +209,12 @@ class GeminiVisionAnalyzer:
                     "data": base64.b64encode(media_bytes).decode('utf-8')
                 }
                 prompt = self.image_prompt
-                parts = [media_part, prompt]
+                if extra_text:
+                    # 將貼文原文作為額外上下文
+                    context_text = f"貼文原文（作為圖片情境參考）：\n{extra_text}"
+                    parts = [media_part, prompt, context_text]
+                else:
+                    parts = [media_part, prompt]
                 
             elif mime_type.startswith('video/'):
                 # 影片：使用 File API
@@ -231,6 +241,9 @@ class GeminiVisionAnalyzer:
             
             # 解析回應
             response_text = response.text.strip()
+            # 清除常見的 Markdown code block 殼
+            if response_text.startswith("```json") and response_text.endswith("```"):
+                response_text = response_text[7:-3].strip()
             
             # 嘗試解析 JSON
             try:
@@ -272,13 +285,14 @@ class GeminiVisionAnalyzer:
                     }
                 else:  # video
                     return {
-                        "video_summary": response_text,
-                        "scene_description": "",
-                        "actions_and_events": "",
-                        "characters_and_objects": "",
-                        "visual_effects": "",
-                        "text_content": "",
-                        "mood_and_message": "JSON 解析失敗，返回原始回應"
+                        "narrative_overview": response_text,
+                        "key_elements": {
+                            "people": [],
+                            "objects": [],
+                            "locations": []
+                        },
+                        "message_and_tone": "JSON 解析失敗，返回原始回應",
+                        "segments": []
                     }
                 
         except Exception as e:

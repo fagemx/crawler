@@ -22,10 +22,11 @@ class RustFSClient:
     
     def __init__(self):
         self.settings = get_settings()
-        self.base_url = "http://rustfs:9000"  # Docker 內部網路
-        self.access_key = "rustfsadmin"
-        self.secret_key = "rustfsadmin"
-        self.bucket_name = "social-media-content"
+        # 從環境讀取設定（支援本機與容器內網）
+        self.base_url = os.getenv("RUSTFS_ENDPOINT", "http://rustfs:9000").rstrip("/")
+        self.access_key = os.getenv("RUSTFS_ACCESS_KEY", "rustfsadmin")
+        self.secret_key = os.getenv("RUSTFS_SECRET_KEY", "rustfsadmin")
+        self.bucket_name = os.getenv("RUSTFS_BUCKET", "social-media-content")
         
     async def initialize(self):
         """初始化 RustFS 客戶端，建立 bucket"""
@@ -50,6 +51,27 @@ class RustFSClient:
         except Exception as e:
             print(f"❌ Failed to initialize RustFS: {e}")
             raise
+
+    def health_check(self) -> Dict[str, Any]:
+        """RustFS 健康檢查（同步）"""
+        try:
+            import requests
+            # 簡單檢查 endpoint 可達
+            resp = requests.get(self.base_url + "/", timeout=5, auth=(self.access_key, self.secret_key))
+            ok = resp.status_code < 500
+            return {
+                "status": "healthy" if ok else "unhealthy",
+                "endpoint": self.base_url,
+                "bucket": self.bucket_name,
+                "http_status": resp.status_code,
+            }
+        except Exception as e:
+            return {
+                "status": "unhealthy",
+                "endpoint": self.base_url,
+                "bucket": self.bucket_name,
+                "error": str(e),
+            }
     
     def _generate_key(self, post_url: str, original_url: str, media_type: str) -> str:
         """生成 RustFS 存儲鍵值"""
@@ -129,6 +151,13 @@ class RustFSClient:
             
             # 記錄到資料庫（pending 狀態）
             db_client = await get_db_client()
+            # 確保 posts(url) 存在，避免 media_files 的 FK 失敗
+            try:
+                # author 暫以來源標記，media_urls 只放當前媒體以通過 schema
+                await db_client.upsert_post(url=post_url, author="playwright", markdown=None, media_urls=[media_url])
+            except Exception:
+                # 忽略 upsert 失敗，後續 insert 若 FK 失敗會拋出詳細資訊
+                pass
             media_id = await self._record_media_file(
                 db_client, post_url, media_url, media_type, rustfs_key, "pending"
             )

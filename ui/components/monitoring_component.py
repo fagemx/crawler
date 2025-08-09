@@ -418,6 +418,30 @@ class SystemMonitoringComponent:
             else:
                 st.write("- 無資料")
 
+            # 導出區塊（可折疊）
+            with st.expander("📦 導出資料 (CSV)", expanded=False):
+                cexp1, cexp2 = st.columns(2)
+                with cexp1:
+                    csv_month = self._export_llm_usage_csv(month_only=True)
+                    st.download_button(
+                        label="⬇️ 下載本月 CSV",
+                        data=csv_month,
+                        file_name="llm_usage_month.csv",
+                        mime="text/csv",
+                        use_container_width=True,
+                        key="dl_llm_usage_month_csv",
+                    )
+                with cexp2:
+                    csv_all = self._export_llm_usage_csv(month_only=False)
+                    st.download_button(
+                        label="⬇️ 下載全部 CSV",
+                        data=csv_all,
+                        file_name="llm_usage_all.csv",
+                        mime="text/csv",
+                        use_container_width=True,
+                        key="dl_llm_usage_all_csv",
+                    )
+
         except Exception as e:
             st.warning(f"讀取費用面板失敗：{e}")
 
@@ -545,6 +569,58 @@ class SystemMonitoringComponent:
                     return {"top_line": top_line, "by_model": by_model, "recent": recent}
         except Exception:
             return {}
+
+    def _export_llm_usage_csv(self, month_only: bool) -> str:
+        """輸出 CSV 字串：全部或本月。含台北時間與推導的使用場景欄位。"""
+        from common.settings import get_settings
+        dsn = get_settings().database.url
+        try:
+            import csv
+            import io
+            with psycopg2.connect(dsn) as conn:
+                with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                    where_clause = "WHERE date_trunc('month', ts) = date_trunc('month', now())" if month_only else ""
+                    cur.execute(
+                        f"""
+                        SELECT 
+                            to_char((ts AT TIME ZONE 'UTC') AT TIME ZONE 'Asia/Taipei', 'YYYY-MM-DD HH24:MI:SS') AS time_tw,
+                            service,
+                            provider,
+                            model,
+                            prompt_tokens,
+                            completion_tokens,
+                            total_tokens,
+                            cost,
+                            latency_ms,
+                            status,
+                            COALESCE(CASE 
+                                WHEN metadata ? 'usage_scene' THEN metadata->>'usage_scene'
+                                ELSE NULL END, '') AS usage_scene
+                        FROM llm_usage
+                        {where_clause}
+                        ORDER BY ts DESC
+                        """
+                    )
+                    rows = cur.fetchall() or []
+
+            # 產生 CSV
+            headers = [
+                "時間(台北)", "服務", "供應商", "模型",
+                "prompt_tokens", "completion_tokens", "total_tokens", "cost", "latency_ms", "status", "使用場景"
+            ]
+            key_map = [
+                ("time_tw", None), ("service", None), ("provider", None), ("model", None),
+                ("prompt_tokens", None), ("completion_tokens", None), ("total_tokens", None),
+                ("cost", None), ("latency_ms", None), ("status", None), ("usage_scene", None)
+            ]
+            buf = io.StringIO()
+            writer = csv.writer(buf)
+            writer.writerow(headers)
+            for r in rows:
+                writer.writerow([r.get(k) for k, _ in key_map])
+            return buf.getvalue()
+        except Exception:
+            return ""
 
     def _init_llm_usage_schema(self) -> tuple[bool, str]:
         async def _run() -> tuple[bool, str]:

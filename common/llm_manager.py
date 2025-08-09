@@ -234,6 +234,7 @@ class GeminiProvider(BaseLLMProvider):
             self.update_stats(llm_response, True)
             # 記錄使用（吞錯，不影響主流程）
             try:
+                usage_scene = request.metadata.get('usage_scene') if request and request.metadata else None
                 await log_usage(
                     provider=self.provider_type.value,
                     model=model_name,
@@ -245,7 +246,7 @@ class GeminiProvider(BaseLLMProvider):
                     latency_ms=int((latency) * 1000),
                     status="success",
                     service=(os.getenv("AGENT_NAME") or get_service_name()),
-                    metadata=request.metadata,
+                    metadata={**(request.metadata or {}), **({"usage_scene": usage_scene} if usage_scene else {})},
                 )
             except Exception:
                 pass
@@ -367,6 +368,7 @@ class OpenAIProvider(BaseLLMProvider):
             
             self.update_stats(llm_response, True)
             try:
+                usage_scene = request.metadata.get('usage_scene') if request and request.metadata else None
                 await log_usage(
                     provider=self.provider_type.value,
                     model=payload['model'],
@@ -378,7 +380,7 @@ class OpenAIProvider(BaseLLMProvider):
                     latency_ms=int((latency) * 1000),
                     status="success",
                     service=os.getenv("AGENT_NAME") or get_service_name(),
-                    metadata=request.metadata,
+                    metadata={**(request.metadata or {}), **({"usage_scene": usage_scene} if usage_scene else {})},
                 )
             except Exception:
                 pass
@@ -510,6 +512,7 @@ class OpenRouterProvider(BaseLLMProvider):
             
             self.update_stats(llm_response, True)
             try:
+                usage_scene = request.metadata.get('usage_scene') if request and request.metadata else None
                 await log_usage(
                     provider=self.provider_type.value,
                     model=model_name,
@@ -521,7 +524,7 @@ class OpenRouterProvider(BaseLLMProvider):
                     latency_ms=int((latency) * 1000),
                     status="success",
                     service=os.getenv("AGENT_NAME") or get_service_name(),
-                    metadata=request.metadata,
+                    metadata={**(request.metadata or {}), **({"usage_scene": usage_scene} if usage_scene else {})},
                 )
             except Exception:
                 pass

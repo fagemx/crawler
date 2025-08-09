@@ -11,9 +11,24 @@ from typing import Dict, Any, Optional, List
 from datetime import datetime
 
 from .gemini_vision import GeminiVisionAnalyzer
-from common.models import ThreadsPost, TaskState, AgentResponse
-from common.rustfs_client import get_rustfs_client
 from common.db_client import get_db_client
+from services.rustfs_client import get_rustfs_client
+
+# 輕量定義以避免依賴不存在的 common.models
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any
+
+class TaskState(str, Enum):
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+
+@dataclass
+class AgentResponse:
+    task_state: TaskState
+    data: Any
+    message: str
+    artifacts: dict
 
 
 class VisionAgent:
