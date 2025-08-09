@@ -132,23 +132,20 @@ class SocialMediaGeneratorApp:
         if 'main_nav' not in st.session_state:
             st.session_state.main_nav = "🚀 實時智能爬蟲"
 
+        options = [
+            "🚀 實時智能爬蟲",
+            "🎭 Playwright 爬蟲",
+            "📊 內容分析",
+            "✍️ 智能撰寫",
+            "🛠 監控面板",
+            "👁️ 媒體處理器"
+        ]
+        current = st.session_state.get('main_nav')
+        index = options.index(current) if current in options else 0
         nav = st.radio(
             "主功能選單",
-            options=[
-                "🚀 實時智能爬蟲",
-                "🎭 Playwright 爬蟲",
-                "📊 內容分析",
-                "✍️ 智能撰寫",
-                "🛠 監控面板",
-                "👁️ 媒體處理器"
-            ],
-            index=[
-                "🚀 實時智能爬蟲",
-                "🎭 Playwright 爬蟲",
-                "📊 內容分析",
-                "✍️ 智能撰寫",
-                "🛠 監控面板"
-            ].index(st.session_state.main_nav) if st.session_state.get('main_nav') else 0,
+            options=options,
+            index=index,
             horizontal=True,
             key="main_nav"
         )
