@@ -13,10 +13,12 @@ from typing import Dict, Any, List, Optional, Union
 from dataclasses import dataclass, asdict
 from enum import Enum
 import httpx
+import os
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
 from .settings import get_settings
+from .llm_usage_recorder import log_usage, get_service_name
 
 
 class LLMProvider(Enum):
@@ -214,7 +216,7 @@ class GeminiProvider(BaseLLMProvider):
             try:
                 content = response.text
             except Exception as text_error:
-                logger.error(f"無法獲取 Gemini 響應文本: {text_error}")
+                self.logger.error(f"無法獲取 Gemini 響應文本: {text_error}")
                 content = "無法獲取響應內容"
             
             llm_response = LLMResponse(
@@ -230,6 +232,23 @@ class GeminiProvider(BaseLLMProvider):
             )
             
             self.update_stats(llm_response, True)
+            # 記錄使用（吞錯，不影響主流程）
+            try:
+                await log_usage(
+                    provider=self.provider_type.value,
+                    model=model_name,
+                    request_id=request_id,
+                    prompt_tokens=usage.get('prompt_tokens', 0),
+                    completion_tokens=usage.get('completion_tokens', 0),
+                    total_tokens=usage.get('total_tokens', 0),
+                    cost=cost,
+                    latency_ms=int((latency) * 1000),
+                    status="success",
+                    service=os.getenv("AGENT_NAME") or get_service_name(),
+                    metadata=request.metadata,
+                )
+            except Exception:
+                pass
             return llm_response
             
         except Exception as e:
@@ -247,6 +266,20 @@ class GeminiProvider(BaseLLMProvider):
                 metadata={'error': str(e)}
             )
             self.update_stats(error_response, False)
+            try:
+                await log_usage(
+                    provider=self.provider_type.value,
+                    model=request.model or self.default_model,
+                    request_id=request_id,
+                    cost=0.0,
+                    latency_ms=int((time.time() - start_time) * 1000),
+                    status="error",
+                    error=str(e),
+                    service=os.getenv("AGENT_NAME") or get_service_name(),
+                    metadata={"error": str(e)}
+                )
+            except Exception:
+                pass
             raise
     
     def _calculate_cost(self, model: str, usage: Dict[str, int]) -> float:
@@ -333,6 +366,22 @@ class OpenAIProvider(BaseLLMProvider):
             )
             
             self.update_stats(llm_response, True)
+            try:
+                await log_usage(
+                    provider=self.provider_type.value,
+                    model=payload['model'],
+                    request_id=request_id,
+                    prompt_tokens=usage.get('prompt_tokens', 0),
+                    completion_tokens=usage.get('completion_tokens', 0),
+                    total_tokens=usage.get('total_tokens', 0),
+                    cost=cost,
+                    latency_ms=int((latency) * 1000),
+                    status="success",
+                    service=os.getenv("AGENT_NAME") or get_service_name(),
+                    metadata=request.metadata,
+                )
+            except Exception:
+                pass
             return llm_response
             
         except Exception as e:
@@ -349,6 +398,20 @@ class OpenAIProvider(BaseLLMProvider):
                 metadata={'error': str(e)}
             )
             self.update_stats(error_response, False)
+            try:
+                await log_usage(
+                    provider=self.provider_type.value,
+                    model=request.model or self.default_model,
+                    request_id=request_id,
+                    cost=0.0,
+                    latency_ms=int((time.time() - start_time) * 1000),
+                    status="error",
+                    error=str(e),
+                    service=os.getenv("AGENT_NAME") or get_service_name(),
+                    metadata={"error": str(e)}
+                )
+            except Exception:
+                pass
             raise
     
     def _calculate_cost(self, model: str, usage: Dict[str, int]) -> float:
@@ -446,11 +509,41 @@ class OpenRouterProvider(BaseLLMProvider):
             )
             
             self.update_stats(llm_response, True)
+            try:
+                await log_usage(
+                    provider=self.provider_type.value,
+                    model=model_name,
+                    request_id=request_id,
+                    prompt_tokens=usage.get('prompt_tokens', 0),
+                    completion_tokens=usage.get('completion_tokens', 0),
+                    total_tokens=usage.get('total_tokens', 0),
+                    cost=cost,
+                    latency_ms=int((latency) * 1000),
+                    status="success",
+                    service=os.getenv("AGENT_NAME") or get_service_name(),
+                    metadata=request.metadata,
+                )
+            except Exception:
+                pass
             return llm_response
             
         except Exception as e:
-            logger.error(f"OpenRouter API error: {e}")
+            self.logger.error(f"OpenRouter API error: {e}")
             self.update_stats(None, False)
+            try:
+                await log_usage(
+                    provider=self.provider_type.value,
+                    model=request.model or self.default_model,
+                    request_id=request_id,
+                    cost=0.0,
+                    latency_ms=int((time.time() - start_time) * 1000),
+                    status="error",
+                    error=str(e),
+                    service=os.getenv("AGENT_NAME") or get_service_name(),
+                    metadata={"error": str(e)}
+                )
+            except Exception:
+                pass
             raise
     
     def _calculate_cost(self, model: str, usage: Dict[str, int]) -> float:

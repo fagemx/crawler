@@ -366,7 +366,7 @@ class PostWriterComponent:
         # 是否在提示後追加嚴格模板指示
         strict_key = f"strict_template_{project['id']}"
         strict_default = project.get('strict_template', True)
-        project['strict_template'] = st.checkbox("嚴格使用模板寫作（在提示後追加『##請嚴格使用模板來寫貼文』）", value=strict_default, key=strict_key)
+        project['strict_template'] = st.checkbox("嚴格使用模板寫作）", value=strict_default, key=strict_key)
         
         # 檢查用戶是否手動修改了提示內容
         if project['user_prompt'] != current_prompt and project['user_prompt']:

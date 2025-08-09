@@ -137,13 +137,15 @@ class SocialMediaGeneratorApp:
                 "🚀 實時智能爬蟲",
                 "🎭 Playwright 爬蟲",
                 "📊 內容分析",
-                "✍️ 智能撰寫"
+                "✍️ 智能撰寫",
+                "🛠 監控面板"
             ],
             index=[
                 "🚀 實時智能爬蟲",
                 "🎭 Playwright 爬蟲",
                 "📊 內容分析",
-                "✍️ 智能撰寫"
+                "✍️ 智能撰寫",
+                "🛠 監控面板"
             ].index(st.session_state.main_nav) if st.session_state.get('main_nav') else 0,
             horizontal=True,
             key="main_nav"
@@ -157,6 +159,8 @@ class SocialMediaGeneratorApp:
             self.analyzer_component.render()
         elif nav == "✍️ 智能撰寫":
             self.post_writer_component.render()
+        elif nav == "🛠 監控面板":
+            self.monitoring_component.render()
 
         # with tabs[4]:
         #     self.content_generator_component.render()

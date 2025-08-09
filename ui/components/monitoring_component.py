@@ -8,7 +8,9 @@ import httpx
 import json
 import time
 import datetime
+import asyncio
 from typing import Dict, Any, List
+from common.db_client import get_db_client
 
 
 class SystemMonitoringComponent:
@@ -49,6 +51,10 @@ class SystemMonitoringComponent:
         with col2:
             self._render_individual_agents()
             self._render_infrastructure_status()
+
+        st.markdown("---")
+        st.subheader("💰 Token 費用面板 與 🔌 連線狀態")
+        self._render_llm_cost_and_connection_panel()
         
         # 詳細日誌
         self._render_detailed_logs()
@@ -148,8 +154,11 @@ class SystemMonitoringComponent:
             details = agents_data.get('details', [])
             if details:
                 for agent in details[:3]:  # 只顯示前3個
-                    status_icon = "🟢" if agent.get('狀態') == 'ONLINE' else "🔴"
-                    st.write(f"{status_icon} {agent.get('名稱', 'Unknown')}")
+                    # 後端回傳使用英文字段：name/status
+                    status_value = agent.get('status') or agent.get('狀態')
+                    name_value = agent.get('name') or agent.get('名稱') or 'Unknown'
+                    status_icon = "🟢" if status_value == 'ONLINE' else "🔴"
+                    st.write(f"{status_icon} {name_value}")
         else:
             st.warning("無法獲取 Agent 註冊信息")
     
@@ -340,6 +349,155 @@ class SystemMonitoringComponent:
         }
         
         return report
+
+    # ================================
+    # 子面板：LLM 費用 + 連線狀態
+    # ================================
+    def _render_llm_cost_and_connection_panel(self):
+        col_left, col_right = st.columns(2)
+        with col_left:
+            self._render_llm_cost_panel()
+        with col_right:
+            self._render_simple_connection_status()
+
+    def _render_llm_cost_panel(self):
+        st.markdown("**💰 Token 費用面板（今日）**")
+        try:
+            stats = self._fetch_llm_usage_stats()
+            if not stats:
+                st.info("尚無 LLM 使用紀錄，或資料表尚未建立。")
+                return
+
+            top_line = stats.get("top_line", {})
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                st.metric("請求數", f"{top_line.get('requests', 0)}")
+            with c2:
+                st.metric("Token 總量", f"{top_line.get('tokens', 0):,}")
+            with c3:
+                st.metric("成本 (USD)", f"{top_line.get('usd_cost', 0.0):.4f}")
+
+            st.caption("按服務 Top 5")
+            rows = stats.get("by_service", [])
+            if rows:
+                for row in rows:
+                    st.write(f"- {row['service']}: ${row['usd_cost']:.4f} · {row['tokens']:,} tokens · {row['requests']} 次")
+            else:
+                st.write("- 無資料")
+
+            st.caption("按供應商/模型 Top 5")
+            rows = stats.get("by_model", [])
+            if rows:
+                for row in rows:
+                    st.write(f"- {row['provider']}/{row['model']}: ${row['usd_cost']:.4f} · {row['tokens']:,} tokens · {row['requests']} 次")
+            else:
+                st.write("- 無資料")
+
+            st.caption("最近 20 筆")
+            recent = stats.get("recent", [])
+            if recent:
+                st.dataframe(recent, use_container_width=True, hide_index=True)
+            else:
+                st.write("- 無資料")
+
+        except Exception as e:
+            st.warning(f"讀取費用面板失敗：{e}")
+
+    def _fetch_llm_usage_stats(self) -> Dict[str, Any]:
+        """同步包裝，使用 asyncio 執行實際的非同步查詢"""
+        async def _run() -> Dict[str, Any]:
+            try:
+                db = await get_db_client()
+                top_line = await db.fetch_one(
+                    """
+                    SELECT 
+                        COALESCE(SUM(cost),0) AS usd_cost,
+                        COALESCE(SUM(total_tokens),0) AS tokens,
+                        COUNT(*) AS requests
+                    FROM llm_usage
+                    WHERE ts::date = CURRENT_DATE
+                    """
+                )
+                by_service = await db.fetch_all(
+                    """
+                    SELECT service, 
+                           SUM(cost) AS usd_cost, 
+                           SUM(total_tokens) AS tokens, 
+                           COUNT(*) AS requests
+                    FROM llm_usage
+                    WHERE ts::date = CURRENT_DATE
+                    GROUP BY service
+                    ORDER BY usd_cost DESC
+                    LIMIT 5
+                    """
+                )
+                by_model = await db.fetch_all(
+                    """
+                    SELECT provider, model, 
+                           SUM(cost) AS usd_cost, 
+                           SUM(total_tokens) AS tokens, 
+                           COUNT(*) AS requests
+                    FROM llm_usage
+                    WHERE ts::date = CURRENT_DATE
+                    GROUP BY provider, model
+                    ORDER BY usd_cost DESC, tokens DESC
+                    LIMIT 5
+                    """
+                )
+                recent = await db.fetch_all(
+                    """
+                    SELECT 
+                        to_char(ts AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Taipei', 'HH24:MI:SS') AS 時間,
+                        service AS 服務,
+                        provider AS 供應商,
+                        model AS 模型,
+                        total_tokens AS tokens,
+                        cost AS usd,
+                        status AS 狀態
+                    FROM llm_usage
+                    ORDER BY ts DESC
+                    LIMIT 20
+                    """
+                )
+                return {"top_line": top_line or {}, "by_service": by_service or [], "by_model": by_model or [], "recent": recent or []}
+            except Exception:
+                return {}
+
+        return asyncio.run(_run())
+
+    def _render_simple_connection_status(self):
+        st.markdown("**🔌 主要服務連線狀態**")
+        targets = [
+            ("MCP Server", "http://localhost:10100/health"),
+            ("Orchestrator", "http://localhost:8000/health"),
+            ("Clarification", "http://localhost:8004/health"),
+            ("Content Writer", "http://localhost:8003/health"),
+            ("Content Generator", "http://localhost:8008/health"),
+            ("Form API", "http://localhost:8010/health"),
+            ("Vision", "http://localhost:8005/health"),
+            ("Playwright Crawler", "http://localhost:8006/health"),
+            ("Post Analyzer", "http://localhost:8007/health"),
+            ("Reader LB", "http://localhost:8880/health"),
+            ("NATS", "http://localhost:8223/healthz"),
+            ("RustFS", "http://localhost:9000/")
+        ]
+
+        down_list: List[str] = []
+        for name, url in targets:
+            try:
+                resp = httpx.get(url, timeout=3.0)
+                ok = resp.status_code < 400
+            except Exception:
+                ok = False
+
+            icon = "🟢" if ok else "🔴"
+            st.write(f"{icon} {name}")
+            if not ok:
+                down_list.append(name)
+
+        if down_list:
+            st.warning("偵測到異常服務：" + ", ".join(down_list))
+            st.caption("建議：檢查容器日誌（docker-compose logs -f [service]）或嘗試重啟對應服務")
     
     def _test_mcp_server_health(self) -> Dict[str, Any]:
         """測試 MCP Server 健康狀態"""

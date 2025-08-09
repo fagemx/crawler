@@ -11,6 +11,9 @@ import time
 from typing import Dict, Any
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
+import asyncio
+
+from common.llm_usage_recorder import log_usage, get_service_name
 
 
 class GeminiVisionAnalyzer:
@@ -121,6 +124,7 @@ class GeminiVisionAnalyzer:
                 "data": base64.b64encode(image_bytes).decode('utf-8')
             }
             
+            start_ts = time.time()
             response = self.model.generate_content(
                 [media_part, self.extract_views_prompt],
                 safety_settings=self.safety_settings,
@@ -129,6 +133,7 @@ class GeminiVisionAnalyzer:
                     max_output_tokens=100, # 限制輸出 token 數量
                 )
             )
+            latency_ms = int((time.time() - start_ts) * 1000)
             
             response_text = response.text.strip()
             # 清理常見的 markdown code block
@@ -142,6 +147,31 @@ class GeminiVisionAnalyzer:
                 data["views_count"] = int(data["views_count"])
             else:
                 data["views_count"] = -1 # 使用 -1 表示未找到，以便與 Playwright 的失敗情況區分
+
+            # 嘗試記錄 usage（若 SDK 提供 usage_metadata）
+            try:
+                usage_md = getattr(response, 'usage_metadata', None)
+                usage = {
+                    'prompt_tokens': getattr(usage_md, 'prompt_token_count', 0) if usage_md else 0,
+                    'completion_tokens': getattr(usage_md, 'candidates_token_count', 0) if usage_md else 0,
+                    'total_tokens': getattr(usage_md, 'total_token_count', 0) if usage_md else 0,
+                }
+                # 無成本資訊，留 0；此處不做估算以保守穩定
+                asyncio.create_task(log_usage(
+                    provider="gemini",
+                    model="gemini-2.0-flash",
+                    request_id=f"gemini_vision_{int(time.time()*1000)}",
+                    prompt_tokens=usage['prompt_tokens'],
+                    completion_tokens=usage['completion_tokens'],
+                    total_tokens=usage['total_tokens'],
+                    cost=0.0,
+                    latency_ms=latency_ms,
+                    status="success",
+                    service=get_service_name(),
+                    metadata={"component": "gemini_vision.extract_views"},
+                ))
+            except Exception:
+                pass
 
             return data
 
@@ -186,6 +216,7 @@ class GeminiVisionAnalyzer:
                 raise ValueError(f"不支援的媒體類型: {mime_type}")
             
             # 生成內容
+            start_ts = time.time()
             response = self.model.generate_content(
                 parts,
                 safety_settings=self.safety_settings,
@@ -196,6 +227,7 @@ class GeminiVisionAnalyzer:
                     max_output_tokens=512,
                 )
             )
+            latency_ms = int((time.time() - start_ts) * 1000)
             
             # 解析回應
             response_text = response.text.strip()
@@ -203,6 +235,29 @@ class GeminiVisionAnalyzer:
             # 嘗試解析 JSON
             try:
                 data = json.loads(response_text)
+                # 記錄 usage
+                try:
+                    usage_md = getattr(response, 'usage_metadata', None)
+                    usage = {
+                        'prompt_tokens': getattr(usage_md, 'prompt_token_count', 0) if usage_md else 0,
+                        'completion_tokens': getattr(usage_md, 'candidates_token_count', 0) if usage_md else 0,
+                        'total_tokens': getattr(usage_md, 'total_token_count', 0) if usage_md else 0,
+                    }
+                    asyncio.create_task(log_usage(
+                        provider="gemini",
+                        model="gemini-2.0-flash",
+                        request_id=f"gemini_vision_{int(time.time()*1000)}",
+                        prompt_tokens=usage['prompt_tokens'],
+                        completion_tokens=usage['completion_tokens'],
+                        total_tokens=usage['total_tokens'],
+                        cost=0.0,
+                        latency_ms=latency_ms,
+                        status="success",
+                        service=get_service_name(),
+                        metadata={"component": "gemini_vision.analyze_media", "mime": mime_type},
+                    ))
+                except Exception:
+                    pass
                 return data  # 直接返回內容描述的 JSON
                 
             except json.JSONDecodeError:

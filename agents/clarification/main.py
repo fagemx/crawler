@@ -18,6 +18,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from common.llm_manager import get_llm_manager, chat_completion
 from common.settings import get_settings
+from common.mcp_client import init_mcp_client, agent_startup, agent_shutdown
 
 app = FastAPI(title="Clarification Agent", version="1.0.0")
 
@@ -318,3 +319,15 @@ async def clarify_request(request: ClarifyRequest):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8004)
+else:
+    # 在服務模式下掛載 MCP 註冊與心跳
+    @app.on_event("startup")
+    async def _mcp_startup():
+        import os
+        port = int(os.getenv("AGENT_PORT", 8004))
+        init_mcp_client(agent_name="clarification", agent_role="clarification", agent_port=port)
+        await agent_startup(capabilities={"clarify": True}, metadata={"service": "clarification"}, heartbeat_interval=30)
+
+    @app.on_event("shutdown")
+    async def _mcp_shutdown():
+        await agent_shutdown()
