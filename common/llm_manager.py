@@ -244,7 +244,7 @@ class GeminiProvider(BaseLLMProvider):
                     cost=cost,
                     latency_ms=int((latency) * 1000),
                     status="success",
-                    service=os.getenv("AGENT_NAME") or get_service_name(),
+                    service=(os.getenv("AGENT_NAME") or get_service_name()),
                     metadata=request.metadata,
                 )
             except Exception:

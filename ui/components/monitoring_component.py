@@ -377,14 +377,6 @@ class SystemMonitoringComponent:
                         st.error(f"初始化失敗：{err}")
                 except Exception as e:
                     st.error(f"初始化失敗：{e}")
-        with tool_cols[1]:
-            if st.button("🧪 寫入測試紀錄", key="insert_llm_usage_test_btn"):
-                ok, err = self._insert_test_usage_row()
-                if ok:
-                    st.success("已寫入一筆測試紀錄，請向下查看列表或重整本頁")
-                    st.rerun()
-                else:
-                    st.error(f"寫入失敗：{err}")
         try:
             stats = self._fetch_llm_monthly_stats()
             if not stats:
@@ -594,26 +586,6 @@ class SystemMonitoringComponent:
 
         return asyncio.run(_run())
 
-    def _insert_test_usage_row(self) -> tuple[bool, str]:
-        from common.settings import get_settings
-        dsn = get_settings().database.url
-        try:
-            with psycopg2.connect(dsn) as conn:
-                with conn.cursor() as cur:
-                    cur.execute(
-                        """
-                        INSERT INTO llm_usage (
-                            ts, service, provider, model, request_id,
-                            prompt_tokens, completion_tokens, total_tokens,
-                            cost, latency_ms, status, error, metadata
-                        ) VALUES (NOW(), %s, %s, %s, %s, %s, %s, %s, %s, %s, 'success', NULL, '{}'::jsonb)
-                        """,
-                        ("ui-test", "test", "test-model", "test-req", 10, 5, 15, 0.0, 1)
-                    )
-                    conn.commit()
-            return True, ""
-        except Exception as e:
-            return False, str(e)
 
     def _render_simple_connection_status(self):
         st.markdown("**🔌 主要服務連線狀態**")
