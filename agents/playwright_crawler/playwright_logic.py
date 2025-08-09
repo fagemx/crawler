@@ -77,7 +77,8 @@ class PlaywrightLogic:
         anchor_post_id: str = None,            # 錨點貼文ID  
         max_scroll_rounds: int = 30,           # 最大滾動輪次
         incremental: bool = True,              # 新增：增量模式
-        enable_deduplication: bool = True      # 新增：去重開關
+        enable_deduplication: bool = True,     # 新增：去重開關
+        realtime_download: bool = False        # 🆕 新增：即時下載媒體
     ) -> PostMetricsBatch:
         """
         智能增量爬取貼文 - 支持新貼文補足和歷史回溯
@@ -111,6 +112,7 @@ class PlaywrightLogic:
             
         logging.info(f"🚀 [Task: {task_id}] 開始{mode.upper()}模式爬取 @{username}，目標: {extra_posts} 篇")
         logging.info(f"🧹 [Task: {task_id}] 去重功能: {'啟用' if enable_deduplication else '關閉'}")
+        logging.info(f"⬇️ [Task: {task_id}] 即時下載: {'啟用' if realtime_download else '關閉'}")
         
         try:
             # 步驟1: 初始化瀏覽器和認證
@@ -224,6 +226,11 @@ class PlaywrightLogic:
                     batch_posts = await self.details_extractor.fill_post_details_from_page(batch_posts, self.context, task_id=task_id, username=username)
                     batch_posts = await self.views_extractor.fill_views_from_page(batch_posts, self.context, task_id=task_id, username=username)
                     logging.info(f"✅ [Task: {task_id}] 第 {process_round} 輪：數據補齊完成")
+                    
+                    # 🆕 即時下載邏輯
+                    if realtime_download:
+                        await self._realtime_download_media(batch_posts, task_id, username)
+                        
                 except Exception as e:
                     logging.warning(f"⚠️ [Task: {task_id}] 第 {process_round} 輪數據補齊失敗: {e}")
                 
@@ -565,6 +572,65 @@ class PlaywrightLogic:
             
         except Exception as e:
             logging.warning(f"⚠️ [Task: {task_id}] 保存調試資料失敗: {e}")
+    
+    async def _realtime_download_media(self, posts: List, task_id: str, username: str):
+        """
+        即時下載媒體：在爬取完成後立即下載每個貼文的媒體檔案
+        確保媒體URL的時效性，特別是Instagram影片
+        """
+        if not posts:
+            return
+            
+        try:
+            # 動態導入下載服務，避免循環依賴
+            from agents.vision.media_download_service import MediaDownloadService
+            
+            logging.info(f"⬇️ [Task: {task_id}] 開始即時下載 {len(posts)} 個貼文的媒體...")
+            
+            # 建立下載計劃
+            download_plan = {}
+            media_count = 0
+            
+            for post in posts:
+                media_urls = []
+                
+                # 收集圖片URL
+                if hasattr(post, 'images') and post.images:
+                    media_urls.extend(post.images)
+                    
+                # 收集影片URL
+                if hasattr(post, 'videos') and post.videos:
+                    media_urls.extend(post.videos)
+                
+                if media_urls:
+                    download_plan[post.url] = media_urls
+                    media_count += len(media_urls)
+            
+            if not download_plan:
+                logging.info(f"ℹ️ [Task: {task_id}] 本批貼文沒有可下載的媒體")
+                return
+                
+            logging.info(f"📋 [Task: {task_id}] 準備下載 {media_count} 個媒體檔案 (來自 {len(download_plan)} 個貼文)")
+            
+            # 執行下載
+            download_service = MediaDownloadService()
+            result = await download_service.run_download(download_plan, concurrency_per_post=2)
+            
+            # 記錄結果
+            success_rate = (result['success'] / result['total'] * 100) if result['total'] > 0 else 0
+            logging.info(f"✅ [Task: {task_id}] 即時下載完成：成功 {result['success']}/{result['total']} ({success_rate:.1f}%)")
+            
+            if result['failed'] > 0:
+                logging.warning(f"⚠️ [Task: {task_id}] 失敗 {result['failed']} 個媒體，稍後可透過UI重試")
+                
+                # 記錄失敗的詳情（僅前5個）
+                failed_details = [d for d in result.get('details', []) if d.get('status') == 'failed']
+                for detail in failed_details[:5]:
+                    logging.warning(f"   ❌ {detail.get('original_url', 'N/A')}: {detail.get('error', 'Unknown error')}")
+                    
+        except Exception as e:
+            logging.error(f"❌ [Task: {task_id}] 即時下載失敗: {e}")
+            # 下載失敗不影響爬蟲主流程，只記錄錯誤
             
     async def _smart_scroll_new_mode(
         self, 

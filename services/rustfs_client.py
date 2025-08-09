@@ -189,13 +189,8 @@ class RustFSClient:
             
             # 記錄到資料庫（pending 狀態）
             db_client = await get_db_client()
-            # 確保 posts(url) 存在，避免 media_files 的 FK 失敗
-            try:
-                # author 暫以來源標記，media_urls 只放當前媒體以通過 schema
-                await db_client.upsert_post(url=post_url, author="playwright", markdown=None, media_urls=[media_url])
-            except Exception:
-                # 忽略 upsert 失敗，後續 insert 若 FK 失敗會拋出詳細資訊
-                pass
+            # 直接以安全方式確保 posts(url) 存在，避免 upsert_post 函數造成 created_at NOT NULL 問題
+            await self._ensure_post_url(db_client, post_url)
             media_id = await self._record_media_file(
                 db_client, post_url, media_url, media_type, rustfs_key, "pending"
             )
@@ -207,22 +202,88 @@ class RustFSClient:
                 pass
             
             # 下載檔案
-            # 強化下載層：帶上 UA/Referer，必要時攜帶 Cookies（若後續擴充）
-            headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
-                "Referer": "https://www.threads.net/",
-                "Accept": "*/*",
-            }
+            # 強化下載層：針對不同媒體類型使用不同的 headers
+            if media_type == 'video' and 'instagram' in media_url.lower():
+                # Instagram 影片需要特殊處理
+                headers = {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+                    "Referer": "https://www.instagram.com/",
+                    "Origin": "https://www.instagram.com",
+                    "Accept": "video/webm,video/ogg,video/*;q=0.9,application/ogg;q=0.7,audio/*;q=0.6,*/*;q=0.5",
+                    "Accept-Language": "en-US,en;q=0.5",
+                    "Accept-Encoding": "gzip, deflate, br",
+                    "DNT": "1",
+                    "Connection": "keep-alive",
+                    "Sec-Fetch-Dest": "video",
+                    "Sec-Fetch-Mode": "cors",
+                    "Sec-Fetch-Site": "same-site",
+                }
+            else:
+                # 圖片和其他媒體
+                headers = {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+                    "Referer": "https://www.threads.net/",
+                    "Accept": "*/*",
+                }
             # 嘗試附帶 Threads cookies（從 auth.json 載入），提升成功率
             cookie_header = self._get_cookie_header()
             if cookie_header:
                 headers["Cookie"] = cookie_header
-            async with httpx.AsyncClient(timeout=60.0, headers=headers) as client:
-                print(f"📥 Downloading: {media_url}")
+            
+            # Instagram 影片特殊處理：嘗試更多認證相關的 headers
+            if media_type == 'video' and 'instagram' in media_url.lower():
+                # 增加 Instagram 常用的安全 headers
+                headers.update({
+                    "X-Requested-With": "XMLHttpRequest",
+                    "X-IG-App-ID": "936619743392459",
+                    "X-Instagram-Ajax": "1",
+                    "X-CSRFToken": "missing",  # 如果沒有真實 token 就用佔位符
+                })
+            async with httpx.AsyncClient(timeout=120.0, headers=headers) as client:
+                print(f"📥 Downloading {media_type}: {media_url}")
                 
-                # 下載原始檔案
-                response = await client.get(media_url, follow_redirects=True)
-                response.raise_for_status()
+                # 下載原始檔案（影片可能需要更長時間）
+                max_retries = 3 if media_type == 'video' else 1
+                last_exception = None
+                
+                for attempt in range(max_retries):
+                    try:
+                        # Instagram 影片：嘗試 HEAD 請求先確認可用性
+                        if media_type == 'video' and 'instagram' in media_url.lower() and attempt == 0:
+                            try:
+                                head_response = await client.head(media_url, follow_redirects=True)
+                                if head_response.status_code != 200:
+                                    print(f"⚠️ HEAD check failed with {head_response.status_code}, trying direct download...")
+                            except Exception:
+                                print(f"⚠️ HEAD check failed, trying direct download...")
+                        
+                        response = await client.get(media_url, follow_redirects=True)
+                        response.raise_for_status()
+                        break
+                    except httpx.HTTPStatusError as e:
+                        if e.response.status_code == 403:
+                            print(f"❌ 403 Forbidden (attempt {attempt + 1}): {e.response.headers.get('X-FB-Debug', 'No debug info')}")
+                            if attempt < max_retries - 1:
+                                print(f"🔄 Retrying with different approach in 3s...")
+                                await asyncio.sleep(3)
+                                # 嘗試移除一些可能導致問題的 headers
+                                if "X-Instagram-Ajax" in headers:
+                                    del headers["X-Instagram-Ajax"]
+                                if "X-CSRFToken" in headers:
+                                    del headers["X-CSRFToken"]
+                                last_exception = e
+                                continue
+                        raise
+                    except Exception as e:
+                        if attempt < max_retries - 1:
+                            print(f"⚠️ Download failed (attempt {attempt + 1}): {e}, retrying...")
+                            await asyncio.sleep(2)
+                            last_exception = e
+                            continue
+                        raise
+                else:
+                    # All retries failed
+                    raise last_exception or Exception("Max retries exceeded")
                 
                 file_content = response.content
                 file_size = len(file_content)
@@ -280,6 +341,53 @@ class RustFSClient:
                 "status": "failed",
                 "error": str(e)
             }
+
+    async def _ensure_post_url(self, db_client, post_url: str) -> None:
+        """最小化保證 posts(url) 存在，避免 FK 阻擋。"""
+        try:
+            async with db_client.get_connection() as conn:
+                # 查詢 posts 欄位
+                col_rows = await conn.fetch(
+                    """
+                    SELECT column_name FROM information_schema.columns 
+                    WHERE table_schema = 'public' AND table_name = 'posts'
+                    """
+                )
+                cols = {r["column_name"] for r in col_rows}
+
+                # 構建 INSERT 欄位/值
+                fields = ["url", "author"]
+                values = ["$1", "$2"]
+                params = [post_url, "playwright"]
+
+                if "markdown" in cols:
+                    fields.append("markdown"); values.append("$3"); params.append(None)
+                if "media_urls" in cols:
+                    # 儲存為空陣列
+                    fields.append("media_urls"); values.append("'[]'::jsonb")
+                if "created_at" in cols:
+                    fields.append("created_at"); values.append("NOW()")
+                if "last_seen" in cols:
+                    fields.append("last_seen"); values.append("NOW()")
+
+                insert_sql = f"INSERT INTO posts ({', '.join(fields)}) VALUES ({', '.join(values)}) "
+                # 衝突時更新 last_seen
+                update_parts = []
+                if "last_seen" in cols:
+                    update_parts.append("last_seen = NOW()")
+                if "media_urls" in cols:
+                    update_parts.append("media_urls = COALESCE(posts.media_urls, EXCLUDED.media_urls)")
+                if "markdown" in cols:
+                    update_parts.append("markdown = COALESCE(posts.markdown, EXCLUDED.markdown)")
+                if update_parts:
+                    insert_sql += "ON CONFLICT (url) DO UPDATE SET " + ", ".join(update_parts)
+                else:
+                    insert_sql += "ON CONFLICT (url) DO NOTHING"
+
+                await conn.execute(insert_sql, *params)
+        except Exception:
+            # 靜默失敗，不阻斷主流程
+            pass
 
     def _get_cookie_header(self) -> Optional[str]:
         """
@@ -443,12 +551,12 @@ class RustFSClient:
                     download_status = $8::text,
                     download_error = $9,
                     downloaded_at = CASE WHEN $8::text = 'completed' THEN now() ELSE downloaded_at END,
-                    metadata = $10
+                    metadata = $10::jsonb
                 WHERE id = $1
             """, 
             media_id, rustfs_url, file_size, file_extension,
             metadata.get('width'), metadata.get('height'), metadata.get('duration'),
-            status, error, metadata)
+            status, error, json.dumps(metadata) if metadata else '{}')
     
     async def get_media_files(self, post_url: str) -> List[Dict[str, Any]]:
         """獲取貼文的媒體檔案"""

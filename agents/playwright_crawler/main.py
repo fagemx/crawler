@@ -71,6 +71,7 @@ class CrawlRequest(BaseModel):
     task_id: Optional[str] = Field(default=None, description="任務 ID，用於進度追蹤")
     incremental: bool = Field(default=True, description="增量模式：只爬取新貼文")
     enable_deduplication: bool = Field(default=True, description="啟用去重功能：過濾相似內容的重複貼文")
+    realtime_download: bool = Field(default=False, description="即時下載：在爬取過程中立即下載媒體，確保URL時效性")
 
 class URLStatusItem(BaseModel):
     """單個URL的狀態信息"""
@@ -113,7 +114,8 @@ async def crawl_and_get_batch(request: CrawlRequest):
             auth_json_content=request.auth_json_content, # 使用傳入的認證內容
             task_id=task_id,
             incremental=request.incremental,  # 傳遞增量模式參數
-            enable_deduplication=request.enable_deduplication  # 傳遞去重開關參數
+            enable_deduplication=request.enable_deduplication,  # 傳遞去重開關參數
+            realtime_download=request.realtime_download  # 🆕 傳遞即時下載參數
         )
         return batch
     except Exception as e:

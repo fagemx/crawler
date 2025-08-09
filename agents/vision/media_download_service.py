@@ -1,5 +1,16 @@
 from typing import List, Dict, Any, Optional, Tuple
 import asyncio
+import sys
+
+# Windows: 修正 asyncio 子行程政策，避免 Playwright NotImplementedError
+if sys.platform == "win32":
+    try:
+        # 設定 Windows 相容的事件循環政策
+        import multiprocessing
+        multiprocessing.set_start_method('spawn', force=True)
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    except Exception:
+        pass
 
 from common.db_client import DatabaseClient, get_db_client
 from services.rustfs_client import get_rustfs_client
@@ -125,7 +136,8 @@ class MediaDownloadService:
                 await db.close_pool()
 
         # 先鎖定貼文集合（排序 Top-N）
-        post_filter_cte = ""
+        top_posts_cte = ""
+        using_top_posts = False
         if sort_by and sort_by != "none" and top_k and isinstance(top_k, int):
             sort_col = {
                 "views": "views_count",
@@ -134,38 +146,42 @@ class MediaDownloadService:
                 "reposts": "reposts_count",
             }.get(sort_by, None)
             if sort_col:
-                post_filter_cte = f"""
-                , top_posts AS (
-                    SELECT url
-                    FROM playwright_post_metrics
-                    WHERE username = $1
-                    ORDER BY {sort_col} DESC NULLS LAST
-                    LIMIT {top_k}
+                top_posts_cte = (
+                    "top_posts AS (\n"
+                    "    SELECT url\n"
+                    "    FROM playwright_post_metrics\n"
+                    "    WHERE username = $1\n"
+                    f"    ORDER BY {sort_col} DESC NULLS LAST\n"
+                    f"    LIMIT {top_k}\n"
+                    ")\n"
                 )
-                """
+                using_top_posts = True
         
-        # 展開媒體 URL
-        where_posts = "WHERE username = $1" if not post_filter_cte else "WHERE url IN (SELECT url FROM top_posts)"
-        pv_cte = f"""
-        WITH base AS (
-            SELECT url, username, images, videos FROM playwright_post_metrics {where_posts}
+        # 展開媒體 URL（修正 WITH 順序，先定義 top_posts 再引用）
+        where_clause = 'WHERE url IN (SELECT url FROM top_posts)' if using_top_posts else 'WHERE username = $1'
+        # 若使用 top_posts，需在下一個 CTE 之前加逗號
+        with_prefix = f"WITH {top_posts_cte},\n" if using_top_posts else "WITH "
+        pv_cte = (
+            f"{with_prefix}"
+            "base AS (\n"
+            f"    SELECT url, username, images, videos FROM playwright_post_metrics {where_clause}\n"
+            "),\n"
+            "pv AS (\n"
+            "    SELECT username, url AS post_url,\n"
+            "           jsonb_array_elements_text(COALESCE(images::jsonb,'[]'::jsonb)) AS media_url,\n"
+            "           'image' AS media_type\n"
+            "    FROM base\n"
+            "    UNION ALL\n"
+            "    SELECT username, url AS post_url,\n"
+            "           jsonb_array_elements_text(COALESCE(videos::jsonb,'[]'::jsonb)) AS media_url,\n"
+            "           'video' AS media_type\n"
+            "    FROM base\n"
+            ")\n"
+            "SELECT post_url, media_url, media_type\n"
+            "FROM pv\n"
+            f"WHERE media_type IN ({type_sql})\n"
         )
-        {post_filter_cte}
-        , pv AS (
-            SELECT username, url AS post_url,
-                   jsonb_array_elements_text(COALESCE(images::jsonb,'[]'::jsonb)) AS media_url,
-                   'image' AS media_type
-            FROM base
-            UNION ALL
-            SELECT username, url AS post_url,
-                   jsonb_array_elements_text(COALESCE(videos::jsonb,'[]'::jsonb)) AS media_url,
-                   'video' AS media_type
-            FROM base
-        )
-        SELECT post_url, media_url, media_type
-        FROM pv
-        WHERE media_type IN ({type_sql})
-        """
+        pv_cte = "".join(pv_cte)
 
         try:
             rows = await db.fetch_all(pv_cte, username)
@@ -291,6 +307,23 @@ class MediaDownloadService:
             auth_json = json.load(f)
 
         task_id = f"refresh_{int(datetime.utcnow().timestamp())}"
+        
+        # Windows: 確保使用正確的事件循環和子程序處理
+        if sys.platform == "win32":
+            try:
+                import os
+                # 設定環境變數確保 Playwright 使用正確的子程序模式
+                os.environ.setdefault('PLAYWRIGHT_BROWSERS_PATH', '0')
+                current_loop = asyncio.get_running_loop()
+                if hasattr(current_loop, '_default_executor'):
+                    current_loop._default_executor = None
+                # 強制使用 ProactorEventLoop（Windows 推薦）
+                if not isinstance(current_loop, asyncio.ProactorEventLoop):
+                    new_loop = asyncio.ProactorEventLoop()
+                    asyncio.set_event_loop(new_loop)
+            except Exception as e:
+                print(f"⚠️ Windows Playwright setup warning: {e}")
+        
         await logic._setup_browser_and_auth(auth_json, task_id)  # 使用現有私有方法完成初始化
 
         try:

@@ -550,6 +550,22 @@ class PlaywrightCrawlerComponentV2:
                 help="開啟時會過濾相似內容的重複貼文，保留主貼文；關閉時保留所有抓取到的貼文",
                 key="playwright_enable_dedup_v2"
             )
+
+            # 新增：完成後自動下載媒體
+            auto_download_media = st.checkbox(
+                "⬇️ 完成後自動下載媒體",
+                value=False,
+                help="爬蟲完成並保存到資料庫後，自動把本批貼文的圖片/影片下載到 RustFS",
+                key="playwright_auto_download_media_v2"
+            )
+            
+            # 🆕 新增：即時下載媒體
+            realtime_download = st.checkbox(
+                "🚀 即時下載媒體 (推薦)",
+                value=False,
+                help="在爬取過程中立即下載媒體，確保URL時效性，特別適合影片下載",
+                key="playwright_realtime_download_v2"
+            )
             
             if enable_deduplication:
                 st.info("💡 將根據觀看數、互動數、內容長度等維度保留主貼文，過濾回應")
@@ -563,6 +579,8 @@ class PlaywrightCrawlerComponentV2:
                 if st.button("🚀 開始爬取", key="start_playwright_v2", help="開始爬取任務"):
                     # 🔥 Redis鎖機制：防重複+排隊
                     is_incremental = (crawl_mode == "增量模式")
+                    # 記錄是否要自動下載
+                    st.session_state.playwright_auto_download_media_v2_selected = auto_download_media
                     
                     try:
                         # 生成任務唯一鍵
@@ -1008,7 +1026,12 @@ class PlaywrightCrawlerComponentV2:
                 # 檢查是否已經保存過到資料庫
                 if not st.session_state.get('playwright_db_saved', False):
                     st.info("🔄 正在保存到資料庫...")
-                    result = asyncio.run(self.db_handler.save_to_database_async(converted_results))
+                    # 使用 nest_asyncio 與既有事件迴圈，避免 Streamlit/Windows 衝突
+                    import nest_asyncio
+                    import asyncio as _asyncio
+                    nest_asyncio.apply()
+                    loop = _asyncio.get_event_loop()
+                    result = loop.run_until_complete(self.db_handler.save_to_database_async(converted_results))
                     
                     if result and result.get("success", False):
                         converted_results["database_saved"] = True
@@ -1037,6 +1060,32 @@ class PlaywrightCrawlerComponentV2:
             
             # 顯示結果
             self._show_results(converted_results)
+
+            # 若資料庫保存成功且勾選自動下載，立即觸發下載
+            if converted_results.get("database_saved") and st.session_state.get('playwright_auto_download_media_v2_selected', False):
+                try:
+                    from agents.vision.media_download_service import MediaDownloadService
+                    import asyncio, nest_asyncio
+                    nest_asyncio.apply()
+                    svc = MediaDownloadService()
+                    posts = converted_results.get('results', []) or []
+                    plan = {}
+                    for r in posts:
+                        post_url = (r.get('url') or "").strip()
+                        if not post_url:
+                            continue
+                        urls = []
+                        urls.extend(r.get('images') or [])
+                        urls.extend(r.get('videos') or [])
+                        if urls:
+                            plan[post_url] = urls
+                    if plan:
+                        res = asyncio.get_event_loop().run_until_complete(svc.run_download(plan, concurrency_per_post=3))
+                        st.info(f"⬇️ 自動下載完成：成功 {res['success']}，失敗 {res['failed']} / 共 {res['total']}")
+                    else:
+                        st.info("本批貼文沒有可下載的媒體 URL")
+                except Exception as e:
+                    st.warning(f"自動下載失敗：{e}")
             
         except Exception as e:
             st.error(f"❌ 處理結果時發生錯誤: {e}")
@@ -1270,9 +1319,12 @@ class PlaywrightCrawlerComponentV2:
         print(f"🚀 正在啟動背景線程: {username} (ID: {task_id[:8]}...)")
         print(f"📂 進度檔案: {progress_file}")
         
+        # 獲取即時下載設定
+        realtime_download = st.session_state.get('playwright_realtime_download_v2', False)
+        
         task_thread = threading.Thread(
             target=self._background_crawler_worker,
-            args=(username, max_posts, enable_deduplication, is_incremental, task_id, progress_file),
+            args=(username, max_posts, enable_deduplication, is_incremental, task_id, progress_file, realtime_download),
             daemon=True
         )
         task_thread.start()
@@ -1283,7 +1335,7 @@ class PlaywrightCrawlerComponentV2:
         st.session_state.playwright_crawl_status = "running"
         st.rerun()
     
-    def _background_crawler_worker(self, username: str, max_posts: int, enable_deduplication: bool, is_incremental: bool, task_id: str, progress_file: str):
+    def _background_crawler_worker(self, username: str, max_posts: int, enable_deduplication: bool, is_incremental: bool, task_id: str, progress_file: str, realtime_download: bool = False):
         """背景爬蟲工作線程 - 只寫檔案，不做任何 st.* 操作"""
         try:
             print(f"🔥 背景線程開始執行: {username} (ID: {task_id[:8]}...)")
@@ -1316,7 +1368,8 @@ class PlaywrightCrawlerComponentV2:
                 "auth_json_content": auth_content,
                 "enable_deduplication": enable_deduplication,
                 "incremental": is_incremental,
-                "task_id": task_id  # 🔧 修復：傳遞task_id給後端，避免重複創建任務
+                "task_id": task_id,  # 🔧 修復：傳遞task_id給後端，避免重複創建任務
+                "realtime_download": realtime_download  # 🆕 即時下載參數
             }
             
             self._log_to_file(progress_file, f"📊 目標用戶: @{username}")
