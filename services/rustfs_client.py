@@ -54,16 +54,20 @@ class RustFSClient:
             # 靜默失敗，維持原端點
             pass
         
+    def _create_s3_client(self):
+        """建立統一設定的 S3 客戶端（path-style 位址，方便本機/MinIO）。"""
+        return boto3.client(
+            's3', endpoint_url=self.base_url,
+            aws_access_key_id=self.access_key,
+            aws_secret_access_key=self.secret_key,
+            config=BotoConfig(signature_version='s3v4', s3={'addressing_style': 'path'}),
+            region_name=self.region
+        )
+
     async def initialize(self):
         """初始化：使用 S3 檢查/建立 bucket"""
         try:
-            s3 = boto3.client(
-                's3', endpoint_url=self.base_url,
-                aws_access_key_id=self.access_key,
-                aws_secret_access_key=self.secret_key,
-                config=BotoConfig(signature_version='s3v4'),
-                region_name=self.region
-            )
+            s3 = self._create_s3_client()
             def _head():
                 try:
                     s3.head_bucket(Bucket=self.bucket_name)
@@ -93,13 +97,7 @@ class RustFSClient:
     def health_check(self) -> Dict[str, Any]:
         """RustFS 健檢（S3 HeadBucket）"""
         try:
-            s3 = boto3.client(
-                's3', endpoint_url=self.base_url,
-                aws_access_key_id=self.access_key,
-                aws_secret_access_key=self.secret_key,
-                config=BotoConfig(signature_version='s3v4'),
-                region_name=self.region
-            )
+            s3 = self._create_s3_client()
             try:
                 s3.head_bucket(Bucket=self.bucket_name)
                 return {"status": "healthy", "endpoint": self.base_url, "bucket": self.bucket_name}
@@ -162,7 +160,9 @@ class RustFSClient:
                 return await self._download_single_media(post_url, media_url)
         
         # 並發下載所有媒體檔案
-        tasks = [download_single_media(url) for url in media_urls]
+        # 保證所有子任務在同一事件迴圈中建立與等待，避免跨迴圈 Future
+        loop = asyncio.get_running_loop()
+        tasks = [loop.create_task(download_single_media(url)) for url in media_urls]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         
         # 處理結果，過濾異常
@@ -188,6 +188,7 @@ class RustFSClient:
             rustfs_key = self._generate_key(post_url, media_url, media_type)
             
             # 記錄到資料庫（pending 狀態）
+            # 每次在當前事件迴圈中獲取/建立連線池，避免跨迴圈使用
             db_client = await get_db_client()
             # 直接以安全方式確保 posts(url) 存在，避免 upsert_post 函數造成 created_at NOT NULL 問題
             await self._ensure_post_url(db_client, post_url)
@@ -458,17 +459,39 @@ class RustFSClient:
     
     async def _upload_to_rustfs(self, key: str, content: bytes, content_type: str) -> str:
         """上傳檔案到 RustFS"""
-        s3 = boto3.client(
-            's3', endpoint_url=self.base_url,
-            aws_access_key_id=self.access_key,
-            aws_secret_access_key=self.secret_key,
-            config=BotoConfig(signature_version='s3v4'),
-            region_name=self.region
-        )
+        s3 = self._create_s3_client()
         def _put():
             s3.put_object(Bucket=self.bucket_name, Key=key, Body=content, ContentType=content_type)
             return f"{self.base_url}/{self.bucket_name}/{key}"
         return await asyncio.to_thread(_put)
+
+    def make_object_url(self, key: str) -> str:
+        """回傳未簽名的物件 URL（適用於已設公開讀取的 bucket）。"""
+        return f"{self.base_url}/{self.bucket_name}/{key}"
+
+    def generate_presigned_url(self, key: str, expires_in: int = 3600) -> Optional[str]:
+        """產生 GET 物件的簽名 URL（預設一小時）。"""
+        try:
+            s3 = self._create_s3_client()
+            return s3.generate_presigned_url(
+                ClientMethod='get_object',
+                Params={'Bucket': self.bucket_name, 'Key': key},
+                ExpiresIn=expires_in
+            )
+        except Exception as e:
+            print(f"⚠️ Failed to generate presigned url for {key}: {e}")
+            return None
+
+    def get_public_or_presigned_url(self, key: str, prefer_presigned: bool = True, expires_in: int = 3600) -> str:
+        """取得可用於瀏覽的 URL。
+        - 若 prefer_presigned 為 True，優先回傳簽名 URL；失敗則退回未簽名 URL。
+        - 若 bucket 未設公開讀取，未簽名 URL 會 403。
+        """
+        if prefer_presigned:
+            url = self.generate_presigned_url(key, expires_in=expires_in)
+            if url:
+                return url
+        return self.make_object_url(key)
     
     async def _extract_media_metadata(self, content: bytes, media_type: str) -> Dict[str, Any]:
         """提取媒體檔案元數據"""
@@ -626,3 +649,4 @@ if __name__ == "__main__":
         print("Download results:", results)
     
     asyncio.run(test_rustfs())
+

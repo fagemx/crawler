@@ -8,7 +8,8 @@ if sys.platform == "win32":
         # 設定 Windows 相容的事件循環政策
         import multiprocessing
         multiprocessing.set_start_method('spawn', force=True)
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+        # 使用 Proactor 支援 subprocess：Playwright 會用到
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
     except Exception:
         pass
 
@@ -308,21 +309,7 @@ class MediaDownloadService:
 
         task_id = f"refresh_{int(datetime.utcnow().timestamp())}"
         
-        # Windows: 確保使用正確的事件循環和子程序處理
-        if sys.platform == "win32":
-            try:
-                import os
-                # 設定環境變數確保 Playwright 使用正確的子程序模式
-                os.environ.setdefault('PLAYWRIGHT_BROWSERS_PATH', '0')
-                current_loop = asyncio.get_running_loop()
-                if hasattr(current_loop, '_default_executor'):
-                    current_loop._default_executor = None
-                # 強制使用 ProactorEventLoop（Windows 推薦）
-                if not isinstance(current_loop, asyncio.ProactorEventLoop):
-                    new_loop = asyncio.ProactorEventLoop()
-                    asyncio.set_event_loop(new_loop)
-            except Exception as e:
-                print(f"⚠️ Windows Playwright setup warning: {e}")
+        # Windows 兼容性已在應用啟動時設置
         
         await logic._setup_browser_and_auth(auth_json, task_id)  # 使用現有私有方法完成初始化
 

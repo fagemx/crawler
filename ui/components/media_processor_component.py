@@ -25,9 +25,8 @@ class MediaProcessorComponent:
             
         # 健檢
         try:
-            from services.rustfs_client import get_rustfs_client
-            import asyncio
-            client = asyncio.run(get_rustfs_client())
+            from services.rustfs_client import RustFSClient
+            client = RustFSClient()
             health = client.health_check()
             if health.get("status") == "healthy":
                 st.success(f"RustFS 連線正常：{health.get('endpoint')} | bucket={health.get('bucket')}")
@@ -97,7 +96,7 @@ class MediaProcessorComponent:
 
         col5, col6, col7 = st.columns(3)
         with col5:
-            concurrency = st.selectbox("並發數", [3, 5, 10], index=0)
+            concurrency = st.selectbox("並發數", [1], index=0)
         with col6:
             skip_completed = st.checkbox("跳過已完成", value=True)
         with col7:
@@ -126,8 +125,16 @@ class MediaProcessorComponent:
                     st.info("沒有需要下載的媒體")
                     return
                 # 服務內含 403 → 自動刷新後重試
-                result = asyncio.get_event_loop().run_until_complete(svc.run_download(plan, concurrency_per_post=int(concurrency)))
+                with st.spinner("正在下載媒體檔案..."):
+                    result = asyncio.get_event_loop().run_until_complete(svc.run_download(plan, concurrency_per_post=min(2, int(concurrency))))
+                
+                # 顯示詳細結果
                 st.success(f"下載完成：成功 {result['success']}，失敗 {result['failed']} / 共 {result['total']}")
+                
+                # 檢查是否有自動重新爬取
+                retry_after_refresh = [d for d in result.get('details', []) if d.get('retry_after_refresh')]
+                if retry_after_refresh:
+                    st.info(f"🔄 自動重新爬取: {len(retry_after_refresh)} 個項目通過重新爬取成功下載")
             except Exception as e:
                 st.error(f"下載執行失敗：{e}")
 
@@ -221,12 +228,15 @@ class MediaProcessorComponent:
                     from agents.vision.media_download_service import MediaDownloadService
                     import nest_asyncio
                     import asyncio
+                    
                     nest_asyncio.apply()
                     svc = MediaDownloadService()
-                    refreshed = asyncio.get_event_loop().run_until_complete(svc.refresh_post_media_urls(single_post_url))
-                    imgs = len(refreshed.get("images") or [])
-                    vids = len(refreshed.get("videos") or [])
-                    st.success(f"已刷新：images={imgs}, videos={vids}")
+                    
+                    with st.spinner("🔄 正在刷新URL..."):
+                        refreshed = asyncio.get_event_loop().run_until_complete(svc.refresh_post_media_urls(single_post_url))
+                        imgs = len(refreshed.get("images") or [])
+                        vids = len(refreshed.get("videos") or [])
+                        st.success(f"已刷新：images={imgs}, videos={vids}")
                 except Exception as e:
                     st.error(f"刷新失敗：{e}")
 
@@ -235,6 +245,7 @@ class MediaProcessorComponent:
                     from agents.vision.media_download_service import MediaDownloadService
                     import nest_asyncio
                     import asyncio
+                    
                     nest_asyncio.apply()
                     svc = MediaDownloadService()
                     
@@ -252,7 +263,7 @@ class MediaProcessorComponent:
                         # Step 2: 下載媒體
                         with st.spinner("⬇️ 正在下載媒體檔案..."):
                             plan = {single_post_url: urls}
-                            result = asyncio.get_event_loop().run_until_complete(svc.run_download(plan, concurrency_per_post=3))
+                            result = asyncio.get_event_loop().run_until_complete(svc.run_download(plan, concurrency_per_post=1))
                             st.success(f"✅ 下載完成：成功 {result['success']}，失敗 {result['failed']} / 共 {result['total']}")
                             
                             # 🆕 如果有成功下載，自動重新整理頁面以更新統計
@@ -286,17 +297,86 @@ class MediaProcessorComponent:
                     with st.expander("🔍 詳細錯誤訊息", expanded=False):
                         st.code(error_detail, language="python")
 
+        # 介面：單篇媒體瀏覽（快速預覽下載內容）
+        st.markdown("---")
+        with st.expander("📂 單篇媒體瀏覽（輸入貼文 URL 預覽）", expanded=False):
+            view_post_url = st.text_input("貼文 URL（https://www.threads.net/@user/post/XXXX）", key="view_post_url")
+            col_v1, col_v2 = st.columns([1, 9])
+            with col_v1:
+                if st.button("載入媒體", key="btn_view_media") and view_post_url:
+                    try:
+                        from services.rustfs_client import RustFSClient
+                        import nest_asyncio, asyncio
+                        nest_asyncio.apply()
+                        client = RustFSClient()
+                        files = asyncio.get_event_loop().run_until_complete(client.get_media_files(view_post_url))
+                        if not files:
+                            st.info("此貼文尚無媒體記錄或尚未下載")
+                        else:
+                            st.success(f"找到 {len(files)} 個媒體檔案：")
+                            for f in files:
+                                rust_key = f.get('rustfs_key')
+                                # 盡量產生可存取的 URL：優先 presigned，再退公開 URL
+                                rustfs_url = client.get_public_or_presigned_url(rust_key, prefer_presigned=True)
+                                info_line = f"{f.get('media_type','')} | {f.get('file_extension','')} | {f.get('file_size') or '-'} bytes"
+                                st.caption(info_line)
+                                # 預覽
+                                if (f.get('media_type') == 'image'):
+                                    try:
+                                        st.image(rustfs_url, use_container_width=True)
+                                    except Exception:
+                                        st.write(rustfs_url)
+                                elif (f.get('media_type') == 'video'):
+                                    try:
+                                        st.video(rustfs_url)
+                                    except Exception:
+                                        st.write(rustfs_url)
+                                else:
+                                    st.write(rustfs_url)
+                                # 直接連結與複製
+                                st.markdown(f"[在新分頁開啟]({rustfs_url})")
+                                st.code(rustfs_url)
+                                st.markdown("---")
+                    except Exception as e:
+                        st.error(f"載入媒體失敗：{e}")
+
     # ---------- 描述器 ----------
     def _render_describer(self):
         st.subheader("🧠 媒體描述器（Gemini 2.5 Pro）")
         # Gemini 健檢（只檢查 API key 存在）
         import os
+        try:
+            from dotenv import load_dotenv
+            load_dotenv()
+        except Exception:
+            pass
         if os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"):
             st.success("Gemini API Key 已配置")
         else:
             st.error("缺少 GEMINI_API_KEY/GOOGLE_API_KEY")
 
         st.markdown("---")
+
+        # 描述現況（帳號彙總）
+        try:
+            from agents.vision.media_describe_service import MediaDescribeService
+            import nest_asyncio, asyncio, pandas as pd
+            nest_asyncio.apply()
+            svc = MediaDescribeService()
+            stats = asyncio.get_event_loop().run_until_complete(svc.get_account_describe_stats(limit=50))
+            st.subheader("📊 描述現況（帳號彙總：待描述）")
+            if stats:
+                df = pd.DataFrame(stats)
+                df = df.rename(columns={
+                    "username": "使用者",
+                    "pending_images": "待描述圖片",
+                    "pending_videos": "待描述影片",
+                })
+                st.dataframe(df, use_container_width=True, height=min(400, 38 + len(df) * 32))
+            else:
+                st.info("尚無待描述統計資料")
+        except Exception as e:
+            st.warning(f"描述統計載入失敗：{e}")
 
         col1, col2, col3, col4 = st.columns(4)
         with col1:
@@ -306,13 +386,23 @@ class MediaProcessorComponent:
         with col3:
             sort_by = st.selectbox("排序欄位", ["none", "views", "likes", "comments", "reposts"], index=0, key="desc_sort")
         with col4:
-            top_k = st.selectbox("Top-N", ["全部", 10, 25, 50], index=0, key="desc_topk")
+            top_k = st.selectbox("Top-N", ["全部", 5, 10, 25, 50, 100], index=0, key="desc_topk")
 
-        col5, col6 = st.columns(2)
+        col5, col6, col7 = st.columns(3)
         with col5:
             overwrite = st.checkbox("重新描述（覆蓋舊的）", value=True)
         with col6:
             concurrency = st.selectbox("並發數", [1, 2, 3], index=1, key="desc_ccy")
+        with col7:
+            only_undesc = st.checkbox("僅未描述", value=True, key="only_undesc")
+
+        col8, col9, col10 = st.columns(3)
+        with col8:
+            only_primary = st.checkbox("僅主貼圖（圖片）", value=True, help="根據規則分數/標記過濾非主貼圖")
+        with col9:
+            primary_threshold = st.slider("主貼圖門檻", min_value=0.5, max_value=0.9, value=0.7, step=0.05)
+        with col10:
+            use_vlm_refine = st.checkbox("使用小模型複核(預留)", value=False, help="預留開關，後續接入快速VLM二分類")
 
         if st.button("開始描述", type="primary", key="start_desc"):
             try:
@@ -326,11 +416,14 @@ class MediaProcessorComponent:
                     media_types=media_types,
                     sort_by=sort_by,
                     top_k=None if top_k == "全部" else int(top_k),
-                    only_undesc=True
+                    only_undesc=only_undesc,
+                    only_primary=only_primary,
+                    primary_threshold=float(primary_threshold)
                 ))
                 if not items:
                     st.info("沒有待描述的媒體")
                     return
+                st.info(f"即將描述 {len(items)} 個媒體項目…")
                 result = asyncio.get_event_loop().run_until_complete(svc.run_describe(items, overwrite=True))
                 st.success(f"描述完成：成功 {result['success']}，失敗 {result['failed']} / 共 {result['total']}")
             except Exception as e:

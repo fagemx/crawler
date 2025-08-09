@@ -829,17 +829,36 @@ class DatabaseClient:
             }
 
 
-# 全域資料庫客戶端實例
-_db_client = None
+# 全域資料庫客戶端實例（按事件迴圈分槽）
+# Key 為當前事件迴圈 id，Value 為對應的 DatabaseClient
+_db_clients = {}
 
 
 async def get_db_client() -> DatabaseClient:
-    """獲取資料庫客戶端實例（單例模式）"""
-    global _db_client
-    if _db_client is None:
-        _db_client = DatabaseClient()
-        await _db_client.init_pool()
-    return _db_client
+    """獲取資料庫客戶端實例（每個事件迴圈一個連線池）。
+
+    - 避免「Future attached to a different loop」。
+    - 對於 Streamlit 每次互動的潛在新事件迴圈，會取得對應的連線池。
+    """
+    global _db_clients
+    current_loop = asyncio.get_running_loop()
+    loop_key = id(current_loop)
+
+    client: DatabaseClient = _db_clients.get(loop_key)
+    if client is None or (client.pool is None) or getattr(client.pool, "_closed", False):
+        client = DatabaseClient()
+        await client.init_pool()
+        _db_clients[loop_key] = client
+
+    # 清理已關閉或失效的舊池（保守清理）
+    to_delete = []
+    for k, v in _db_clients.items():
+        if v is not client and (v.pool is None or getattr(v.pool, "_closed", False)):
+            to_delete.append(k)
+    for k in to_delete:
+        _db_clients.pop(k, None)
+
+    return client
 
 
 # 便利函數

@@ -22,7 +22,8 @@ ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
 # 安裝 Playwright (如果需要)
-# RUN python -m playwright install chromium --with-deps
+RUN pip install --no-cache-dir "playwright>=1.40.0" \
+ && python -m playwright install chromium --with-deps || true
 
 # 健康檢查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

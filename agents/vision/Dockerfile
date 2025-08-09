@@ -8,6 +8,20 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     curl \
     gcc \
+    wget \
+    gnupg \
+    ca-certificates \
+    xvfb \
+    libnss3 \
+    libatk-bridge2.0-0 \
+    libdrm2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
+    libgbm1 \
+    libxss1 \
+    libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
 # 複製必要的專案檔案
@@ -16,12 +30,18 @@ COPY pyproject.toml README.md LICENSE ./
 # 安裝 Python 依賴（包含可選依賴組）
 RUN pip install --no-cache-dir -e ".[messaging,monitoring,ai,database,security]"
 
+# 額外安裝 Playwright Python 套件（確保可用）
+RUN pip install --no-cache-dir "playwright>=1.40.0"
+
 # 複製應用程式碼
 COPY . .
 
 # 設置環境變數
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
+
+# 安裝 Playwright 瀏覽器（含系統依賴）
+RUN python -m playwright install chromium --with-deps
 
 # 健康檢查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

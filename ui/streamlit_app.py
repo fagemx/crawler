@@ -9,17 +9,34 @@ import sys
 import os
 import asyncio
 from pathlib import Path
+try:
+    from dotenv import load_dotenv
+    load_dotenv()  # 提前載入 .env，確保 GEMINI_API_KEY/GOOGLE_API_KEY 可用
+except Exception:
+    pass
 
 # 添加專案根目錄到 Python 路徑
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
-# Windows: 修正 asyncio 子行程政策，避免 Playwright 在 Windows 出現 NotImplementedError
+# Windows: 修正 asyncio 子行程政策和 multiprocessing，避免 Playwright 在 Windows 出現 NotImplementedError
 if sys.platform == "win32":
     try:
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    except Exception:
-        pass
+        import multiprocessing
+        # 1. 設置 multiprocessing 為 spawn 模式（Playwright 需要）
+        if multiprocessing.get_start_method(allow_none=True) != 'spawn':
+            try:
+                multiprocessing.set_start_method('spawn', force=True)
+            except RuntimeError:
+                pass  # 如果已經設定過就忽略
+
+        # 2. 設置 asyncio 事件循環策略為 Proactor（支援 subprocess_exec）
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+
+        # 3. 設置 Playwright 環境變數
+        os.environ.setdefault('PLAYWRIGHT_BROWSERS_PATH', '0')
+    except Exception as e:
+        print(f"⚠️ Windows 兼容性設置警告: {e}")
 
 # 導入組件
 # from ui.components.crawler_component import ThreadsCrawlerComponent  # 舊版本
