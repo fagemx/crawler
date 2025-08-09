@@ -44,7 +44,8 @@ class DatabaseClient:
     @asynccontextmanager
     async def get_connection(self):
         """獲取資料庫連接的上下文管理器"""
-        if not self.pool:
+        # 池不存在或已關閉時重新初始化
+        if not self.pool or getattr(self.pool, "_closed", False):
             await self.init_pool()
         
         async with self.pool.acquire() as conn:
@@ -87,6 +88,19 @@ class DatabaseClient:
                     pass
                 await asyncio.sleep(0.1)
                 continue
+            except Exception as e:
+                # 特判常見池狀態錯誤，嘗試重建一次
+                msg = str(e).lower()
+                if ("pool is closed" in msg) or ("another operation is in progress" in msg):
+                    last_err = e
+                    try:
+                        await self.close_pool()
+                        await self.init_pool()
+                    except Exception:
+                        pass
+                    await asyncio.sleep(0.1)
+                    continue
+                raise
         # 超過重試次數，拋出原錯誤
         if last_err:
             raise last_err

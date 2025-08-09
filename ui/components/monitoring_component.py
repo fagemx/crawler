@@ -9,6 +9,8 @@ import json
 import time
 import datetime
 import asyncio
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from typing import Dict, Any, List
 from common.db_client import get_db_client
 
@@ -375,6 +377,14 @@ class SystemMonitoringComponent:
                         st.error(f"初始化失敗：{err}")
                 except Exception as e:
                     st.error(f"初始化失敗：{e}")
+        with tool_cols[1]:
+            if st.button("🧪 寫入測試紀錄", key="insert_llm_usage_test_btn"):
+                ok, err = self._insert_test_usage_row()
+                if ok:
+                    st.success("已寫入一筆測試紀錄，請向下查看列表或重整本頁")
+                    st.rerun()
+                else:
+                    st.error(f"寫入失敗：{err}")
         try:
             stats = self._fetch_llm_monthly_stats()
             if not stats:
@@ -420,122 +430,139 @@ class SystemMonitoringComponent:
             st.warning(f"讀取費用面板失敗：{e}")
 
     def _fetch_llm_usage_stats(self) -> Dict[str, Any]:
-        """同步包裝，使用 asyncio 執行實際的非同步查詢"""
-        async def _run() -> Dict[str, Any]:
-            try:
-                db = await get_db_client()
-                top_line = await db.fetch_one(
-                    """
-                    SELECT 
-                        COALESCE(SUM(cost),0) AS usd_cost,
-                        COALESCE(SUM(total_tokens),0) AS tokens,
-                        COUNT(*) AS requests
-                    FROM llm_usage
-                    WHERE ts::date = CURRENT_DATE
-                    """
-                )
-                by_service = await db.fetch_all(
-                    """
-                    SELECT service, 
-                           SUM(cost) AS usd_cost, 
-                           SUM(total_tokens) AS tokens, 
-                           COUNT(*) AS requests
-                    FROM llm_usage
-                    WHERE ts::date = CURRENT_DATE
-                    GROUP BY service
-                    ORDER BY usd_cost DESC
-                    LIMIT 5
-                    """
-                )
-                by_model = await db.fetch_all(
-                    """
-                    SELECT provider, model, 
-                           SUM(cost) AS usd_cost, 
-                           SUM(total_tokens) AS tokens, 
-                           COUNT(*) AS requests
-                    FROM llm_usage
-                    WHERE ts::date = CURRENT_DATE
-                    GROUP BY provider, model
-                    ORDER BY usd_cost DESC, tokens DESC
-                    LIMIT 5
-                    """
-                )
-                recent = await db.fetch_all(
-                    """
-                    SELECT 
-                        to_char(ts AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Taipei', 'HH24:MI:SS') AS 時間,
-                        service AS 服務,
-                        provider AS 供應商,
-                        model AS 模型,
-                        total_tokens AS tokens,
-                        cost AS usd,
-                        status AS 狀態
-                    FROM llm_usage
-                    ORDER BY ts DESC
-                    LIMIT 20
-                    """
-                )
-                return {"top_line": top_line or {}, "by_service": by_service or [], "by_model": by_model or [], "recent": recent or []}
-            except Exception:
-                return {}
+        """今日彙總（改用 psycopg2 同步查詢，避免 async 池問題）"""
+        from common.settings import get_settings
+        dsn = get_settings().database.url
+        try:
+            with psycopg2.connect(dsn) as conn:
+                with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                    cur.execute(
+                        """
+                        SELECT 
+                            COALESCE(SUM(cost),0) AS usd_cost,
+                            COALESCE(SUM(total_tokens),0) AS tokens,
+                            COUNT(*) AS requests
+                        FROM llm_usage
+                        WHERE ts::date = CURRENT_DATE
+                        """
+                    )
+                    top_line = cur.fetchone() or {}
 
-        return asyncio.run(_run())
+                    cur.execute(
+                        """
+                        SELECT service, 
+                               SUM(cost) AS usd_cost, 
+                               SUM(total_tokens) AS tokens, 
+                               COUNT(*) AS requests
+                        FROM llm_usage
+                        WHERE ts::date = CURRENT_DATE
+                        GROUP BY service
+                        ORDER BY usd_cost DESC
+                        LIMIT 5
+                        """
+                    )
+                    by_service = cur.fetchall() or []
+
+                    cur.execute(
+                        """
+                        SELECT provider, model, 
+                               SUM(cost) AS usd_cost, 
+                               SUM(total_tokens) AS tokens, 
+                               COUNT(*) AS requests
+                        FROM llm_usage
+                        WHERE ts::date = CURRENT_DATE
+                        GROUP BY provider, model
+                        ORDER BY usd_cost DESC, tokens DESC
+                        LIMIT 5
+                        """
+                    )
+                    by_model = cur.fetchall() or []
+
+                    cur.execute(
+                        """
+                        SELECT 
+                            to_char(ts AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Taipei', 'HH24:MI:SS') AS 時間,
+                            service AS 服務,
+                            provider AS 供應商,
+                            model AS 模型,
+                            total_tokens AS tokens,
+                            cost AS usd,
+                            status AS 狀態
+                        FROM llm_usage
+                        ORDER BY ts DESC
+                        LIMIT 20
+                        """
+                    )
+                    recent = cur.fetchall() or []
+
+                    return {"top_line": top_line, "by_service": by_service, "by_model": by_model, "recent": recent}
+        except Exception:
+            return {}
 
     def _fetch_llm_monthly_stats(self) -> Dict[str, Any]:
-        """本月度彙總 + 模型統計 + 最近 50 筆"""
-        async def _run() -> Dict[str, Any]:
-            try:
-                db = await get_db_client()
-                top_line = await db.fetch_one(
-                    """
-                    SELECT 
-                        COALESCE(SUM(cost),0) AS usd_cost,
-                        COALESCE(SUM(total_tokens),0) AS tokens,
-                        COUNT(*) AS requests
-                    FROM llm_usage
-                    WHERE date_trunc('month', ts) = date_trunc('month', now())
-                    """
-                )
-                by_model = await db.fetch_all(
-                    """
-                    SELECT provider, model,
-                           SUM(cost) AS usd_cost,
-                           SUM(total_tokens) AS tokens,
-                           COUNT(*) AS requests
-                    FROM llm_usage
-                    WHERE date_trunc('month', ts) = date_trunc('month', now())
-                    GROUP BY provider, model
-                    ORDER BY usd_cost DESC, tokens DESC
-                    LIMIT 30
-                    """
-                )
-                recent = await db.fetch_all(
-                    """
-                    SELECT 
-                        to_char(ts AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Taipei', 'YYYY-MM-DD HH24:MI:SS') AS 時間,
-                        service AS 服務,
-                        provider AS 供應商,
-                        model AS 模型,
-                        total_tokens AS tokens,
-                        cost AS usd,
-                        status AS 狀態
-                    FROM llm_usage
-                    ORDER BY ts DESC
-                    LIMIT 50
-                    """
-                )
-                return {"top_line": top_line or {}, "by_model": by_model or [], "recent": recent or []}
-            except Exception:
-                return {}
+        """本月度彙總 + 模型統計 + 最近 50 筆（改用 psycopg2 同步查詢）"""
+        from common.settings import get_settings
+        dsn = get_settings().database.url
+        try:
+            with psycopg2.connect(dsn) as conn:
+                with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                    cur.execute(
+                        """
+                        SELECT 
+                            COALESCE(SUM(cost),0) AS usd_cost,
+                            COALESCE(SUM(total_tokens),0) AS tokens,
+                            COUNT(*) AS requests
+                        FROM llm_usage
+                        WHERE date_trunc('month', ts) = date_trunc('month', now())
+                        """
+                    )
+                    top_line = cur.fetchone() or {}
 
-        return asyncio.run(_run())
+                    cur.execute(
+                        """
+                        SELECT provider, model,
+                               SUM(cost) AS usd_cost,
+                               SUM(total_tokens) AS tokens,
+                               COUNT(*) AS requests
+                        FROM llm_usage
+                        WHERE date_trunc('month', ts) = date_trunc('month', now())
+                        GROUP BY provider, model
+                        ORDER BY usd_cost DESC, tokens DESC
+                        LIMIT 30
+                        """
+                    )
+                    by_model = cur.fetchall() or []
+
+                    cur.execute(
+                        """
+                        SELECT 
+                            to_char(ts AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Taipei', 'YYYY-MM-DD HH24:MI:SS') AS 時間,
+                            service AS 服務,
+                            provider AS 供應商,
+                            model AS 模型,
+                            total_tokens AS tokens,
+                            cost AS usd,
+                            status AS 狀態
+                        FROM llm_usage
+                        ORDER BY ts DESC
+                        LIMIT 50
+                        """
+                    )
+                    recent = cur.fetchall() or []
+
+                    return {"top_line": top_line, "by_model": by_model, "recent": recent}
+        except Exception:
+            return {}
 
     def _init_llm_usage_schema(self) -> tuple[bool, str]:
         async def _run() -> tuple[bool, str]:
             try:
-                db = await get_db_client()
-                # 建表（單語句），再逐一建索引
-                await db.execute(
+                # 使用一次性直連，避免連線池已關閉造成的初始化失敗
+                from common.settings import get_settings
+                import asyncpg
+                dsn = get_settings().database.url
+                conn = await asyncpg.connect(dsn)
+                await conn.execute(
                     """
                     CREATE TABLE IF NOT EXISTS llm_usage (
                         id BIGSERIAL PRIMARY KEY,
@@ -555,42 +582,70 @@ class SystemMonitoringComponent:
                     )
                     """
                 )
-                await db.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_ts ON llm_usage (ts DESC)")
-                await db.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_svc ON llm_usage (service)")
-                await db.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_provider ON llm_usage (provider)")
-                await db.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_model ON llm_usage (model)")
-                await db.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_status ON llm_usage (status)")
+                await conn.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_ts ON llm_usage (ts DESC)")
+                await conn.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_svc ON llm_usage (service)")
+                await conn.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_provider ON llm_usage (provider)")
+                await conn.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_model ON llm_usage (model)")
+                await conn.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_status ON llm_usage (status)")
+                await conn.close()
                 return True, ""
             except Exception as e:
                 return False, str(e)
 
         return asyncio.run(_run())
 
+    def _insert_test_usage_row(self) -> tuple[bool, str]:
+        from common.settings import get_settings
+        dsn = get_settings().database.url
+        try:
+            with psycopg2.connect(dsn) as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        INSERT INTO llm_usage (
+                            ts, service, provider, model, request_id,
+                            prompt_tokens, completion_tokens, total_tokens,
+                            cost, latency_ms, status, error, metadata
+                        ) VALUES (NOW(), %s, %s, %s, %s, %s, %s, %s, %s, %s, 'success', NULL, '{}'::jsonb)
+                        """,
+                        ("ui-test", "test", "test-model", "test-req", 10, 5, 15, 0.0, 1)
+                    )
+                    conn.commit()
+            return True, ""
+        except Exception as e:
+            return False, str(e)
+
     def _render_simple_connection_status(self):
         st.markdown("**🔌 主要服務連線狀態**")
+
+        def _check_any(urls: List[str]) -> bool:
+            for u in urls:
+                try:
+                    resp = httpx.get(u, timeout=5.0)
+                    if resp.status_code < 400:
+                        return True
+                except Exception:
+                    continue
+            return False
+
         targets = [
-            ("MCP Server", "http://localhost:10100/health"),
-            ("Orchestrator", "http://localhost:8000/health"),
-            ("Clarification", "http://localhost:8004/health"),
-            ("Content Writer", "http://localhost:8003/health"),
-            ("Content Generator", "http://localhost:8008/health"),
-            ("Form API", "http://localhost:8010/health"),
-            ("Vision", "http://localhost:8005/health"),
-            ("Playwright Crawler", "http://localhost:8006/health"),
-            ("Post Analyzer", "http://localhost:8007/health"),
-            ("Reader LB", "http://localhost:8880/health"),
-            ("NATS", "http://localhost:8223/healthz"),
-            ("RustFS", "http://localhost:9000/")
+            ("MCP Server", ["http://mcp-server:10100/health", "http://localhost:10100/health"]),
+            ("Orchestrator", ["http://orchestrator-agent:8000/health", "http://localhost:8000/health"]),
+            ("Clarification", ["http://clarification-agent:8004/health", "http://localhost:8004/health"]),
+            ("Content Writer", ["http://content-writer-agent:8003/health", "http://localhost:8003/health"]),
+            ("Content Generator", ["http://content-generator-agent:8008/health", "http://localhost:8008/health"]),
+            ("Form API", ["http://form-api:8010/health", "http://localhost:8010/health"]),
+            ("Vision", ["http://vision-agent:8005/health", "http://localhost:8005/health"]),
+            ("Playwright Crawler", ["http://playwright-crawler-agent:8006/health", "http://localhost:8006/health"]),
+            ("Post Analyzer", ["http://post-analyzer-agent:8007/health", "http://localhost:8007/health"]),
+            ("Reader LB", ["http://reader-lb/health", "http://localhost:8880/health"]),
+            ("NATS", ["http://nats:8223/healthz", "http://localhost:8223/healthz"]),
+            ("RustFS", ["http://rustfs:9000/", "http://localhost:9000/"]),
         ]
 
         down_list: List[str] = []
-        for name, url in targets:
-            try:
-                resp = httpx.get(url, timeout=3.0)
-                ok = resp.status_code < 400
-            except Exception:
-                ok = False
-
+        for name, urls in targets:
+            ok = _check_any(urls)
             icon = "🟢" if ok else "🔴"
             st.write(f"{icon} {name}")
             if not ok:

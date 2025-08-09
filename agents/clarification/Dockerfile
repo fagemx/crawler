@@ -10,8 +10,8 @@ RUN apt-get update && apt-get install -y \
 # 複製必要的專案檔案
 COPY pyproject.toml README.md LICENSE ./
 
-# 安裝專案依賴（包含 database、messaging 和 ai 組）
-RUN pip install --no-cache-dir -e ".[database,messaging,ai]"
+# 安裝專案依賴（包含 database、messaging、ai、monitoring 組，提供 structlog）
+RUN pip install --no-cache-dir -e ".[database,messaging,ai,monitoring]"
 
 # 複製其餘專案檔案
 COPY . .

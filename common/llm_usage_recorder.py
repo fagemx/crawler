@@ -49,10 +49,12 @@ async def _ensure_table_exists():
         if _TABLE_READY:
             return
         try:
-            from .db_client import get_db_client  # 延遲導入
-            db = await get_db_client()
-            # 單條語句執行，避免多語句執行被拒
-            await db.execute(
+            # 直接建立一次性連線，避免連線池狀態影響
+            import asyncpg
+            from .settings import get_settings
+            dsn = get_settings().database.url
+            conn = await asyncpg.connect(dsn)
+            await conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS llm_usage (
                     id BIGSERIAL PRIMARY KEY,
@@ -72,11 +74,12 @@ async def _ensure_table_exists():
                 )
                 """
             )
-            await db.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_ts ON llm_usage (ts DESC)")
-            await db.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_svc ON llm_usage (service)")
-            await db.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_provider ON llm_usage (provider)")
-            await db.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_model ON llm_usage (model)")
-            await db.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_status ON llm_usage (status)")
+            await conn.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_ts ON llm_usage (ts DESC)")
+            await conn.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_svc ON llm_usage (service)")
+            await conn.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_provider ON llm_usage (provider)")
+            await conn.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_model ON llm_usage (model)")
+            await conn.execute("CREATE INDEX IF NOT EXISTS idx_llm_usage_status ON llm_usage (status)")
+            await conn.close()
             _TABLE_READY = True
         except Exception:
             # 不影響主流程
