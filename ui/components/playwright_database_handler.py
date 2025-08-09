@@ -41,7 +41,14 @@ class PlaywrightDatabaseHandler:
                 results = results_data.get("results", [])
                 target_username = results_data.get("target_username", "")
                 crawl_id = results_data.get("crawl_id", "")
-                dedup_filtered = results_data.get("dedup_filtered", [])  # 由去重工具提供的被丟棄清單（只存指紋）
+                # 由去重工具提供的被丟棄清單（只存指紋）
+                defensive_enabled = False
+                try:
+                    import streamlit as st  # 僅在 UI 環境存在時可用
+                    defensive_enabled = bool(st.session_state.get('playwright_defensive_dedup_v2', True))
+                except Exception:
+                    defensive_enabled = True  # 非 UI 環境下預設啟用
+                dedup_filtered = results_data.get("dedup_filtered", []) if defensive_enabled else []
                 
                 if results and target_username:
                     saved_count = 0

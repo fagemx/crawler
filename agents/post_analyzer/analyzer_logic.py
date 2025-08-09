@@ -141,7 +141,7 @@ class PostAnalyzerAgent:
         print("\n-------------------------------------\n")
 
         messages = [{"role": "user", "content": prompt}]
-        response = await self.llm_client.chat_completion(messages, temperature=0.2)
+        response = await self.llm_client.chat_completion(messages, temperature=0.2, usage_scene="content-analysis")
         
         try:
             content = response["choices"][0]["message"]["content"]
@@ -195,7 +195,7 @@ class PostAnalyzerAgent:
         print("\n-------------------------------------\n")
 
         messages = [{"role": "user", "content": prompt}]
-        response = await self.llm_client.chat_completion(messages, temperature=0.3)
+        response = await self.llm_client.chat_completion(messages, temperature=0.3, usage_scene="content-analysis")
         try:
             content = response["choices"][0]["message"]["content"]
             return parse_llm_json_response(content)
@@ -235,7 +235,7 @@ class PostAnalyzerAgent:
 
             messages = [{"role": "user", "content": prompt}]
             try:
-                response = await self.llm_client.chat_completion(messages, model=model, temperature=0.5)
+                response = await self.llm_client.chat_completion(messages, model=model, temperature=0.5, usage_scene="content-analysis")
                 content = response["choices"][0]["message"]["content"]
                 findings.append({
                     "model": model,
@@ -280,7 +280,7 @@ class PostAnalyzerAgent:
         print("\n----------------------------------------------------\n")
 
         summary_messages = [{"role": "user", "content": final_summary_prompt}]
-        summary_response = await self.llm_client.chat_completion(summary_messages, temperature=0.3)
+        summary_response = await self.llm_client.chat_completion(summary_messages, temperature=0.3, usage_scene="content-analysis")
         
         try:
             content = summary_response["choices"][0]["message"]["content"]

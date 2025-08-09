@@ -147,9 +147,13 @@ class GeminiProvider(BaseLLMProvider):
         }
         
         # 成本配置 (每 1M tokens 的美元成本)
+        # 說明：依你的要求更新以下模型價格
+        # - gemini-2.5-pro: input $1.25, output $10.00
+        # - gemini-2.0-flash: input $0.10, output $0.40
         self.cost_config = {
-            'gemini-2.0-flash': {'input': 0.075, 'output': 0.30},
-            'gemini-2.0-flash-exp': {'input': 0.075, 'output': 0.30},
+            'gemini-2.5-pro': {'input': 1.25, 'output': 10.00},
+            'gemini-2.0-flash': {'input': 0.10, 'output': 0.40},
+            'gemini-2.0-flash-exp': {'input': 0.10, 'output': 0.40},
             'gemini-1.5-pro': {'input': 3.50, 'output': 10.50},
             'gemini-1.5-flash': {'input': 0.075, 'output': 0.30},
         }

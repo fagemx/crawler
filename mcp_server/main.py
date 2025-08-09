@@ -575,6 +575,44 @@ class UserOperationIn(BaseModel):
     metadata: Optional[Dict[str, Any]] = None
 
 
+def _ensure_user_ops_schema(session: Session) -> None:
+    """確保 user_operation_log 表與索引存在（請求時冪等保護）。"""
+    session.exec(text(
+        """
+        CREATE TABLE IF NOT EXISTS user_operation_log (
+            id               BIGSERIAL PRIMARY KEY,
+            ts               TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            user_id          TEXT,
+            anonymous_id     TEXT,
+            session_id       TEXT,
+            actor_type       TEXT NOT NULL DEFAULT 'user' CHECK (actor_type IN ('user')),
+            menu_name        TEXT NOT NULL,
+            page_name        TEXT,
+            action_type      TEXT NOT NULL,
+            action_name      TEXT NOT NULL,
+            resource_id      TEXT,
+            status           TEXT NOT NULL CHECK (status IN ('success','failed','pending')),
+            latency_ms       INTEGER,
+            error_message    TEXT,
+            ip_address       INET,
+            user_agent       TEXT,
+            request_id       TEXT,
+            trace_id         TEXT,
+            metadata         JSONB DEFAULT '{}'
+        );
+        """
+    ))
+    for idx_sql in [
+        "CREATE INDEX IF NOT EXISTS idx_user_ops_ts_desc ON user_operation_log (ts DESC)",
+        "CREATE INDEX IF NOT EXISTS idx_user_ops_user ON user_operation_log (user_id)",
+        "CREATE INDEX IF NOT EXISTS idx_user_ops_anon ON user_operation_log (anonymous_id)",
+        "CREATE INDEX IF NOT EXISTS idx_user_ops_menu ON user_operation_log (menu_name)",
+        "CREATE INDEX IF NOT EXISTS idx_user_ops_action ON user_operation_log (action_type)",
+        "CREATE INDEX IF NOT EXISTS idx_user_ops_trace ON user_operation_log (trace_id)",
+    ]:
+        session.exec(text(idx_sql))
+
+
 @app.post("/user/ops")
 async def create_user_operation(
     payload: UserOperationIn,
@@ -607,6 +645,8 @@ async def create_user_operation(
         )
 
         with Session(engine) as session:
+            # 冪等確保 schema 存在
+            _ensure_user_ops_schema(session)
             result = session.exec(
                 insert_sql,
                 {
@@ -690,6 +730,7 @@ async def list_user_operations(
         """
 
         with Session(engine) as session:
+            _ensure_user_ops_schema(session)
             rows = session.exec(text(base_sql), params).all()
 
         if format == "csv":
@@ -751,6 +792,7 @@ async def list_user_ops_options():
     """提供下拉選單可用的選項（去重）。"""
     try:
         with Session(engine) as session:
+            _ensure_user_ops_schema(session)
             menus = session.exec(text("SELECT DISTINCT menu_name FROM user_operation_log ORDER BY menu_name ASC LIMIT 200")).all()
             actions = session.exec(text("SELECT DISTINCT action_type FROM user_operation_log ORDER BY action_type ASC LIMIT 200")).all()
             users = session.exec(text("SELECT DISTINCT user_id FROM user_operation_log WHERE user_id IS NOT NULL ORDER BY user_id ASC LIMIT 200")).all()

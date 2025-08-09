@@ -506,6 +506,11 @@ class SystemMonitoringComponent:
                             service AS 服務,
                             provider AS 供應商,
                             model AS 模型,
+                            COALESCE(
+                                NULLIF(metadata->>'usage_scene',''),
+                                NULLIF(metadata->>'component',''),
+                                ''
+                            ) AS 功能,
                             total_tokens AS tokens,
                             cost AS usd,
                             status AS 狀態
@@ -561,6 +566,11 @@ class SystemMonitoringComponent:
                             service AS 服務,
                             provider AS 供應商,
                             model AS 模型,
+                            COALESCE(
+                                NULLIF(metadata->>'usage_scene',''),
+                                NULLIF(metadata->>'component',''),
+                                ''
+                            ) AS 功能,
                             total_tokens AS tokens,
                             cost AS usd,
                             status AS 狀態
@@ -716,15 +726,14 @@ class SystemMonitoringComponent:
         # 篩選條件
         c1, c2, c3, c4 = st.columns(4)
         options_cache_key = "user_ops_options"
-        if options_cache_key not in st.session_state:
-            # 初始化空值，避免首次渲染阻塞
-            st.session_state[options_cache_key] = {"menu_names": [], "action_types": [], "user_ids": []}
-            try:
-                resp_opt = httpx.get(f"{base_url}/user/ops/options", timeout=5.0)
-                if resp_opt.status_code == 200:
-                    st.session_state[options_cache_key] = resp_opt.json()
-            except Exception:
-                pass
+        # 嘗試載入一次（每次刷新做一次，以確保有資料時能出現選項）
+        try:
+            resp_opt = httpx.get(f"{base_url}/user/ops/options", timeout=5.0)
+            if resp_opt.status_code == 200:
+                st.session_state[options_cache_key] = resp_opt.json()
+        except Exception:
+            if options_cache_key not in st.session_state:
+                st.session_state[options_cache_key] = {"menu_names": [], "action_types": [], "user_ids": []}
         opts = st.session_state[options_cache_key]
 
         with c1:

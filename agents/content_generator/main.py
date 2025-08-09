@@ -170,7 +170,7 @@ def _build_five_stage_prompt(
     if media and media.get('enabled'):
         media_notes = []
         if media.get('images'):
-            media_notes.append("可搭配圖片內容設計貼文，如果沒有特別要求以文字文主。圖片內容可自由參考，自然呼應即可。")
+            media_notes.append("請根據圖片內容傳達情緒，與模板設計貼文，圖片與文字需要搭配，兩者呼應且相關。必要時文字會自然講到圖片的內容。")
         if media.get('videos'):
             media_notes.append("可搭配影片內容設計貼文，如果沒有特別要求以文字文主。影片內容可自由參考，自然呼應即可。")
         notes_text = "\n".join(media_notes) if media_notes else ""

@@ -551,6 +551,14 @@ class PlaywrightCrawlerComponentV2:
                 key="playwright_enable_dedup_v2"
             )
 
+            # 防禦性守門：顯示/存前去重 + 指紋紀錄（供增量跳過）
+            defensive_dedup = st.checkbox(
+                "🔒 防禦性守門（顯示/存前去重＋指紋）",
+                value=True,
+                help="顯示與入庫前會根據同內容去重，只保留觀看數較高者；被丟棄者以指紋寫入（source=playwright_dedup_filtered），供增量模式跳過。全量模式不跳過但不會顯示或入庫重複。",
+                key="playwright_defensive_dedup_v2"
+            )
+
             # 新增：完成後自動下載媒體
             auto_download_media = st.checkbox(
                 "⬇️ 完成後自動下載媒體",
@@ -1002,8 +1010,9 @@ class PlaywrightCrawlerComponentV2:
         try:
             # 轉換結果格式
             converted_results = PlaywrightUtils.convert_playwright_results(final_data)
-            # 顯示前去重（內容相同、不同貼文ID → 保留觀看數高者）
-            converted_results = PlaywrightUtils.deduplicate_results_by_content_keep_max_views(converted_results)
+            # 顯示前去重（內容相同、不同貼文ID → 保留觀看數高者）依 UI 開關
+            if st.session_state.get('playwright_defensive_dedup_v2', True):
+                converted_results = PlaywrightUtils.deduplicate_results_by_content_keep_max_views(converted_results)
             
             # 🔧 修復：優先使用轉換後的用戶名，避免覆蓋正確數據
             if not converted_results.get("target_username"):

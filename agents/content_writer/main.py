@@ -158,7 +158,8 @@ class ContentWriterAgent:
                 model="gemini-2.0-flash",  # 明確指定模型
                 temperature=0.7,
                 max_tokens=800,
-                provider="gemini"
+                provider="gemini",
+                usage_scene="post-writing"
             )
             
             return content.strip()

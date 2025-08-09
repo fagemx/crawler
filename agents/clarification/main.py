@@ -190,7 +190,8 @@ class ClarificationAgent:
                 model="gemini-2.0-flash",  # 明確指定模型
                 temperature=0.3,
                 max_tokens=1500,
-                provider="gemini"
+                provider="gemini",
+                usage_scene="clarification"
             )
             
             # 解析 JSON 響應
