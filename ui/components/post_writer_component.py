@@ -362,6 +362,11 @@ class PostWriterComponent:
             placeholder="例如：我想寫一篇關於咖啡文化的貼文，重點介紹手沖咖啡的技巧和心得...",
             key=f"user_prompt_{project['id']}"
         )
+
+        # 是否在提示後追加嚴格模板指示
+        strict_key = f"strict_template_{project['id']}"
+        strict_default = project.get('strict_template', True)
+        project['strict_template'] = st.checkbox("嚴格使用模板寫作（在提示後追加『##請嚴格使用模板來寫貼文』）", value=strict_default, key=strict_key)
         
         # 檢查用戶是否手動修改了提示內容
         if project['user_prompt'] != current_prompt and project['user_prompt']:
@@ -620,8 +625,9 @@ class PostWriterComponent:
         try:
             with st.spinner("🤖 AI 正在創作中..."):
                 # 準備生成請求
+                user_prompt_to_send = project['user_prompt'] + ("\n\n##請嚴格使用模板來寫貼文" if project.get('strict_template') else "")
                 generation_data = {
-                    'user_prompt': project['user_prompt'],
+                    'user_prompt': user_prompt_to_send,
                     'llm_config': {
                         'provider': project.get('llm_provider', 'Gemini (Google)'),
                         'model': project.get('llm_model', 'gemini-2.0-flash')
@@ -649,7 +655,7 @@ class PostWriterComponent:
                 # 保存生成結果 (每個版本單獨保存)
                 for i, post_content in enumerate(generated_posts):
                     generation_record = {
-                        'prompt': project['user_prompt'],
+                        'prompt': user_prompt_to_send,
                         'content': post_content,
                         'version': f"版本 {i + 1}",
                         'settings': generation_data['settings'],
@@ -873,10 +879,6 @@ class PostWriterComponent:
                             if content:
                                 st.markdown("**原始貼文**")
                                 st.json(content.get('original_post', {}))
-                                st.markdown("**結構指南**")
-                                st.json(content.get('structure_guide', {}))
-                                st.markdown("**分析摘要**")
-                                st.write(content.get('analysis_summary', {}))
                             else:
                                 st.warning("未找到內容，可能已被刪除。")
                     with col_c:

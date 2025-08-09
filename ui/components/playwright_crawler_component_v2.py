@@ -172,7 +172,7 @@ class PlaywrightCrawlerComponentV2:
         # 初始化時清理無效的文件引用，避免 MediaFileStorageError
         self._cleanup_invalid_file_references()
         
-        st.header("🎭 Playwright 智能爬蟲 V2 (佇列版)")
+        st.header("🎭 Playwright 智能爬蟲")
         st.markdown("**基於檔案讀寫架構 + 狀態機驅動的實時進度顯示 + 任務佇列管理**")
         
         # 顯示佇列資訊條

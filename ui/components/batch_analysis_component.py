@@ -7,7 +7,7 @@ import streamlit as st
 import json
 import requests
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from typing import List, Dict, Any
 
 
@@ -616,19 +616,30 @@ class BatchAnalysisComponent:
         try:
             import uuid
             analysis_id = str(uuid.uuid4())[:8]
-            filename = f"batch_summary_{analysis_id}.json"
-            file_path = self.analysis_results_dir / filename
+            # 來源用戶名（優先從分析結果，其次從目前選擇）
             # 來源用戶名（優先從分析結果，其次從目前選擇）
             state = getattr(st.session_state, 'batch_analysis_state', None)
             username = 'unknown'
+            sort_method = 'likes'
+            post_count = 25
             if isinstance(state, dict):
                 ar = state.get('analysis_results') or {}
                 if isinstance(ar, dict):
                     username = ar.get('username', username)
+                sort_method = state.get('sort_method', sort_method)
+                post_count = state.get('post_count', post_count)
                 if username == 'unknown':
                     username = state.get('selected_user', username)
+            # 產生 display 名稱與檔名：{pattern}_@{username}_{likes|views|score}_{count}
+            sort_slug = str(sort_method).lower()
+            # 檔名安全處理（保留中文，替換空白與斜線）
+            safe_pattern = str(pattern_name).replace(' ', '_').replace('/', '_').replace('\\', '_')
+            display_name = f"{pattern_name}_@{username}_{sort_slug}_{post_count}"
+            filename = f"{safe_pattern}_@{username}_{sort_slug}_{post_count}_{analysis_id}.json"
+            file_path = self.analysis_results_dir / filename
             # 保險：payload 為空時置為空 dict
             payload = payload or {}
+            created_at = datetime.now(timezone(timedelta(hours=8))).replace(tzinfo=None).isoformat()
             record = {
                 "type": "batch_summary",
                 "analysis_id": analysis_id,
@@ -637,14 +648,14 @@ class BatchAnalysisComponent:
                 "structure_guide": (payload.get('structure_guide') or {}),
                 "sample_count": len(payload.get('samples') or []),
                 "summary_markdown": (payload.get('summary_markdown') or ''),
-                "created_at": datetime.now().isoformat()
+                "created_at": created_at
             }
             with open(file_path, 'w', encoding='utf-8') as f:
                 json.dump(record, f, ensure_ascii=False, indent=2)
             index_data = self._load_analysis_index()
             index_entry = {
                 "analysis_id": analysis_id,
-                "display_name": f"{pattern_name}_batch",
+                "display_name": display_name,
                 "username": username,
                 "pattern_name": pattern_name,
                 "file_path": filename,
@@ -676,11 +687,10 @@ class BatchAnalysisComponent:
             results = st.session_state.batch_analysis_state['analysis_results']
             
             import json
-            from datetime import datetime
             
             # 準備導出數據
             export_data = {
-                "export_timestamp": datetime.now().isoformat(),
+                "export_timestamp": datetime.now(timezone(timedelta(hours=8))).replace(tzinfo=None).isoformat(),
                 "analysis_results": results
             }
             
@@ -689,7 +699,7 @@ class BatchAnalysisComponent:
             st.download_button(
                 label="📥 下載分析結果 (JSON)",
                 data=json_str,
-                file_name=f"batch_analysis_{results['username']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+                file_name=f"batch_analysis_{results['username']}_{datetime.now(timezone(timedelta(hours=8))).strftime('%Y%m%d_%H%M%S')}.json",
                 mime="application/json"
             )
             
