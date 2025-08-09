@@ -726,15 +726,22 @@ class SystemMonitoringComponent:
         # 篩選條件
         c1, c2, c3, c4 = st.columns(4)
         options_cache_key = "user_ops_options"
+        default_opts = {"menu_names": [], "action_types": [], "user_ids": []}
+        # 先取預設（避免 KeyError）
+        opts = st.session_state.get(options_cache_key, default_opts)
         # 嘗試載入一次（每次刷新做一次，以確保有資料時能出現選項）
         try:
             resp_opt = httpx.get(f"{base_url}/user/ops/options", timeout=5.0)
             if resp_opt.status_code == 200:
-                st.session_state[options_cache_key] = resp_opt.json()
+                opts = resp_opt.json() or default_opts
+                st.session_state[options_cache_key] = opts
+            else:
+                if options_cache_key not in st.session_state:
+                    st.session_state[options_cache_key] = default_opts
         except Exception:
             if options_cache_key not in st.session_state:
-                st.session_state[options_cache_key] = {"menu_names": [], "action_types": [], "user_ids": []}
-        opts = st.session_state[options_cache_key]
+                st.session_state[options_cache_key] = default_opts
+            opts = st.session_state.get(options_cache_key, default_opts)
 
         with c1:
             menu = st.selectbox("主功能選單", options=[""] + opts.get("menu_names", []), index=0)
