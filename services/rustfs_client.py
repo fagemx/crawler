@@ -16,9 +16,11 @@ import asyncio
 import boto3
 from botocore.client import Config as BotoConfig
 from botocore.exceptions import ClientError
+import json
 
 from common.settings import get_settings
 from common.db_client import get_db_client
+from common.config import get_auth_file_path
 
 
 class RustFSClient:
@@ -35,6 +37,7 @@ class RustFSClient:
         # 自動偵測：若本機無法解析 rustfs，改用 localhost
         self._auto_select_endpoint()
         self._s3_client = None
+        self._cookie_header: Optional[str] = None
 
     def _auto_select_endpoint(self):
         try:
@@ -210,6 +213,10 @@ class RustFSClient:
                 "Referer": "https://www.threads.net/",
                 "Accept": "*/*",
             }
+            # 嘗試附帶 Threads cookies（從 auth.json 載入），提升成功率
+            cookie_header = self._get_cookie_header()
+            if cookie_header:
+                headers["Cookie"] = cookie_header
             async with httpx.AsyncClient(timeout=60.0, headers=headers) as client:
                 print(f"📥 Downloading: {media_url}")
                 
@@ -273,6 +280,35 @@ class RustFSClient:
                 "status": "failed",
                 "error": str(e)
             }
+
+    def _get_cookie_header(self) -> Optional[str]:
+        """
+        從 Playwright 的 auth.json 載入 cookies，合併為 Cookie 標頭字串。
+        注意：此為最佳努力，實際站點可能需要特定域名/路徑；這裡統一附上常用 cookies。
+        """
+        if self._cookie_header is not None:
+            return self._cookie_header
+        try:
+            auth_path = get_auth_file_path()
+            if not auth_path.exists():
+                self._cookie_header = ""
+                return self._cookie_header
+            with open(auth_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            cookies = data.get("cookies") or data.get("orig_cookies") or []
+            parts = []
+            for c in cookies:
+                name = c.get("name")
+                value = c.get("value")
+                if not name or value is None:
+                    continue
+                # 過濾明顯無效/敏感名可自行擴充
+                parts.append(f"{name}={value}")
+            self._cookie_header = "; ".join(parts) if parts else ""
+            return self._cookie_header
+        except Exception:
+            self._cookie_header = ""
+            return self._cookie_header
     
     def _detect_media_type(self, url: str) -> str:
         """檢測媒體類型"""

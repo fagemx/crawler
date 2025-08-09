@@ -43,7 +43,28 @@ class MediaProcessorComponent:
             stats = asyncio.get_event_loop().run_until_complete(svc.get_account_media_stats(limit=50))
             if stats:
                 import pandas as pd
+                st.subheader("📊 下載現況（帳號彙總）")
                 df = pd.DataFrame(stats)
+                # 轉中文欄位名稱並調整欄位順序
+                col_order = [
+                    "username",
+                    "total_images", "total_videos",
+                    "paired_images", "paired_videos",
+                    "completed_images", "completed_videos",
+                    "pending_images", "pending_videos",
+                ]
+                df = df[[c for c in col_order if c in df.columns]]
+                df = df.rename(columns={
+                    "username": "使用者",
+                    "total_images": "總圖片",
+                    "total_videos": "總影片",
+                    "paired_images": "已配對圖片",
+                    "paired_videos": "已配對影片",
+                    "completed_images": "已下載圖片",
+                    "completed_videos": "已下載影片",
+                    "pending_images": "待下載圖片",
+                    "pending_videos": "待下載影片",
+                })
                 st.dataframe(df, use_container_width=True, height=min(400, 38 + len(df) * 32))
             else:
                 st.info("尚無統計資料")
