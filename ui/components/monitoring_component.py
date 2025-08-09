@@ -4,6 +4,7 @@
 """
 
 import streamlit as st
+import os
 import httpx
 import json
 import time
@@ -66,6 +67,10 @@ class SystemMonitoringComponent:
         
         # 詳細日誌
         self._render_detailed_logs()
+
+        st.markdown("---")
+        st.subheader("🧑‍💻 使用者操作紀錄（最近 100 筆）")
+        self._render_user_operations_panel()
     
     def _render_control_panel(self):
         """渲染控制面板"""
@@ -702,6 +707,72 @@ class SystemMonitoringComponent:
         if down_list:
             st.warning("偵測到異常服務：" + ", ".join(down_list))
             st.caption("建議：檢查容器日誌（docker-compose logs -f [service]）或嘗試重啟對應服務")
+
+    def _render_user_operations_panel(self):
+        import httpx
+        from common.settings import get_settings
+        base_url = os.getenv('MCP_SERVER_URL') or 'http://localhost:10100'
+
+        # 篩選條件
+        c1, c2, c3, c4 = st.columns(4)
+        with c1:
+            menu = st.text_input("主功能選單包含關鍵字", value="")
+        with c2:
+            action_type = st.text_input("動作類型(navigate/click/submit...)", value="")
+        with c3:
+            user_id = st.text_input("使用者ID", value="")
+        with c4:
+            limit = st.number_input("顯示筆數", min_value=10, max_value=500, value=100, step=10)
+
+        params = {"limit": int(limit)}
+        if menu:
+            params["menu_name"] = menu
+        if action_type:
+            params["action_type"] = action_type
+        if user_id:
+            params["user_id"] = user_id
+
+        try:
+            resp = httpx.get(f"{base_url}/user/ops", params=params, timeout=8.0)
+            if resp.status_code == 200:
+                data = resp.json()
+                logs = data.get("logs", [])
+                if logs:
+                    # 簡化欄位呈現
+                    rows = []
+                    for r in logs:
+                        rows.append({
+                            "時間": r.get("ts"),
+                            "使用者": r.get("user_id") or r.get("anonymous_id"),
+                            "選單": r.get("menu_name"),
+                            "動作": r.get("action_type"),
+                            "描述": r.get("action_name"),
+                            "狀態": r.get("status"),
+                        })
+                    st.dataframe(rows, use_container_width=True, hide_index=True)
+                else:
+                    st.info("目前沒有操作紀錄")
+
+                # CSV 下載
+                with st.expander("📦 匯出 CSV", expanded=False):
+                    try:
+                        csv_resp = httpx.get(f"{base_url}/user/ops", params={**params, "format": "csv"}, timeout=10.0)
+                        if csv_resp.status_code == 200:
+                            st.download_button(
+                                label="⬇️ 下載 CSV",
+                                data=csv_resp.content,
+                                file_name="user_operations.csv",
+                                mime="text/csv",
+                                use_container_width=True,
+                            )
+                        else:
+                            st.warning("CSV 匯出暫不可用")
+                    except Exception as e:
+                        st.warning(f"CSV 匯出失敗：{e}")
+            else:
+                st.warning(f"讀取使用者操作紀錄失敗：HTTP {resp.status_code}")
+        except Exception as e:
+            st.warning(f"無法連線 MCP Server：{e}")
     
     def _test_mcp_server_health(self) -> Dict[str, Any]:
         """測試 MCP Server 健康狀態"""

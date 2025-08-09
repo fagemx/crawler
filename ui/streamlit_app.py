@@ -175,6 +175,34 @@ class SocialMediaGeneratorApp:
             key="main_nav"
         )
 
+        # 上報使用者操作：主功能選單切換（匿名也記錄）
+        try:
+            if 'last_nav' not in st.session_state or st.session_state.last_nav != nav:
+                st.session_state.last_nav = nav
+                # 生成匿名/會話識別
+                import uuid
+                if 'anonymous_id' not in st.session_state:
+                    st.session_state.anonymous_id = str(uuid.uuid4())
+                if 'session_id' not in st.session_state:
+                    st.session_state.session_id = str(uuid.uuid4())
+                # 上報
+                import httpx
+                base_url = os.getenv('MCP_SERVER_URL', 'http://localhost:10100')
+                httpx.post(
+                    f"{base_url}/user/ops",
+                    json={
+                        "anonymous_id": st.session_state.anonymous_id,
+                        "session_id": st.session_state.session_id,
+                        "menu_name": nav,
+                        "action_type": "navigate",
+                        "action_name": f"切換至 {nav}",
+                        "status": "success",
+                    },
+                    timeout=3.0,
+                )
+        except Exception:
+            pass
+
         if nav == "🚀 實時智能爬蟲":
             self.realtime_crawler_component.render()
         elif nav == "🎭 Playwright 爬蟲":

@@ -152,6 +152,38 @@ CREATE TABLE IF NOT EXISTS system_error_log (
     metadata        JSONB DEFAULT '{}'
 );
 
+-- 使用者操作日誌（區隔於系統/Agent 操作）
+CREATE TABLE IF NOT EXISTS user_operation_log (
+    id               BIGSERIAL PRIMARY KEY,
+    ts               TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    -- 身分/會話（登入前也能追）
+    user_id          TEXT,
+    anonymous_id     TEXT,
+    session_id       TEXT,
+    actor_type       TEXT NOT NULL DEFAULT 'user' CHECK (actor_type IN ('user')),
+
+    -- 主功能與動作
+    menu_name        TEXT NOT NULL,                           -- 例：🛠 監控面板
+    page_name        TEXT,                                    -- 次層/元件（可空）
+    action_type      TEXT NOT NULL,                           -- 例：navigate/click/submit/export
+    action_name      TEXT NOT NULL,                           -- 例：切換到「🛠 監控面板」
+    resource_id      TEXT,                                    -- 目標資源ID（如任務ID，可空）
+
+    -- 結果與效能
+    status           TEXT NOT NULL CHECK (status IN ('success','failed','pending')),
+    latency_ms       INTEGER,
+    error_message    TEXT,
+
+    -- 請求環境與關聯
+    ip_address       INET,
+    user_agent       TEXT,
+    request_id       TEXT,
+    trace_id         TEXT,
+
+    -- 其他
+    metadata         JSONB DEFAULT '{}'
+);
+
 -- ============================================================================
 -- 索引優化
 -- ============================================================================
@@ -163,6 +195,14 @@ CREATE INDEX IF NOT EXISTS idx_post_metrics_score ON post_metrics(score DESC);
 CREATE INDEX IF NOT EXISTS idx_post_metrics_updated_at ON post_metrics(updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_processing_log_url ON processing_log(url);
 CREATE INDEX IF NOT EXISTS idx_processing_log_status ON processing_log(status);
+
+-- 使用者操作日誌索引（90天熱儲存主查詢設計）
+CREATE INDEX IF NOT EXISTS idx_user_ops_ts_desc ON user_operation_log (ts DESC);
+CREATE INDEX IF NOT EXISTS idx_user_ops_user ON user_operation_log (user_id);
+CREATE INDEX IF NOT EXISTS idx_user_ops_anon ON user_operation_log (anonymous_id);
+CREATE INDEX IF NOT EXISTS idx_user_ops_menu ON user_operation_log (menu_name);
+CREATE INDEX IF NOT EXISTS idx_user_ops_action ON user_operation_log (action_type);
+CREATE INDEX IF NOT EXISTS idx_user_ops_trace ON user_operation_log (trace_id);
 
 -- 媒體檔案索引
 CREATE INDEX IF NOT EXISTS idx_media_files_post_url ON media_files(post_url);

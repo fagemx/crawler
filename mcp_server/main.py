@@ -10,12 +10,15 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 
 import structlog
+import json
 import uvicorn
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Depends
+from fastapi.responses import StreamingResponse, JSONResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
 from sqlalchemy.exc import OperationalError
 from sqlmodel import SQLModel, Session, select, create_engine
+from sqlalchemy import text
 from contextlib import asynccontextmanager
 
 from .models import (
@@ -134,6 +137,44 @@ async def lifespan(app: FastAPI):
         try:
             # 嘗試初始化資料庫
             SQLModel.metadata.create_all(engine)
+            # 確保 user_operation_log 表與索引存在（idempotent）
+            with Session(engine) as session:
+                session.exec(text(
+                    """
+                    CREATE TABLE IF NOT EXISTS user_operation_log (
+                        id               BIGSERIAL PRIMARY KEY,
+                        ts               TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                        user_id          TEXT,
+                        anonymous_id     TEXT,
+                        session_id       TEXT,
+                        actor_type       TEXT NOT NULL DEFAULT 'user' CHECK (actor_type IN ('user')),
+                        menu_name        TEXT NOT NULL,
+                        page_name        TEXT,
+                        action_type      TEXT NOT NULL,
+                        action_name      TEXT NOT NULL,
+                        resource_id      TEXT,
+                        status           TEXT NOT NULL CHECK (status IN ('success','failed','pending')),
+                        latency_ms       INTEGER,
+                        error_message    TEXT,
+                        ip_address       INET,
+                        user_agent       TEXT,
+                        request_id       TEXT,
+                        trace_id         TEXT,
+                        metadata         JSONB DEFAULT '{}'
+                    );
+                    """
+                ))
+                # 索引
+                for idx_sql in [
+                    "CREATE INDEX IF NOT EXISTS idx_user_ops_ts_desc ON user_operation_log (ts DESC)",
+                    "CREATE INDEX IF NOT EXISTS idx_user_ops_user ON user_operation_log (user_id)",
+                    "CREATE INDEX IF NOT EXISTS idx_user_ops_anon ON user_operation_log (anonymous_id)",
+                    "CREATE INDEX IF NOT EXISTS idx_user_ops_menu ON user_operation_log (menu_name)",
+                    "CREATE INDEX IF NOT EXISTS idx_user_ops_action ON user_operation_log (action_type)",
+                    "CREATE INDEX IF NOT EXISTS idx_user_ops_trace ON user_operation_log (trace_id)",
+                ]:
+                    session.exec(text(idx_sql))
+                session.commit()
             log.info("database_initialized_successfully")
             break  # 成功，跳出循環
         except OperationalError as e:
@@ -505,6 +546,202 @@ async def get_operation_logs(
             "count": len(logs)
         }
         
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================================
+# 使用者操作日誌 API
+# ============================================================================
+
+from pydantic import BaseModel
+from typing import Any, Dict
+
+
+class UserOperationIn(BaseModel):
+    user_id: Optional[str] = None
+    anonymous_id: Optional[str] = None
+    session_id: Optional[str] = None
+    menu_name: str
+    page_name: Optional[str] = None
+    action_type: str
+    action_name: str
+    resource_id: Optional[str] = None
+    status: str = "success"
+    latency_ms: Optional[int] = None
+    error_message: Optional[str] = None
+    request_id: Optional[str] = None
+    trace_id: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+
+@app.post("/user/ops")
+async def create_user_operation(
+    payload: UserOperationIn,
+    request: Request,
+):
+    """寫入一筆使用者操作日誌。
+    自動補: ip_address、user_agent、request_id（若 header 帶入）、trace_id（若 header 帶入）。
+    """
+    try:
+        # 來源資訊
+        ip_address = request.client.host if request.client else None
+        user_agent = request.headers.get("user-agent")
+        request_id = payload.request_id or request.headers.get("x-request-id")
+        trace_id = payload.trace_id or request.headers.get("x-trace-id") or request.headers.get("traceparent")
+
+        insert_sql = text(
+            """
+            INSERT INTO user_operation_log (
+                user_id, anonymous_id, session_id, actor_type,
+                menu_name, page_name, action_type, action_name, resource_id,
+                status, latency_ms, error_message,
+                ip_address, user_agent, request_id, trace_id, metadata
+            ) VALUES (
+                :user_id, :anonymous_id, :session_id, 'user',
+                :menu_name, :page_name, :action_type, :action_name, :resource_id,
+                :status, :latency_ms, :error_message,
+                :ip_address, :user_agent, :request_id, :trace_id, :metadata
+            ) RETURNING id, ts
+            """
+        )
+
+        with Session(engine) as session:
+            result = session.exec(
+                insert_sql,
+                {
+                    "user_id": payload.user_id,
+                    "anonymous_id": payload.anonymous_id,
+                    "session_id": payload.session_id,
+                    "menu_name": payload.menu_name,
+                    "page_name": payload.page_name,
+                    "action_type": payload.action_type,
+                    "action_name": payload.action_name,
+                    "resource_id": payload.resource_id,
+                    "status": payload.status,
+                    "latency_ms": payload.latency_ms,
+                    "error_message": payload.error_message,
+                    "ip_address": ip_address,
+                    "user_agent": user_agent,
+                    "request_id": request_id,
+                    "trace_id": trace_id,
+                    "metadata": (payload.metadata or {}),
+                },
+            )
+            row = result.first()
+            session.commit()
+
+        return {"ok": True, "id": row[0] if row else None, "ts": row[1] if row else None}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/user/ops")
+async def list_user_operations(
+    request: Request,
+    user_id: Optional[str] = None,
+    anonymous_id: Optional[str] = None,
+    menu_name: Optional[str] = None,
+    action_type: Optional[str] = None,
+    status: Optional[str] = None,
+    start: Optional[str] = None,  # ISO8601
+    end: Optional[str] = None,    # ISO8601
+    limit: int = 100,
+    offset: int = 0,
+    format: Optional[str] = None,
+):
+    """查詢使用者操作日誌。支援 CSV 匯出: ?format=csv"""
+    try:
+        clauses = ["1=1"]
+        params: Dict[str, Any] = {"limit": limit, "offset": offset}
+
+        if user_id:
+            clauses.append("user_id = :user_id")
+            params["user_id"] = user_id
+        if anonymous_id:
+            clauses.append("anonymous_id = :anonymous_id")
+            params["anonymous_id"] = anonymous_id
+        if menu_name:
+            clauses.append("menu_name = :menu_name")
+            params["menu_name"] = menu_name
+        if action_type:
+            clauses.append("action_type = :action_type")
+            params["action_type"] = action_type
+        if status:
+            clauses.append("status = :status")
+            params["status"] = status
+        if start:
+            clauses.append("ts >= :start")
+            params["start"] = start
+        if end:
+            clauses.append("ts <= :end")
+            params["end"] = end
+
+        where_sql = " AND ".join(clauses)
+        base_sql = f"""
+            SELECT id, ts, user_id, anonymous_id, session_id, menu_name, page_name,
+                   action_type, action_name, resource_id, status, latency_ms,
+                   ip_address, user_agent, request_id, trace_id, error_message, metadata
+            FROM user_operation_log
+            WHERE {where_sql}
+            ORDER BY ts DESC
+            LIMIT :limit OFFSET :offset
+        """
+
+        with Session(engine) as session:
+            rows = session.exec(text(base_sql), params).all()
+
+        if format == "csv":
+            # 產生 CSV
+            import csv
+            import io
+            buf = io.StringIO()
+            writer = csv.writer(buf)
+            headers = [
+                "id","ts","user_id","anonymous_id","session_id","menu_name","page_name",
+                "action_type","action_name","resource_id","status","latency_ms",
+                "ip_address","user_agent","request_id","trace_id","error_message","metadata"
+            ]
+            writer.writerow(headers)
+            for r in rows:
+                # r 是 sqlalchemy Row，支援 by index 或 key
+                writer.writerow([
+                    r[0], r[1], r[2], r[3], r[4], r[5], r[6],
+                    r[7], r[8], r[9], r[10], r[11], r[12], r[13], r[14], r[15], r[16],
+                    json.dumps(r[17] if isinstance(r[17], dict) else r[17]) if len(r) > 17 else None,
+                ])
+            csv_bytes = buf.getvalue().encode("utf-8-sig")
+            filename = f"user_ops_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+            return StreamingResponse(iter([csv_bytes]), media_type="text/csv", headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            })
+
+        # JSON 格式
+        json_rows = []
+        for r in rows:
+            json_rows.append({
+                "id": r[0],
+                "ts": r[1],
+                "user_id": r[2],
+                "anonymous_id": r[3],
+                "session_id": r[4],
+                "menu_name": r[5],
+                "page_name": r[6],
+                "action_type": r[7],
+                "action_name": r[8],
+                "resource_id": r[9],
+                "status": r[10],
+                "latency_ms": r[11],
+                "ip_address": r[12],
+                "user_agent": r[13],
+                "request_id": r[14],
+                "trace_id": r[15],
+                "error_message": r[16],
+                "metadata": r[17] if len(r) > 17 else None,
+            })
+        return {"logs": json_rows, "count": len(json_rows)}
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
