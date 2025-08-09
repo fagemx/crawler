@@ -14,6 +14,7 @@ from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import asyncio
 
 from common.llm_usage_recorder import log_usage, get_service_name
+from common.llm_manager import GeminiProvider, LLMRequest
 
 
 class GeminiVisionAnalyzer:
@@ -30,8 +31,12 @@ class GeminiVisionAnalyzer:
         genai.configure(api_key=self.api_key)
         
         # 預設使用 Gemini 2.5 Pro（可由環境切換），保留舊版為備援
-        model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-pro")
-        self.model = genai.GenerativeModel(model_name)
+        self.model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-pro")
+        self.model = genai.GenerativeModel(self.model_name)
+        # 可調式最大輸出 token（避免描述被截斷）
+        default_max = int(os.getenv("GEMINI_MAX_OUTPUT_TOKENS", "2048"))
+        self.max_output_tokens_image = int(os.getenv("GEMINI_MAX_OUTPUT_TOKENS_IMAGE", str(default_max)))
+        self.max_output_tokens_video = int(os.getenv("GEMINI_MAX_OUTPUT_TOKENS_VIDEO", str(max(default_max, 3072))))
         
         # 安全設定 - 允許所有內容類型
         self.safety_settings = {
@@ -41,7 +46,7 @@ class GeminiVisionAnalyzer:
             HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
         }
         
-        # 圖片內容描述系統提示
+        # 圖片內容描述系統提示（建議 JSON，但允許純文字長段落）
         self.image_prompt = """
 請詳細描述這張 Threads 社交媒體貼文圖片的內容：
 
@@ -61,38 +66,43 @@ class GeminiVisionAnalyzer:
   "technical_notes": "技術細節說明"
 }
 
-請用繁體中文回應，描述要詳細且準確。
+請用繁體中文回應，描述要詳細且準確。優先使用上方 JSON 格式；若不便，也可輸出一段完整的長文字描述。
 """
 
-        # 影片內容描述系統提示
+        # 安全回退用的中性提示（僅客觀元素，避免敏感觸發）
+        self.safe_image_prompt = """
+請以客觀、中性的方式列出圖片中的可見元素與場景，不涉及裸露、性暗示、暴力或價值判斷。
+輸出 JSON：
+{
+  "main_content": "重點客觀描述",
+  "text_content": "圖片中的可見文字（若無留空）",
+  "visual_elements": "主要物件/構圖/場景",
+  "style_and_mood": "風格/色調（客觀詞彙）",
+  "technical_notes": "解析度/光線/清晰度等技術觀察"
+}
+僅回傳 JSON。
+        """
+
+        # 影片內容描述系統提示（建議 JSON，但允許純文字長段落）
         self.video_prompt = """
-請用繁體中文，依下列「描述重點」完成分析，並輸出為一個 JSON 陣列（segments）。不需固定段數，覆蓋影片主要內容即可：
+請你擔任影片場景敘述與關鍵元素標記器。優先依照時間片段輸出結構化 JSON；若不便，也可輸出純文字的完整長段落描述。避免過度簡化，盡量涵蓋主要內容與字幕。
 
-描述重點：
-1. 影片位置：影片時間位置
-2. 內容描述：影片中的主題內容，或場景、環境、背景
-3. 動作和事件：影片中發生的動作、事件序列
-4. 人物和對象：出現的人物、物件及其互動
-5. 音視覺效果：視覺效果、轉場、文字覆蓋等
-6. 文字內容：影片中出現的所有文字（字幕、標題、註解等）
-7. 情感和氛圍：影片傳達的情感、氛圍或訊息
-
-輸出範例（JSON 陣列，段數不限，可自由增減欄位）：
-[
-  {
-    "startTime": "mm:ss",
-    "endTime": "mm:ss",
-    "visual_description": "聚焦敘事/元素/傳達的畫面與動作",
-    "dialogue": {
-      "english": "英文原文（無則留空）",
-      "chinese_subtitle": "中文對白/字幕（無則留空）"
+回傳 JSON 格式（物件）：
+{
+  "segments": [
+    {
+      "startTime": "00:00",
+      "endTime": "00:02",
+      "visual_description": "畫面所見客觀內容",
+      "dialogue": { "chinese_subtitle": "若有字幕/對話，提供中文內容；沒有則省略此欄" }
     }
-  }
-]
+  ],
+  "key_elements": { "people": [], "objects": [], "locations": [] },
+  "message_and_tone": "整體訊息與情緒（中性詞彙）",
+  "narrative_overview": "以 1-3 句話客觀總結影片敘事"
+}
 
-要求：
-- 儘量只輸出 JSON 陣列本體；若無法，仍以 JSON 為主即可。
-- 時間允許 3–5 秒粒度，段數依內容自定。
+以繁體中文回覆。優先 JSON；否則輸出一段完整長文字即可。
         """
 
         # 從截圖中提取瀏覽次數的系統提示
@@ -162,14 +172,21 @@ class GeminiVisionAnalyzer:
                     'total_tokens': getattr(usage_md, 'total_token_count', 0) if usage_md else 0,
                 }
                 # 無成本資訊，留 0；此處不做估算以保守穩定
+                # 使用 LLMManager 的費率計算邏輯
+                try:
+                    from common.llm_manager import GeminiProvider
+                    provider = GeminiProvider({})
+                    cost = provider._calculate_cost(self.model_name, usage)
+                except Exception:
+                    cost = 0.0
                 asyncio.create_task(log_usage(
                     provider="gemini",
-                    model="gemini-2.0-flash",
+                    model=self.model_name,
                     request_id=f"gemini_vision_{int(time.time()*1000)}",
                     prompt_tokens=usage['prompt_tokens'],
                     completion_tokens=usage['completion_tokens'],
                     total_tokens=usage['total_tokens'],
-                    cost=0.0,
+                    cost=cost,
                     latency_ms=latency_ms,
                     status="success",
                     service=get_service_name(),
@@ -201,6 +218,7 @@ class GeminiVisionAnalyzer:
         """
         try:
             # 根據 MIME 類型選擇處理方式
+            is_image = False
             if mime_type.startswith('image/'):
                 # 圖片：使用正確的 API 語法
                 import base64
@@ -215,6 +233,7 @@ class GeminiVisionAnalyzer:
                     parts = [media_part, prompt, context_text]
                 else:
                     parts = [media_part, prompt]
+                is_image = True
                 
             elif mime_type.startswith('video/'):
                 # 影片：使用 File API
@@ -231,23 +250,133 @@ class GeminiVisionAnalyzer:
                 parts,
                 safety_settings=self.safety_settings,
                 generation_config=genai.types.GenerationConfig(
-                    temperature=0.1,  # 低溫度確保一致性
-                    top_p=0.8,
-                    top_k=40,
-                    max_output_tokens=512,
+                    temperature=0.2,
+                    top_p=0.9,
+                    top_k=64,
+                    max_output_tokens=(self.max_output_tokens_image if is_image else self.max_output_tokens_video),
                 )
             )
             latency_ms = int((time.time() - start_ts) * 1000)
             
-            # 解析回應
-            response_text = response.text.strip()
-            # 清除常見的 Markdown code block 殼
-            if response_text.startswith("```json") and response_text.endswith("```"):
-                response_text = response_text[7:-3].strip()
-            
-            # 嘗試解析 JSON
+            # 解析回應（安全提取，避免 finish_reason=2 時拋例外）
+            def _safe_text(resp):
+                try:
+                    txt = resp.text.strip()
+                    if txt.startswith("```json") and txt.endswith("```"):
+                        txt = txt[7:-3].strip()
+                    return txt
+                except Exception:
+                    return None
+            response_text = _safe_text(response)
+
+            # 取得 finish_reason 判斷是否被安全阻擋
+            finish_reason = None
             try:
-                data = json.loads(response_text)
+                finish_reason = response.candidates[0].finish_reason if response.candidates else None
+            except Exception:
+                pass
+
+            # 若遭安全阻擋或無文字，嘗試回退
+            if response_text is None or finish_reason == 2:
+                # 回退 1：圖片改用中性提示
+                if is_image:
+                    safe_parts = parts[:-1] + [self.safe_image_prompt] if isinstance(parts[-1], str) else parts + [self.safe_image_prompt]
+                    try:
+                        safe_resp = self.model.generate_content(
+                            safe_parts,
+                            safety_settings=self.safety_settings,
+                            generation_config=genai.types.GenerationConfig(
+                                temperature=0.0,
+                                max_output_tokens=320,
+                            )
+                        )
+                        response_text = _safe_text(safe_resp)
+                        # 記錄回退使用量
+                        try:
+                            usage_md = getattr(safe_resp, 'usage_metadata', None)
+                            usage = {
+                                'prompt_tokens': getattr(usage_md, 'prompt_token_count', 0) if usage_md else 0,
+                                'completion_tokens': getattr(usage_md, 'candidates_token_count', 0) if usage_md else 0,
+                                'total_tokens': getattr(usage_md, 'total_token_count', 0) if usage_md else 0,
+                            }
+                            provider = GeminiProvider({})
+                            cost = provider._calculate_cost(self.model_name, usage)
+                            asyncio.create_task(log_usage(
+                                provider="gemini",
+                                model=self.model_name,
+                                request_id=f"gemini_vision_{int(time.time()*1000)}",
+                                prompt_tokens=usage['prompt_tokens'],
+                                completion_tokens=usage['completion_tokens'],
+                                total_tokens=usage['total_tokens'],
+                                cost=cost,
+                                latency_ms=latency_ms,
+                                status="fallback_safe_prompt",
+                                service=get_service_name(),
+                                metadata={"component": "gemini_vision.analyze_media", "fallback": "safe_prompt"},
+                            ))
+                        except Exception:
+                            pass
+                    except Exception:
+                        response_text = None
+
+                # 回退 2：替代模型（image/video 都可）
+                if response_text is None:
+                    try:
+                        alt_model_name = os.getenv("GEMINI_FALLBACK_MODEL", "gemini-2.0-flash")
+                        alt_model = genai.GenerativeModel(alt_model_name)
+                        alt_parts = parts
+                        if is_image:
+                            # 確保使用中性提示
+                            alt_parts = parts[:-1] + [self.safe_image_prompt] if isinstance(parts[-1], str) else parts + [self.safe_image_prompt]
+                        alt_resp = alt_model.generate_content(
+                            alt_parts,
+                            safety_settings=self.safety_settings,
+                            generation_config=genai.types.GenerationConfig(
+                                temperature=0.0,
+                                max_output_tokens=320,
+                            )
+                        )
+                        response_text = _safe_text(alt_resp)
+                        try:
+                            usage_md = getattr(alt_resp, 'usage_metadata', None)
+                            usage = {
+                                'prompt_tokens': getattr(usage_md, 'prompt_token_count', 0) if usage_md else 0,
+                                'completion_tokens': getattr(usage_md, 'candidates_token_count', 0) if usage_md else 0,
+                                'total_tokens': getattr(usage_md, 'total_token_count', 0) if usage_md else 0,
+                            }
+                            provider = GeminiProvider({})
+                            cost = provider._calculate_cost(alt_model_name, usage)
+                            asyncio.create_task(log_usage(
+                                provider="gemini",
+                                model=alt_model_name,
+                                request_id=f"gemini_vision_{int(time.time()*1000)}",
+                                prompt_tokens=usage['prompt_tokens'],
+                                completion_tokens=usage['completion_tokens'],
+                                total_tokens=usage['total_tokens'],
+                                cost=cost,
+                                latency_ms=latency_ms,
+                                status="fallback_alt_model",
+                                service=get_service_name(),
+                                metadata={"component": "gemini_vision.analyze_media", "fallback": "alt_model"},
+                            ))
+                        except Exception:
+                            pass
+                    except Exception:
+                        response_text = None
+            
+            # 嘗試解析 JSON（寬鬆處理 ```json 包裹、陣列包裝）
+            try:
+                if response_text is None:
+                    raise json.JSONDecodeError("no text", "", 0)
+                txt = response_text.strip()
+                if txt.startswith("```json"):
+                    txt = txt[7:]
+                if txt.endswith("```"):
+                    txt = txt[:-3]
+                txt = txt.strip()
+                data = json.loads(txt)
+                if isinstance(data, list):
+                    data = {"segments": data}
                 # 記錄 usage
                 try:
                     usage_md = getattr(response, 'usage_metadata', None)
@@ -256,14 +385,20 @@ class GeminiVisionAnalyzer:
                         'completion_tokens': getattr(usage_md, 'candidates_token_count', 0) if usage_md else 0,
                         'total_tokens': getattr(usage_md, 'total_token_count', 0) if usage_md else 0,
                     }
+                    try:
+                        from common.llm_manager import GeminiProvider
+                        provider = GeminiProvider({})
+                        cost = provider._calculate_cost(self.model_name, usage)
+                    except Exception:
+                        cost = 0.0
                     asyncio.create_task(log_usage(
                         provider="gemini",
-                        model="gemini-2.0-flash",
+                        model=self.model_name,
                         request_id=f"gemini_vision_{int(time.time()*1000)}",
                         prompt_tokens=usage['prompt_tokens'],
                         completion_tokens=usage['completion_tokens'],
                         total_tokens=usage['total_tokens'],
-                        cost=0.0,
+                        cost=cost,
                         latency_ms=latency_ms,
                         status="success",
                         service=get_service_name(),
@@ -274,8 +409,18 @@ class GeminiVisionAnalyzer:
                 return data  # 直接返回內容描述的 JSON
                 
             except json.JSONDecodeError:
-                # 如果 JSON 解析失敗，返回原始文字
+                # 如果 JSON 解析失敗或無文字，返回最小可用結構（避免整批失敗）
                 if mime_type.startswith('image/'):
+                    if response_text is None:
+                        return {
+                            "blocked": True,
+                            "reason": "safety_block_or_empty",
+                            "main_content": "受內容安全限制或無輸出，返回中性占位描述。",
+                            "text_content": "",
+                            "visual_elements": "",
+                            "style_and_mood": "",
+                            "technical_notes": "fallback"
+                        }
                     return {
                         "main_content": response_text,
                         "text_content": "",
@@ -284,6 +429,15 @@ class GeminiVisionAnalyzer:
                         "technical_notes": "JSON 解析失敗，返回原始回應"
                     }
                 else:  # video
+                    if response_text is None:
+                        return {
+                            "blocked": True,
+                            "reason": "safety_block_or_empty",
+                            "narrative_overview": "受內容安全限制或無輸出，返回中性占位描述。",
+                            "key_elements": {"people": [], "objects": [], "locations": []},
+                            "message_and_tone": "fallback",
+                            "segments": []
+                        }
                     return {
                         "narrative_overview": response_text,
                         "key_elements": {

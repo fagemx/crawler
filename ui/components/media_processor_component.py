@@ -297,48 +297,60 @@ class MediaProcessorComponent:
                     with st.expander("🔍 詳細錯誤訊息", expanded=False):
                         st.code(error_detail, language="python")
 
-        # 介面：單篇媒體瀏覽（快速預覽下載內容）
+        # 介面：單篇媒體瀏覽（輸入貼文 URL 預覽）
         st.markdown("---")
         with st.expander("📂 單篇媒體瀏覽（輸入貼文 URL 預覽）", expanded=False):
-            view_post_url = st.text_input("貼文 URL（https://www.threads.net/@user/post/XXXX）", key="view_post_url")
-            col_v1, col_v2 = st.columns([1, 9])
-            with col_v1:
-                if st.button("載入媒體", key="btn_view_media") and view_post_url:
-                    try:
-                        from services.rustfs_client import RustFSClient
-                        import nest_asyncio, asyncio
-                        nest_asyncio.apply()
-                        client = RustFSClient()
-                        files = asyncio.get_event_loop().run_until_complete(client.get_media_files(view_post_url))
-                        if not files:
-                            st.info("此貼文尚無媒體記錄或尚未下載")
-                        else:
-                            st.success(f"找到 {len(files)} 個媒體檔案：")
-                            for f in files:
-                                rust_key = f.get('rustfs_key')
-                                # 盡量產生可存取的 URL：優先 presigned，再退公開 URL
-                                rustfs_url = client.get_public_or_presigned_url(rust_key, prefer_presigned=True)
-                                info_line = f"{f.get('media_type','')} | {f.get('file_extension','')} | {f.get('file_size') or '-'} bytes"
-                                st.caption(info_line)
-                                # 預覽
-                                if (f.get('media_type') == 'image'):
-                                    try:
-                                        st.image(rustfs_url, use_container_width=True)
-                                    except Exception:
-                                        st.write(rustfs_url)
-                                elif (f.get('media_type') == 'video'):
-                                    try:
-                                        st.video(rustfs_url)
-                                    except Exception:
-                                        st.write(rustfs_url)
-                                else:
-                                    st.write(rustfs_url)
-                                # 直接連結與複製
-                                st.markdown(f"[在新分頁開啟]({rustfs_url})")
-                                st.code(rustfs_url)
-                                st.markdown("---")
-                    except Exception as e:
-                        st.error(f"載入媒體失敗：{e}")
+            view_post_url = st.text_input("貼文 URL（https://www.threads.net/@user/post/XXXX）", key="view_post_url_media")
+            if st.button("載入媒體", key="btn_view_media") and view_post_url:
+                try:
+                    from common.db_client import get_db_client
+                    from services.rustfs_client import RustFSClient
+                    import nest_asyncio, asyncio
+                    nest_asyncio.apply()
+                    db = asyncio.get_event_loop().run_until_complete(get_db_client())
+                    client = RustFSClient()
+                    rows = asyncio.get_event_loop().run_until_complete(
+                        db.fetch_all(
+                            """
+                            SELECT id, media_type, rustfs_url, original_url
+                            FROM media_files
+                            WHERE post_url = $1 AND download_status='completed'
+                            ORDER BY id ASC
+                            """,
+                            view_post_url,
+                        )
+                    )
+                    if not rows:
+                        st.info("此貼文尚無可預覽的已下載媒體")
+                    else:
+                        st.success(f"找到 {len(rows)} 筆已下載媒體：")
+                        for r in rows:
+                            rustfs_url = r.get('rustfs_url')
+                            original_url = r.get('original_url')
+                            # 嘗試從 rustfs_url 萃取 key → 產生可讀 URL
+                            url = None
+                            try:
+                                if rustfs_url:
+                                    prefix = f"{client.base_url}/{client.bucket_name}/"
+                                    key = rustfs_url[len(prefix):] if rustfs_url.startswith(prefix) else None
+                                    url = client.get_public_or_presigned_url(key or '', prefer_presigned=True) if key else rustfs_url
+                            except Exception:
+                                url = None
+                            if not url:
+                                url = original_url
+
+                            st.caption(f"[{r.get('media_type')}] 媒體ID: {r.get('id')}")
+                            if r.get('media_type') == 'image' and url:
+                                st.image(url, use_container_width=True)
+                            elif r.get('media_type') == 'video' and url:
+                                st.video(url)
+                            else:
+                                st.write(url or "(無可用連結)")
+                            st.markdown("---")
+                except Exception as e:
+                    st.error(f"載入媒體失敗：{e}")
+
+        
 
     # ---------- 描述器 ----------
     def _render_describer(self):
@@ -371,6 +383,10 @@ class MediaProcessorComponent:
                     "username": "使用者",
                     "pending_images": "待描述圖片",
                     "pending_videos": "待描述影片",
+                    "completed_images": "已描述圖片",
+                    "completed_videos": "已描述影片",
+                    "pending_total": "待描述合計",
+                    "completed_total": "已描述合計",
                 })
                 st.dataframe(df, use_container_width=True, height=min(400, 38 + len(df) * 32))
             else:
@@ -424,9 +440,185 @@ class MediaProcessorComponent:
                     st.info("沒有待描述的媒體")
                     return
                 st.info(f"即將描述 {len(items)} 個媒體項目…")
-                result = asyncio.get_event_loop().run_until_complete(svc.run_describe(items, overwrite=True))
-                st.success(f"描述完成：成功 {result['success']}，失敗 {result['failed']} / 共 {result['total']}")
+                # 即時進度條
+                progress = st.progress(0.0)
+                status_area = st.empty()
+
+                # 逐批處理，邊更新 UI（避免一次性等待）
+                batch_size = 5
+                total = len(items)
+                completed = 0
+                agg_success, agg_failed = 0, 0
+                details_all = []
+                for i in range(0, total, batch_size):
+                    batch = items[i:i+batch_size]
+                    result = asyncio.get_event_loop().run_until_complete(svc.run_describe(batch, overwrite=True))
+                    agg_success += result.get('success', 0)
+                    agg_failed += result.get('failed', 0)
+                    details_all.extend(result.get('details', []))
+                    completed = min(total, i+batch_size)
+                    progress.progress(completed/total)
+                    status_area.info(f"進度：{completed}/{total}（成功 {agg_success}，失敗 {agg_failed}）")
+
+                st.success(f"描述完成：成功 {agg_success}，失敗 {agg_failed} / 共 {total}")
+                # 失敗樣本展示
+                failed_samples = [d for d in details_all if d.get('status') == 'failed']
+                if failed_samples:
+                    with st.expander("❌ 失敗詳情（前10筆）", expanded=False):
+                        for d in failed_samples[:10]:
+                            st.write(d)
             except Exception as e:
                 st.error(f"描述執行失敗：{e}")
+
+        # 介面：依帳號瀏覽（成果/待描述 內容預覽）
+        st.markdown("---")
+        with st.expander("📋 帳號內容瀏覽（描述成果 / 待描述）", expanded=False):
+            sum_user = st.text_input("帳號", value="natgeo", key="sum_user")
+            sum_types = st.multiselect("媒體類型", ["image", "video"], default=["image"], key="sum_types")
+            sum_limit = st.selectbox("顯示數量", [10, 20, 50], index=1, key="sum_limit")
+            col_b1, col_b2 = st.columns(2)
+            with col_b1:
+                btn_recent = st.button("載入最近描述成果", key="btn_load_recent_desc")
+            with col_b2:
+                btn_pending = st.button("載入待描述媒體", key="btn_load_pending_media")
+
+            if btn_recent and sum_user:
+                try:
+                    from agents.vision.media_describe_service import MediaDescribeService
+                    import nest_asyncio, asyncio
+                    nest_asyncio.apply()
+                    svc = MediaDescribeService()
+                    rows = asyncio.get_event_loop().run_until_complete(
+                        svc.get_recent_descriptions_by_user(sum_user, sum_types, int(sum_limit))
+                    )
+                    if rows:
+                        st.subheader("🟩 最近描述成果")
+                        for r in rows:
+                            st.caption(f"[{r.get('media_type')}] 模型: {r.get('model')} | 時間: {r.get('created_at')} | 貼文: {r.get('post_url')}")
+                            try:
+                                import json as _json
+                                st.json(_json.loads(r.get('response_json') or '{}'))
+                            except Exception:
+                                st.code(r.get('response_json') or '')
+                            st.markdown("---")
+                    else:
+                        st.info("此帳號暫無描述成果")
+                except Exception as e:
+                    st.error(f"載入描述成果失敗：{e}")
+
+            if btn_pending and sum_user:
+                try:
+                    from agents.vision.media_describe_service import MediaDescribeService
+                    from services.rustfs_client import RustFSClient
+                    import nest_asyncio, asyncio
+                    nest_asyncio.apply()
+                    svc = MediaDescribeService()
+                    client = RustFSClient()
+                    rows = asyncio.get_event_loop().run_until_complete(
+                        svc.get_pending_media_by_user(sum_user, sum_types, int(sum_limit))
+                    )
+                    if rows:
+                        st.subheader("🟨 待描述媒體預覽")
+                        for f in rows:
+                            rust_key = f.get('rustfs_key')
+                            rustfs_url = None
+                            if rust_key:
+                                rustfs_url = client.get_public_or_presigned_url(rust_key, prefer_presigned=True)
+                            st.caption(f"[{f.get('media_type')}] {f.get('post_url')}")
+                            if rustfs_url and f.get('media_type') == 'image':
+                                st.image(rustfs_url, use_container_width=True)
+                            elif rustfs_url and f.get('media_type') == 'video':
+                                st.video(rustfs_url)
+                            st.markdown("---")
+                    else:
+                        st.info("此帳號沒有待描述的媒體或篩選為空")
+                except Exception as e:
+                    st.error(f"載入待描述內容失敗：{e}")
+                try:
+                    from agents.vision.media_describe_service import MediaDescribeService
+                    import nest_asyncio, asyncio, pandas as pd
+                    nest_asyncio.apply()
+                    svc = MediaDescribeService()
+                    data = asyncio.get_event_loop().run_until_complete(
+                        svc.get_undesc_summary_by_user(sum_user, sum_types, int(sum_limit))
+                    )
+                    if data:
+                        df = pd.DataFrame(data)
+                        df = df.rename(columns={
+                            'post_url': '貼文URL',
+                            'pending_images': '待描述圖片',
+                            'pending_videos': '待描述影片',
+                            'pending_total': '合計'
+                        })
+                        st.dataframe(df, use_container_width=True)
+                    else:
+                        st.info("找不到未描述的貼文摘要")
+                except Exception as e:
+                    st.error(f"載入摘要失敗：{e}")
+
+        # 介面：單篇立即描述（上移）
+        with st.expander("🔧 單篇立即描述", expanded=False):
+            sp_url = st.text_input("貼文 URL（https://www.threads.net/@user/post/XXXX）", key="single_desc_url")
+            col_s1, col_s2, col_s3, col_s4 = st.columns(4)
+            with col_s1:
+                sp_types = st.multiselect("媒體類型", ["image", "video"], default=["image"], key="single_desc_types")
+            with col_s2:
+                sp_only_primary = st.checkbox("僅主貼圖（圖片）", value=True, key="single_only_primary")
+            with col_s3:
+                sp_threshold = st.slider("主貼圖門檻", min_value=0.5, max_value=0.9, value=0.7, step=0.05, key="single_primary_th")
+            with col_s4:
+                sp_overwrite = st.checkbox("重新描述（覆蓋舊的）", value=True, key="single_overwrite")
+
+            if st.button("開始單篇描述", key="btn_single_describe") and sp_url:
+                try:
+                    from agents.vision.media_describe_service import MediaDescribeService
+                    import nest_asyncio, asyncio
+                    nest_asyncio.apply()
+                    svc = MediaDescribeService()
+                    with st.spinner("正在描述該貼文的媒體..."):
+                        sp_result = asyncio.get_event_loop().run_until_complete(
+                            svc.describe_single_post(
+                                post_url=sp_url,
+                                media_types=sp_types,
+                                only_primary=sp_only_primary,
+                                primary_threshold=float(sp_threshold),
+                                overwrite=sp_overwrite,
+                            )
+                        )
+                    st.success(f"完成：成功 {sp_result.get('success',0)}，失敗 {sp_result.get('failed',0)} / 共 {sp_result.get('total',0)}")
+                    # 顯示少量詳情
+                    dets = sp_result.get('details') or []
+                    failed = [d for d in dets if d.get('status') == 'failed']
+                    if failed:
+                        with st.expander("❌ 失敗詳情（前5筆）", expanded=False):
+                            for d in failed[:5]:
+                                st.write(d)
+                except Exception as e:
+                    st.error(f"單篇描述執行失敗：{e}")
+
+        # 介面：單篇描述結果瀏覽（下移）
+        st.markdown("---")
+        with st.expander("🧾 單篇描述結果瀏覽（輸入貼文 URL）", expanded=False):
+            view_post_url = st.text_input("貼文 URL（https://www.threads.net/@user/post/XXXX）", key="view_post_url_desc")
+            col_v1, col_v2 = st.columns([1, 9])
+            with col_v1:
+                if st.button("載入描述結果", key="btn_view_desc") and view_post_url:
+                    try:
+                        from agents.vision.media_describe_service import MediaDescribeService
+                        import nest_asyncio, asyncio
+                        nest_asyncio.apply()
+                        svc = MediaDescribeService()
+                        rows = asyncio.get_event_loop().run_until_complete(svc.get_descriptions_by_post(view_post_url))
+                        if not rows:
+                            st.info("此貼文尚無描述結果")
+                        else:
+                            st.success(f"找到 {len(rows)} 筆描述結果：")
+                        for r in rows:
+                            st.caption(f"[{r.get('media_type')}] 模型: {r.get('model')} | 時間: {r.get('created_at')}")
+                            resp = r.get('response_json') or ''
+                            st.code(resp, language="json")
+                            st.markdown("---")
+                    except Exception as e:
+                        st.error(f"載入媒體失敗：{e}")
 
 

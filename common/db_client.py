@@ -30,18 +30,20 @@ class DatabaseClient:
         if self.pool is None:
             self.pool = await asyncpg.create_pool(
                 self.settings.database.url,
-                min_size=5,
+                min_size=1,  # 降低啟動連線數，避免觸發 too many clients
                 max_size=self.settings.database.pool_size,
-                command_timeout=60
+                command_timeout=60,
+                max_inactive_connection_lifetime=30.0,
             )
         else:
             # 若池已存在但處於關閉狀態，重新建立
             if getattr(self.pool, "_closed", False):
                 self.pool = await asyncpg.create_pool(
                     self.settings.database.url,
-                    min_size=5,
+                    min_size=1,
                     max_size=self.settings.database.pool_size,
-                    command_timeout=60
+                    command_timeout=60,
+                    max_inactive_connection_lifetime=30.0,
                 )
     
     async def close_pool(self):
@@ -57,8 +59,16 @@ class DatabaseClient:
         if not self.pool or getattr(self.pool, "_closed", False):
             await self.init_pool()
         
-        async with self.pool.acquire() as conn:
+        conn = None
+        try:
+            conn = await asyncio.wait_for(self.pool.acquire(), timeout=5.0)
             yield conn
+        finally:
+            if conn is not None:
+                try:
+                    await self.pool.release(conn)
+                except Exception:
+                    pass
     
     async def fetch_all(self, query: str, *args) -> List[Dict]:
         """執行查詢並返回所有結果（含連線重試）"""
@@ -97,6 +107,19 @@ class DatabaseClient:
                     pass
                 await asyncio.sleep(0.1)
                 continue
+            except pg_exc.PostgresError as e:
+                # 伺服器連線數已滿（SQLSTATE 53300）或常見訊息判斷
+                sqlstate = getattr(e, 'sqlstate', None)
+                if sqlstate == '53300' or 'too many clients' in str(e).lower():
+                    last_err = e
+                    try:
+                        await self.close_pool()
+                        await self.init_pool()
+                    except Exception:
+                        pass
+                    await asyncio.sleep(0.5)
+                    continue
+                raise
             except Exception as e:
                 # 特判常見池狀態錯誤，嘗試重建一次
                 msg = str(e).lower()

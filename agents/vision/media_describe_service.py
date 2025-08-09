@@ -15,31 +15,38 @@ class MediaDescribeService:
         self.analyzer = GeminiVisionAnalyzer()
 
     async def get_account_describe_stats(self, limit: int = 50) -> List[Dict[str, Any]]:
-        """統計各帳號『已下載完成但未描述』的媒體數。"""
+        """統計各帳號媒體描述現況（待描述/已描述）。"""
         db = await get_db_client()
         query = f"""
-        WITH completed AS (
-            SELECT mf.id, mf.post_url, mf.media_type
-            FROM media_files mf
-            WHERE mf.download_status = 'completed'
+        WITH mf AS (
+            SELECT id, post_url, media_type
+            FROM media_files
+            WHERE download_status = 'completed'
         ),
-        pw AS (
-            SELECT username, url FROM playwright_post_metrics
+        pwm AS (
+            SELECT url, username FROM playwright_post_metrics
         ),
         joined AS (
-            SELECT pw.username, c.id AS media_id, c.media_type
-            FROM completed c
-            JOIN pw ON pw.url = c.post_url
+            SELECT p.username, m.id AS media_id, m.media_type
+            FROM mf m
+            JOIN pwm p ON p.url = m.post_url
+        ),
+        joined_d AS (
+            SELECT j.username, j.media_id, j.media_type,
+                   CASE WHEN d.media_id IS NULL THEN 0 ELSE 1 END AS is_desc
+            FROM joined j
+            LEFT JOIN media_descriptions d ON d.media_id = j.media_id
         )
         SELECT username,
-               COUNT(*) FILTER (WHERE media_type='image') AS pending_images,
-               COUNT(*) FILTER (WHERE media_type='video') AS pending_videos
-        FROM joined j
-        WHERE NOT EXISTS (
-            SELECT 1 FROM media_descriptions d WHERE d.media_id = j.media_id
-        )
+               COUNT(*) FILTER (WHERE media_type='image' AND is_desc=0) AS pending_images,
+               COUNT(*) FILTER (WHERE media_type='video' AND is_desc=0) AS pending_videos,
+               COUNT(*) FILTER (WHERE media_type='image' AND is_desc=1) AS completed_images,
+               COUNT(*) FILTER (WHERE media_type='video' AND is_desc=1) AS completed_videos,
+               COUNT(*) FILTER (WHERE is_desc=0) AS pending_total,
+               COUNT(*) FILTER (WHERE is_desc=1) AS completed_total
+        FROM joined_d
         GROUP BY username
-        ORDER BY (COUNT(*)) DESC
+        ORDER BY pending_total DESC, completed_total DESC
         LIMIT {limit}
         """
         return await db.fetch_all(query)
@@ -60,33 +67,38 @@ class MediaDescribeService:
         # 先取貼文集合（排序 Top-N）
         post_filter_cte = ""
         if sort_by and sort_by != "none" and top_k and isinstance(top_k, int):
-            sort_col = {
-                "views": "views_count",
-                "likes": "likes_count",
-                "comments": "comments_count",
-                "reposts": "reposts_count",
+            # 使用 COALESCE 避免 NULL 影響排序
+            sort_expr = {
+                "views": "COALESCE(views_count, 0)",
+                "likes": "COALESCE(likes_count, 0)",
+                "comments": "COALESCE(comments_count, 0)",
+                "reposts": "COALESCE(reposts_count, 0)",
             }.get(sort_by, None)
-            if sort_col:
+            if sort_expr:
                 post_filter_cte = f"""
                 , top_posts AS (
                     SELECT url
                     FROM playwright_post_metrics
-                    WHERE username = $1
-                    ORDER BY {sort_col} DESC NULLS LAST
+                    WHERE replace(lower(username),'@','') = replace(lower($1),'@','')
+                    ORDER BY {sort_expr} DESC NULLS LAST
                     LIMIT {top_k}
                 )
                 """
 
-        base_posts = "WHERE username = $1" if not post_filter_cte else "WHERE url IN (SELECT url FROM top_posts)"
+        base_posts = "WHERE replace(lower(username),'@','') = replace(lower($1),'@','')" if not post_filter_cte else "WHERE url IN (SELECT url FROM top_posts)"
         query = f"""
-        WITH base AS (
+        WITH
+        {post_filter_cte}
+        base AS (
             SELECT url, username FROM playwright_post_metrics {base_posts}
         )
-        {post_filter_cte}
         , completed AS (
             SELECT mf.*
             FROM media_files mf
             WHERE mf.download_status = 'completed'
+        )
+        , described AS (
+            SELECT d.media_id FROM media_descriptions d
         )
         SELECT mf.id AS media_id, mf.post_url, mf.original_url, mf.media_type, mf.rustfs_url,
                mf.width, mf.height, mf.file_size,
@@ -101,14 +113,15 @@ class MediaDescribeService:
         rows = await db.fetch_all(query, username, mt_array)
 
         if only_undesc and rows:
+            # 直接過濾掉已存在描述的 media_id（用 IN 子查詢避免佔位）
             ids = [r["media_id"] for r in rows]
-            # 使用陣列參數避免動態拼接與參數編號問題
-            desc_rows = await db.fetch_all(
-                "SELECT media_id FROM media_descriptions WHERE media_id = ANY($1::int[])",
-                ids
-            )
-            described = {d["media_id"] for d in desc_rows}
-            rows = [r for r in rows if r["media_id"] not in described]
+            if ids:
+                placeholders = ",".join([str(int(i)) for i in ids])
+                desc_rows = await db.fetch_all(
+                    f"SELECT media_id FROM media_descriptions WHERE media_id IN ({placeholders})"
+                )
+                described = {d["media_id"] for d in desc_rows}
+                rows = [r for r in rows if r["media_id"] not in described]
 
         # 規則篩選（第一段）：若 only_primary
         if only_primary and rows:
@@ -169,7 +182,14 @@ class MediaDescribeService:
                 original_url = item["original_url"]
                 media_type = item["media_type"]
                 try:
-                    # 0. 若為圖片且標記為非主貼圖，則跳過
+                    # 0. 實時重複檢查（防止並發競爭導致重複描述）
+                    if not overwrite:
+                        existing = await conn.fetchrow("SELECT id FROM media_descriptions WHERE media_id = $1", media_id)
+                        if existing:
+                            details.append({"media_id": media_id, "status": "skipped", "reason": "already_described"})
+                            continue
+
+                    # 1. 若為圖片且標記為非主貼圖，則跳過
                     if item.get("media_type") == 'image':
                         is_primary = item.get("is_primary")
                         if is_primary is False:
@@ -183,9 +203,14 @@ class MediaDescribeService:
 
                     rustfs_url = item.get("rustfs_url")
                     if rustfs_url:
+                        # 將資料庫中的 URL 轉為可讀的（優先 presigned）
                         try:
+                            # 解析出 key：{base}/{bucket}/{key}
+                            prefix = f"{client.base_url}/{client.bucket_name}/"
+                            key = rustfs_url[len(prefix):] if rustfs_url.startswith(prefix) else None
+                            presigned = client.get_public_or_presigned_url(key or '', prefer_presigned=True) if key else rustfs_url
                             async with httpx.AsyncClient(timeout=60.0) as http:
-                                resp = await http.get(rustfs_url, follow_redirects=True, auth=(client.access_key, client.secret_key))
+                                resp = await http.get(presigned, follow_redirects=True)
                                 resp.raise_for_status()
                                 media_bytes = resp.content
                                 mime = resp.headers.get("content-type", "") or mime
@@ -224,26 +249,44 @@ class MediaDescribeService:
                         except Exception:
                             result = {"raw": str(result)}
 
-                    # 5. 覆蓋或新增
-                    if overwrite:
-                        await conn.execute(
-                            """
-                            DELETE FROM media_descriptions WHERE media_id = $1
-                            """,
-                            media_id
-                        )
+                    # 5. 原子性覆蓋或新增（使用 transaction + advisory lock 防止並發重複）
+                    async with conn.transaction():
+                        # 每個 media_id 拿一把交易級別鎖，序列化同一資源的並發寫入
+                        await conn.execute("SELECT pg_advisory_xact_lock($1)", media_id)
 
-                    await conn.execute(
-                        """
-                        INSERT INTO media_descriptions
-                        (media_id, post_url, username, media_type, model, prompt, response_json, language, status, created_at)
-                        SELECT $1, mf.post_url, pwm.username, $2, $3, $4, $5, 'zh-TW', 'completed', NOW()
-                        FROM media_files mf
-                        JOIN playwright_post_metrics pwm ON pwm.url = mf.post_url
-                        WHERE mf.id = $1
-                        """,
-                        media_id, media_type, "gemini-2.5-pro", prompt_text, json.dumps(result, ensure_ascii=False)
-                    )
+                        if overwrite:
+                            # 覆蓋模式：先刪除，再插入
+                            await conn.execute(
+                                """
+                                DELETE FROM media_descriptions WHERE media_id = $1
+                                """,
+                                media_id
+                            )
+                            await conn.execute(
+                                """
+                                INSERT INTO media_descriptions
+                                (media_id, post_url, username, media_type, model, prompt, response_json, language, status, created_at)
+                                SELECT $1, mf.post_url, pwm.username, $2, $3, $4, $5, 'zh-TW', 'completed', NOW()
+                                FROM media_files mf
+                                JOIN playwright_post_metrics pwm ON pwm.url = mf.post_url
+                                WHERE mf.id = $1
+                                """,
+                                media_id, media_type, "gemini-2.5-pro", prompt_text, json.dumps(result, ensure_ascii=False)
+                            )
+                        else:
+                            # 非覆蓋：僅在不存在時插入
+                            await conn.execute(
+                                """
+                                INSERT INTO media_descriptions
+                                (media_id, post_url, username, media_type, model, prompt, response_json, language, status, created_at)
+                                SELECT $1, mf.post_url, pwm.username, $2, $3, $4, $5, 'zh-TW', 'completed', NOW()
+                                FROM media_files mf
+                                JOIN playwright_post_metrics pwm ON pwm.url = mf.post_url
+                                WHERE mf.id = $1
+                                  AND NOT EXISTS (SELECT 1 FROM media_descriptions d WHERE d.media_id = $1)
+                                """,
+                                media_id, media_type, "gemini-2.5-pro", prompt_text, json.dumps(result, ensure_ascii=False)
+                            )
 
                     success += 1
                     details.append({"media_id": media_id, "status": "completed"})
@@ -253,4 +296,163 @@ class MediaDescribeService:
 
         return {"total": len(items), "success": success, "failed": failed, "details": details}
 
+
+    async def get_undesc_summary_by_user(self, username: str, media_types: List[str], limit: int = 20) -> List[Dict[str, Any]]:
+        """查詢某帳號尚未描述的貼文摘要（每貼文未描述媒體數）。"""
+        db = await get_db_client()
+        query = """
+        SELECT mf.post_url,
+               COUNT(*) FILTER (WHERE mf.media_type='image') AS pending_images,
+               COUNT(*) FILTER (WHERE mf.media_type='video') AS pending_videos,
+               COUNT(*) AS pending_total
+        FROM media_files mf
+        JOIN playwright_post_metrics pwm ON pwm.url = mf.post_url
+        WHERE replace(lower(pwm.username),'@','') = replace(lower($1),'@','')
+          AND mf.download_status = 'completed'
+          AND mf.media_type = ANY($2)
+          AND NOT EXISTS (
+            SELECT 1 FROM media_descriptions d WHERE d.media_id = mf.id
+          )
+        GROUP BY mf.post_url
+        ORDER BY pending_total DESC
+        LIMIT $3
+        """
+        return await db.fetch_all(query, username, media_types, limit)
+
+    async def get_descriptions_by_post(self, post_url: str) -> List[Dict[str, Any]]:
+        """取得單篇貼文的描述結果列表。"""
+        db = await get_db_client()
+        query = """
+        SELECT d.media_id, d.post_url, d.media_type, d.model, d.prompt, d.response_json, d.status, d.created_at,
+               mf.original_url, mf.rustfs_url
+        FROM media_descriptions d
+        JOIN media_files mf ON mf.id = d.media_id
+        WHERE d.post_url = $1
+        ORDER BY d.created_at DESC
+        """
+        return await db.fetch_all(query, post_url)
+
+    async def get_recent_descriptions_by_user(self, username: str, media_types: List[str], limit: int = 50) -> List[Dict[str, Any]]:
+        """取得某帳號最近的描述結果（瀏覽成果用）。"""
+        db = await get_db_client()
+        query = """
+        SELECT d.media_id, d.post_url, d.media_type, d.model, d.response_json, d.status, d.created_at,
+               mf.original_url, mf.rustfs_url
+        FROM media_descriptions d
+        JOIN media_files mf ON mf.id = d.media_id
+        JOIN playwright_post_metrics pwm ON pwm.url = d.post_url
+        WHERE replace(lower(pwm.username),'@','') = replace(lower($1),'@','')
+          AND d.media_type = ANY($2)
+        ORDER BY d.created_at DESC
+        LIMIT $3
+        """
+        return await db.fetch_all(query, username, media_types, limit)
+
+    async def get_pending_media_by_user(self, username: str, media_types: List[str], limit: int = 50) -> List[Dict[str, Any]]:
+        """取得某帳號尚未描述的媒體（瀏覽內容用）。"""
+        db = await get_db_client()
+        query = """
+        SELECT mf.id AS media_id, mf.post_url, mf.media_type, mf.original_url, mf.rustfs_url,
+               mf.width, mf.height, mf.file_size
+        FROM media_files mf
+        JOIN playwright_post_metrics pwm ON pwm.url = mf.post_url
+        WHERE replace(lower(pwm.username),'@','') = replace(lower($1),'@','')
+          AND mf.download_status = 'completed'
+          AND mf.media_type = ANY($2)
+          AND NOT EXISTS (SELECT 1 FROM media_descriptions d WHERE d.media_id = mf.id)
+        ORDER BY mf.id DESC
+        LIMIT $3
+        """
+        return await db.fetch_all(query, username, media_types, limit)
+
+    async def describe_single_post(self,
+        post_url: str,
+        media_types: List[str],
+        only_primary: bool = True,
+        primary_threshold: float = 0.7,
+        overwrite: bool = True,
+    ) -> Dict[str, Any]:
+        """針對單篇貼文建立清單並執行描述。"""
+        db = await get_db_client()
+
+        def _normalize_threads_url(u: str) -> str:
+            try:
+                u = u.strip()
+                # 域名 threads.com → threads.net
+                u = u.replace("threads.com", "threads.net")
+                # 去掉尾端多餘斜線
+                if u.endswith('/'):
+                    u = u[:-1]
+            except Exception:
+                pass
+            return u
+
+        norm_url = _normalize_threads_url(post_url)
+
+        async def _fetch_by_exact(url: str):
+            # 單篇立即描述：放寬為不強制已完成下載，允許直接用 original_url 描述
+            return await db.fetch_all(
+                """
+                SELECT id AS media_id, post_url, original_url, media_type, rustfs_url,
+                       width, height, file_size,
+                       COALESCE((metadata->>'primary_score')::float, NULL) AS primary_score,
+                       COALESCE((metadata->>'is_primary')::bool, NULL) AS is_primary
+                FROM media_files
+                WHERE post_url = $1 AND media_type = ANY($2)
+                """,
+                url, media_types
+            )
+
+        rows = await _fetch_by_exact(norm_url)
+
+        # 若找不到，嘗試以 shortcode 模糊查找
+        if not rows:
+            try:
+                from urllib.parse import urlparse
+                p = urlparse(norm_url)
+                parts = [seg for seg in p.path.split('/') if seg]
+                shortcode = parts[-1] if parts else None
+            except Exception:
+                shortcode = None
+
+            if shortcode:
+                rows = await db.fetch_all(
+                    """
+                    SELECT id AS media_id, post_url, original_url, media_type, rustfs_url,
+                           width, height, file_size,
+                           COALESCE((metadata->>'primary_score')::float, NULL) AS primary_score,
+                           COALESCE((metadata->>'is_primary')::bool, NULL) AS is_primary
+                    FROM media_files
+                    WHERE media_type = ANY($1)
+                      AND (post_url ILIKE '%'||$2||'%' OR original_url ILIKE '%'||$2||'%')
+                    ORDER BY id DESC
+                    LIMIT 50
+                    """,
+                    media_types, shortcode
+                )
+
+        # 過濾未描述的：僅在非覆蓋模式時才排除已描述
+        if rows and not overwrite:
+            ids = [r["media_id"] for r in rows]
+            placeholders = ",".join([str(int(i)) for i in ids])
+            desc_rows = await db.fetch_all(
+                f"SELECT media_id FROM media_descriptions WHERE media_id IN ({placeholders})"
+            )
+            described = {d["media_id"] for d in desc_rows}
+            rows = [r for r in rows if r["media_id"] not in described]
+
+        # 主貼圖篩選（僅影響圖片，影片不受限）
+        if only_primary and rows:
+            filtered = []
+            for r in rows:
+                if r.get("media_type") != 'image':
+                    filtered.append(r)
+                    continue
+                score = r.get("primary_score")
+                is_primary = r.get("is_primary")
+                if is_primary is True or (score is not None and score >= primary_threshold):
+                    filtered.append(r)
+            rows = filtered
+
+        return await self.run_describe(rows, overwrite=overwrite)
 
