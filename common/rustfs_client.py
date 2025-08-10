@@ -9,6 +9,8 @@ RustFS 客戶端 - 使用 S3 API 與 RustFS 對象存儲交互
 """
 
 import os
+import socket
+from urllib.parse import urlparse, urlunparse
 import hashlib
 import asyncio
 from typing import Optional, Dict, Any, Tuple
@@ -31,6 +33,18 @@ class RustFSClient:
         
         # RustFS 配置
         self.endpoint = os.getenv("RUSTFS_ENDPOINT", "http://localhost:9000")
+        # 自動修正：若端點為 rustfs 且在當前環境不可解析，回退為 localhost
+        try:
+            parsed = urlparse(self.endpoint)
+            host = (parsed.hostname or "").lower()
+            if host == "rustfs":
+                try:
+                    socket.gethostbyname(host)
+                except OSError:
+                    new_netloc = f"localhost:{parsed.port or 9000}"
+                    self.endpoint = urlunparse((parsed.scheme, new_netloc, "", "", "", ""))
+        except Exception:
+            pass
         self.access_key = os.getenv("RUSTFS_ACCESS_KEY", "rustfsadmin")
         self.secret_key = os.getenv("RUSTFS_SECRET_KEY", "rustfssecret")
         self.bucket = os.getenv("RUSTFS_BUCKET", "threads-media")
