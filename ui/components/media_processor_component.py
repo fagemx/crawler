@@ -350,6 +350,103 @@ class MediaProcessorComponent:
                 except Exception as e:
                     st.error(f"載入媒體失敗：{e}")
 
+        # 介面：已下載媒體畫廊（快速總覽）
+        st.markdown("---")
+        with st.expander("🖼️ 已下載媒體瀏覽（畫廊）", expanded=False):
+            col_g1, col_g2, col_g3, col_g4, col_g5 = st.columns([2, 1, 1, 1, 1])
+            with col_g1:
+                gallery_user = st.text_input("帳號（可選）", value="", key="gallery_user")
+            with col_g2:
+                gallery_types = st.multiselect("媒體類型", ["image", "video"], default=["image", "video"], key="gallery_types")
+            with col_g3:
+                gallery_limit = st.selectbox("顯示數量", [20, 50, 100, 200], index=1, key="gallery_limit")
+            with col_g4:
+                cols_per_row = st.select_slider("每列數", options=[3, 4, 5, 6], value=5, key="gallery_cols")
+            with col_g5:
+                size_label = st.selectbox("縮圖大小", ["小", "中", "大"], index=0, key="gallery_size")
+
+            thumb_width = {"小": 160, "中": 240, "大": 320}[size_label]
+
+            if st.button("載入畫廊", key="btn_load_gallery"):
+                try:
+                    from common.db_client import get_db_client
+                    from services.rustfs_client import RustFSClient
+                    import nest_asyncio, asyncio
+                    nest_asyncio.apply()
+
+                    async def load_rows():
+                        db = await get_db_client()
+                        params = []
+                        where = ["mf.download_status='completed'"]
+                        if gallery_user:
+                            where.append("ppm.username = $1")
+                            params.append(gallery_user)
+                        if gallery_types and len(gallery_types) < 2:
+                            # 單一媒體類型
+                            where.append("mf.media_type = $%d" % (len(params) + 1))
+                            params.append(gallery_types[0])
+                        where_sql = " AND ".join(where)
+                        limit_param = len(params) + 1
+                        sql = f"""
+                            SELECT mf.id, mf.media_type, mf.rustfs_key, mf.rustfs_url, mf.post_url, mf.original_url, mf.downloaded_at
+                            FROM media_files mf
+                            LEFT JOIN playwright_post_metrics ppm ON ppm.url = mf.post_url
+                            WHERE {where_sql}
+                            ORDER BY mf.downloaded_at DESC NULLS LAST, mf.id DESC
+                            LIMIT ${limit_param}
+                        """
+                        params.append(int(gallery_limit))
+                        return await db.fetch_all(sql, *params)
+
+                    rows = asyncio.get_event_loop().run_until_complete(load_rows())
+                    if not rows:
+                        st.info("沒有可顯示的已下載媒體")
+                    else:
+                        st.caption(f"共載入 {len(rows)} 筆")
+                        client = RustFSClient()
+                        cols = None
+                        for idx, r in enumerate(rows):
+                            if idx % cols_per_row == 0:
+                                cols = st.columns(cols_per_row)
+                            col = cols[idx % cols_per_row]
+                            with col:
+                                rust_key = r.get('rustfs_key')
+                                rustfs_url = r.get('rustfs_url')
+                                original_url = r.get('original_url')
+                                media_type = r.get('media_type')
+                                # 產生可用 URL（優先簽名 URL）
+                                url = None
+                                try:
+                                    if rust_key:
+                                        url = client.get_public_or_presigned_url(rust_key, prefer_presigned=True)
+                                    elif rustfs_url:
+                                        prefix = f"{client.base_url}/{client.bucket_name}/"
+                                        key = rustfs_url[len(prefix):] if rustfs_url.startswith(prefix) else None
+                                        url = client.get_public_or_presigned_url(key or '', prefer_presigned=True) if key else rustfs_url
+                                except Exception:
+                                    url = None
+                                if not url:
+                                    url = original_url
+
+                                st.caption(f"#{r.get('id')} · {media_type}")
+                                if media_type == 'image' and url:
+                                    st.image(url, width=thumb_width)
+                                elif media_type == 'video' and url:
+                                    st.video(url)
+                                else:
+                                    st.write(url or "(無可用連結)")
+                                # 連結與貼文 URL
+                                link_cols = st.columns([1, 1])
+                                with link_cols[0]:
+                                    if url:
+                                        st.markdown(f"[開啟]({url})")
+                                with link_cols[1]:
+                                    pu = r.get('post_url')
+                                    if pu:
+                                        st.markdown(f"[貼文]({pu})")
+                except Exception as e:
+                    st.error(f"載入畫廊失敗：{e}")
+
         
 
     # ---------- 描述器 ----------
