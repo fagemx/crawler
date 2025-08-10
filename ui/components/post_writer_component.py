@@ -264,11 +264,7 @@ class PostWriterComponent:
         
         with llm_col2:
             # 根據選擇的提供商顯示不同的模型選項
-            # 若啟用媒體素材（圖片或影片），強制使用 Gemini 系列，支持多模態
-            media_payload = project.get('media_payload') or {}
-            force_gemini = bool(media_payload.get('enabled') and ((media_payload.get('images')) or (media_payload.get('videos'))))
-            if force_gemini:
-                project['llm_provider'] = 'Gemini (Google)'
+            # 注意：不再根據媒體狀態鎖住UI，由後端處理多模態強制邏輯
             if project.get('llm_provider', 'Gemini (Google)') == 'Gemini (Google)':
                 model_options = [
                     "gemini-2.0-flash",
@@ -284,14 +280,17 @@ class PostWriterComponent:
                 ]
                 default_model = 'perplexity/sonar'
             
+            # 確保當前模型在選項列表中，如果不在則使用預設值
+            current_model = project.get('llm_model', default_model)
+            if current_model not in model_options:
+                current_model = default_model
+                project['llm_model'] = default_model  # 更新專案中的無效值
+            
             project['llm_model'] = st.selectbox(
                 "LLM 模型：",
                 model_options,
-                index=model_options.index(
-                    project.get('llm_model', default_model) if project.get('llm_model') in model_options else default_model
-                ),
-                key=f"llm_model_{project['id']}",
-                disabled=force_gemini
+                index=model_options.index(current_model),
+                key=f"llm_model_{project['id']}"
             )
         
         # 內容設定
@@ -619,7 +618,7 @@ class PostWriterComponent:
             'reference_analysis': None,
             'writing_style': "自動預設 - 系統自動判斷最適合的風格",
             'llm_provider': 'Gemini (Google)',
-            'llm_model': 'gemini-2.5-flash',
+            'llm_model': 'gemini-2.0-flash',
             'content_type': '自動預設 - 系統自動判斷內容類型',
             'target_length': '自動預設 - 系統自動判斷長度',
             'tone': '自動預設 - 系統自動判斷語調',
