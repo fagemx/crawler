@@ -447,8 +447,25 @@ class MediaProcessorComponent:
                                     else:
                                         st.image(url, width=thumb_width)
                                 elif media_type == 'video' and url:
-                                    # 視訊預覽仍使用原 URL（代理會較重且瀏覽器可控播放）
-                                    st.video(url)
+                                    if use_internal_proxy:
+                                        try:
+                                            import requests
+                                            resp = requests.get(url, timeout=30, stream=True)
+                                            if resp.status_code == 200:
+                                                size = int(resp.headers.get('content-length') or 0)
+                                                # 大於 20MB 的影片改以連結開啟，避免記憶體與載入時間過長
+                                                if size > 20 * 1024 * 1024:
+                                                    st.caption("(影片較大，改以連結開啟)")
+                                                    st.markdown(f"[開啟影片]({url})")
+                                                else:
+                                                    content = resp.content  # 下載完整檔案
+                                                    st.video(content)
+                                            else:
+                                                st.caption(f"(影片載入失敗 {resp.status_code})")
+                                        except Exception:
+                                            st.caption("(影片代理失敗)")
+                                    else:
+                                        st.video(url)
                                 else:
                                     st.write(url or "(無可用連結)")
                                 # 連結與貼文 URL
