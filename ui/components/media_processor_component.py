@@ -358,9 +358,11 @@ class MediaProcessorComponent:
             with col_g1:
                 gallery_user = st.text_input("帳號（可選）", value="", key="gallery_user")
             with col_g2:
-                gallery_types = st.multiselect("媒體類型", ["image", "video"], default=["image", "video"], key="gallery_types")
+                # 預設僅顯示圖片，減少負載、優先處理頭像類型
+                gallery_types = st.multiselect("媒體類型", ["image", "video"], default=["image"], key="gallery_types")
             with col_g3:
-                gallery_limit = st.selectbox("顯示數量", [20, 50, 100, 200], index=1, key="gallery_limit")
+                # 固定顯示 20 筆，避免卡頓
+                gallery_limit = st.selectbox("顯示數量", [20], index=0, key="gallery_limit")
             with col_g4:
                 cols_per_row = st.select_slider("每列數", options=[3, 4, 5, 6], value=5, key="gallery_cols")
             with col_g5:
@@ -371,7 +373,8 @@ class MediaProcessorComponent:
             # 是否走內部代理（由伺服器抓取 bytes，再由 8501 回傳給前端）
             use_internal_proxy = st.checkbox("由伺服器代理顯示（避免瀏覽器連 9000）", value=True, help="開啟後，UI 會在伺服器端抓取媒體並內嵌顯示，不需開放 9000 給瀏覽器")
             # 快速互動模式：僅顯示連結，不抓取內容，避免每次勾選觸發重載造成卡頓
-            quick_mode = st.checkbox("快速互動模式（不載入縮圖/影片）", value=True, help="啟用後僅顯示連結，勾選/管理更順暢；關閉以載入縮圖與預覽")
+            # 為確保能看到縮圖進行勾選，預設關閉快速模式（僅 20 張影像）
+            quick_mode = st.checkbox("快速互動模式（不載入縮圖/影片）", value=False, help="啟用後僅顯示連結；建議僅在大量操作或卡頓時開啟")
 
             # 點擊後記住狀態，避免元素在下一次重繪時消失而看起來像被鎖住
             if st.button("載入畫廊", key="btn_load_gallery"):
@@ -456,9 +459,13 @@ class MediaProcessorComponent:
                                 # 初始化選取狀態
                                 default_chk = False
                                 if auto_avatar:
-                                    w = r.get('width') or 0
-                                    h = r.get('height') or 0
-                                    default_chk = (isinstance(w, int) and w < 200) or (isinstance(h, int) and h < 200)
+                                    # 僅對圖片判斷頭像，排除影片
+                                    if r.get('media_type') == 'image':
+                                        w = r.get('width') or 0
+                                        h = r.get('height') or 0
+                                        default_chk = (isinstance(w, int) and w < 200) or (isinstance(h, int) and h < 200)
+                                    else:
+                                        default_chk = False
                                 if select_all:
                                     st.session_state[chk_key] = True
                                 if unselect_all:
