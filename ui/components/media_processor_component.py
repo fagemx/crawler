@@ -367,6 +367,9 @@ class MediaProcessorComponent:
 
             thumb_width = {"小": 160, "中": 240, "大": 320}[size_label]
 
+            # 是否走內部代理（由伺服器抓取 bytes，再由 8501 回傳給前端）
+            use_internal_proxy = st.checkbox("由伺服器代理顯示（避免瀏覽器連 9000）", value=True, help="開啟後，UI 會在伺服器端抓取媒體並內嵌顯示，不需開放 9000 給瀏覽器")
+
             if st.button("載入畫廊", key="btn_load_gallery"):
                 try:
                     from common.db_client import get_db_client
@@ -430,8 +433,21 @@ class MediaProcessorComponent:
 
                                 st.caption(f"#{r.get('id')} · {media_type}")
                                 if media_type == 'image' and url:
-                                    st.image(url, width=thumb_width)
+                                    if use_internal_proxy:
+                                        try:
+                                            # 伺服器端抓取圖片 bytes，再由 Streamlit 內嵌顯示
+                                            import requests
+                                            resp = requests.get(url, timeout=15)
+                                            if resp.status_code == 200:
+                                                st.image(resp.content, width=thumb_width)
+                                            else:
+                                                st.caption(f"(圖片載入失敗 {resp.status_code})")
+                                        except Exception as _:
+                                            st.caption("(圖片代理失敗)")
+                                    else:
+                                        st.image(url, width=thumb_width)
                                 elif media_type == 'video' and url:
+                                    # 視訊預覽仍使用原 URL（代理會較重且瀏覽器可控播放）
                                     st.video(url)
                                 else:
                                     st.write(url or "(無可用連結)")
