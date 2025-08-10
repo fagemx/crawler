@@ -99,7 +99,8 @@ class SocialMediaGeneratorApp:
             # 簡易登入區塊
             with st.expander("👤 登入", expanded=False):
                 # 目前使用者顯示
-                st.info(f"目前使用者：{st.session_state.get('user_id', os.getenv('DEFAULT_USER_ID', 'guest'))}")
+                current_user = st.session_state.get('user_id', os.getenv('DEFAULT_USER_ID', 'guest'))
+                st.info(f"目前使用者：{current_user}")
 
                 default_user = st.session_state.get('user_id', os.getenv('DEFAULT_USER_ID', 'guest'))
                 input_user = st.text_input("使用者ID", value=default_user, key="login_user_id")
@@ -110,18 +111,23 @@ class SocialMediaGeneratorApp:
                         try:
                             import httpx
                             base_url = os.getenv('MCP_SERVER_URL', 'http://localhost:10100')
-                            resp = httpx.post(f"{base_url}/auth/login", json={"user_id": input_user, "display_name": display_name or None}, timeout=5.0)
+                            # 先嘗試 login（標準版需密碼），若失敗再退回簡單版（無密碼）
+                            pwd = st.text_input("密碼", value="", type="password")
+                            resp = httpx.post(f"{base_url}/auth/login", json={"user_id": input_user, "password": pwd}, timeout=8.0)
                             if resp.status_code == 200 and resp.json().get("ok"):
-                                st.session_state.user_id = input_user
-                                st.success(f"已登入為：{input_user}")
+                                data = resp.json()
+                                st.session_state.user_id = data["user"]["user_id"]
+                                st.session_state.jwt = data.get("access_token")
+                                st.success(f"已登入為：{st.session_state.user_id}")
                             else:
-                                st.warning("登入失敗，請稍後再試")
+                                st.warning("登入失敗，請確認帳號密碼或稍後再試")
                         except Exception as e:
                             st.warning(f"登入失敗：{e}")
                 with col_r:
                     if st.button("登出", use_container_width=True, key="btn_logout"):
                         import uuid
                         st.session_state.user_id = os.getenv('DEFAULT_USER_ID', 'guest')
+                        st.session_state.pop('jwt', None)
                         # 重新生成匿名/會話識別，避免舊會話混淆
                         st.session_state.anonymous_id = str(uuid.uuid4())
                         st.session_state.session_id = str(uuid.uuid4())

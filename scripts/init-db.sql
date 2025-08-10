@@ -160,6 +160,14 @@ CREATE TABLE IF NOT EXISTS app_users (
     last_login_at  TIMESTAMPTZ
 );
 
+-- 使用者表欄位補齊（標準登入）
+ALTER TABLE IF EXISTS app_users
+  ADD COLUMN IF NOT EXISTS password_hash TEXT,
+  ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user',
+  ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
+
+CREATE INDEX IF NOT EXISTS idx_app_users_role ON app_users(role);
+
 -- 使用者操作日誌（區隔於系統/Agent 操作）
 CREATE TABLE IF NOT EXISTS user_operation_log (
     id               BIGSERIAL PRIMARY KEY,

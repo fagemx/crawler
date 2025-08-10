@@ -19,6 +19,8 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from sqlalchemy.exc import OperationalError
 from sqlmodel import SQLModel, Session, select, create_engine
 from sqlalchemy import text
+from jose import jwt, JWTError
+from passlib.hash import bcrypt
 from contextlib import asynccontextmanager
 
 from .models import (
@@ -216,6 +218,12 @@ app = FastAPI(
     version="2.0.0",
     lifespan=lifespan
 )
+
+# 認證設定
+JWT_SECRET = os.getenv("AUTH_JWT_SECRET", "dev-secret-change-me")
+JWT_EXPIRES_MINUTES = int(os.getenv("AUTH_TOKEN_EXPIRES_MINUTES", "43200"))  # 30天
+REG_TOKEN = os.getenv("AUTH_ADMIN_REG_TOKEN")
+ALLOWED_USER_IDS = set([u.strip() for u in (os.getenv("ALLOWED_USER_IDS", "").split(",") if os.getenv("ALLOWED_USER_IDS") else [])])
 
 # CORS 中介軟體
 app.add_middleware(
@@ -576,36 +584,89 @@ class UserOperationIn(BaseModel):
 class UserLoginIn(BaseModel):
     user_id: str
     display_name: Optional[str] = None
+    password: Optional[str] = None
 
 
-@app.post("/auth/login")
-async def login_user(payload: UserLoginIn):
-    """簡單登入：建立/更新使用者，回傳標準化 user_id 與顯示名。"""
+@app.post("/auth/register")
+async def register_user(payload: UserLoginIn, request: Request):
+    """受保護的註冊：需 X-REG-TOKEN 或 admin JWT；可限制白名單 user_id。"""
     try:
+        # 檢查權限：註冊密鑰或 admin JWT
+        token_hdr = request.headers.get("authorization", "")
+        if (not REG_TOKEN or request.headers.get("x-reg-token") != REG_TOKEN):
+            # 嘗試 admin JWT
+            if not token_hdr.lower().startswith("bearer "):
+                raise HTTPException(status_code=401, detail="Unauthorized")
+            token = token_hdr.split(" ", 1)[1]
+            try:
+                payload_jwt = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+                if payload_jwt.get("role") != "admin":
+                    raise HTTPException(status_code=403, detail="Forbidden")
+            except JWTError:
+                raise HTTPException(status_code=401, detail="Invalid token")
+
+        if ALLOWED_USER_IDS and payload.user_id not in ALLOWED_USER_IDS:
+            raise HTTPException(status_code=403, detail="User not allowed")
+
         with Session(engine) as session:
-            # 建表（冪等）
             session.exec(text(
                 """
                 CREATE TABLE IF NOT EXISTS app_users (
                     user_id        TEXT PRIMARY KEY,
                     display_name   TEXT,
                     created_at     TIMESTAMPTZ DEFAULT now(),
-                    last_login_at  TIMESTAMPTZ
+                    last_login_at  TIMESTAMPTZ,
+                    password_hash  TEXT,
+                    role           TEXT DEFAULT 'user',
+                    is_active      BOOLEAN DEFAULT TRUE
                 )
                 """
             ))
-            # UPSERT
+            pwd_hash = bcrypt.hash(payload.password) if payload.password else None
             session.exec(text(
                 """
-                INSERT INTO app_users (user_id, display_name, last_login_at)
-                VALUES (:user_id, :display_name, NOW())
+                INSERT INTO app_users (user_id, display_name, password_hash, role, is_active, last_login_at)
+                VALUES (:user_id, :display_name, :password_hash, COALESCE(:role,'user'), TRUE, NOW())
                 ON CONFLICT (user_id)
                 DO UPDATE SET display_name = COALESCE(EXCLUDED.display_name, app_users.display_name),
+                              password_hash = COALESCE(EXCLUDED.password_hash, app_users.password_hash),
+                              role = COALESCE(EXCLUDED.role, app_users.role),
+                              is_active = TRUE,
                               last_login_at = NOW()
                 """
-            ), {"user_id": payload.user_id, "display_name": payload.display_name})
+            ), {"user_id": payload.user_id, "display_name": payload.display_name, "password_hash": pwd_hash, "role": "user"})
             session.commit()
-        return {"ok": True, "user_id": payload.user_id, "display_name": payload.display_name or payload.user_id}
+        return {"ok": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/auth/login")
+async def login_user(payload: UserLoginIn):
+    try:
+        with Session(engine) as session:
+            row = session.exec(text("SELECT user_id, display_name, password_hash, role, is_active FROM app_users WHERE user_id = :u"), {"u": payload.user_id}).first()
+            if not row:
+                raise HTTPException(status_code=401, detail="Invalid credentials")
+            m = getattr(row, "_mapping", None)
+            uid = m.get("user_id") if m else row[0]
+            dname = m.get("display_name") if m else row[1]
+            pwd_hash = m.get("password_hash") if m else row[2]
+            role = m.get("role") if m else row[3]
+            is_active = m.get("is_active") if m else row[4]
+            if not is_active:
+                raise HTTPException(status_code=403, detail="User inactive")
+            if not pwd_hash or not payload.password or (not bcrypt.verify(payload.password, pwd_hash)):
+                raise HTTPException(status_code=401, detail="Invalid credentials")
+            # 簽發 JWT
+            exp = datetime.utcnow() + timedelta(minutes=JWT_EXPIRES_MINUTES)
+            token = jwt.encode({"sub": uid, "role": role, "exp": exp}, JWT_SECRET, algorithm="HS256")
+            # 更新 last_login
+            session.exec(text("UPDATE app_users SET last_login_at = NOW() WHERE user_id = :u"), {"u": uid})
+            session.commit()
+        return {"ok": True, "access_token": token, "user": {"user_id": uid, "display_name": dname, "role": role}}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
