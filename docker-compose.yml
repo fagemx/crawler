@@ -627,6 +627,7 @@ services:
       - STREAMLIT_SERVER_PORT=8501
       - STREAMLIT_SERVER_FILE_WATCHER_TYPE=none
       - STREAMLIT_SERVER_RUN_ON_SAVE=false
+      - PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright
       - ORCHESTRATOR_URL=http://localhost:8000
       - FORM_API_URL=http://localhost:8010
       - MCP_SERVER_URL=http://localhost:10100
