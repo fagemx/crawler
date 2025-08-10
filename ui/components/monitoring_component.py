@@ -744,7 +744,17 @@ class SystemMonitoringComponent:
             opts = st.session_state.get(options_cache_key, default_opts)
 
         with c1:
-            menu = st.selectbox("主功能選單", options=[""] + opts.get("menu_names", []), index=0)
+            static_menus = [
+                "🚀 實時智能爬蟲",
+                "🎭 Playwright 爬蟲",
+                "📊 內容分析",
+                "✍️ 智能撰寫",
+                "🛠 監控面板",
+                "👁️ 媒體處理器",
+            ]
+            dynamic_menus = opts.get("menu_names", []) or []
+            menu_merged = static_menus + [m for m in dynamic_menus if m not in static_menus]
+            menu = st.selectbox("主功能選單", options=[""] + menu_merged, index=0)
         with c2:
             action_type = st.selectbox("動作類型", options=[""] + (opts.get("action_types", []) or ["navigate","click","submit","export"]), index=0)
         with c3:

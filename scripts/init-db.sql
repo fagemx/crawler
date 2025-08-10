@@ -152,6 +152,14 @@ CREATE TABLE IF NOT EXISTS system_error_log (
     metadata        JSONB DEFAULT '{}'
 );
 
+-- 應用使用者清單（簡易登入用）
+CREATE TABLE IF NOT EXISTS app_users (
+    user_id        TEXT PRIMARY KEY,
+    display_name   TEXT,
+    created_at     TIMESTAMPTZ DEFAULT now(),
+    last_login_at  TIMESTAMPTZ
+);
+
 -- 使用者操作日誌（區隔於系統/Agent 操作）
 CREATE TABLE IF NOT EXISTS user_operation_log (
     id               BIGSERIAL PRIMARY KEY,

@@ -32,10 +32,9 @@ class PlaywrightDatabaseHandler:
     async def save_to_database_async(self, results_data: Dict[str, Any]):
         """異步保存結果到 Playwright 專用資料表"""
         try:
-            from common.db_client import DatabaseClient
+            from common.db_client import get_db_client
             
-            db = DatabaseClient()
-            await db.init_pool()
+            db = await get_db_client()
             
             try:
                 results = results_data.get("results", [])
@@ -244,7 +243,8 @@ class PlaywrightDatabaseHandler:
                     }
                     
             finally:
-                await db.close_pool()
+                # 不再在此處關閉全域連線池，避免影響同時進行的其他操作
+                pass
                 
         except Exception as e:
             self._log(f"⚠️ 資料庫保存失敗: {e}")

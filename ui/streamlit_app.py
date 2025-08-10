@@ -74,6 +74,17 @@ class SocialMediaGeneratorApp:
         """初始化會話狀態"""
         if 'current_tab' not in st.session_state:
             st.session_state.current_tab = "crawler"
+        # 預設使用者與會話識別
+        try:
+            import uuid
+            if 'user_id' not in st.session_state:
+                st.session_state.user_id = os.getenv('DEFAULT_USER_ID', 'guest')
+            if 'anonymous_id' not in st.session_state:
+                st.session_state.anonymous_id = str(uuid.uuid4())
+            if 'session_id' not in st.session_state:
+                st.session_state.session_id = str(uuid.uuid4())
+        except Exception:
+            pass
     
     def render_header(self):
         """渲染頁面標題"""
@@ -85,6 +96,47 @@ class SocialMediaGeneratorApp:
         """渲染側邊欄"""
         with st.sidebar:
             st.header("🎯 功能導航")
+            # 簡易登入區塊
+            with st.expander("👤 登入", expanded=False):
+                # 目前使用者顯示
+                st.info(f"目前使用者：{st.session_state.get('user_id', os.getenv('DEFAULT_USER_ID', 'guest'))}")
+
+                default_user = st.session_state.get('user_id', os.getenv('DEFAULT_USER_ID', 'guest'))
+                input_user = st.text_input("使用者ID", value=default_user, key="login_user_id")
+                display_name = st.text_input("顯示名稱（可選）", value="")
+                col_l, col_r = st.columns(2)
+                with col_l:
+                    if st.button("登入 / 切換使用者", use_container_width=True, key="btn_login_switch"):
+                        try:
+                            import httpx
+                            base_url = os.getenv('MCP_SERVER_URL', 'http://localhost:10100')
+                            resp = httpx.post(f"{base_url}/auth/login", json={"user_id": input_user, "display_name": display_name or None}, timeout=5.0)
+                            if resp.status_code == 200 and resp.json().get("ok"):
+                                st.session_state.user_id = input_user
+                                st.success(f"已登入為：{input_user}")
+                            else:
+                                st.warning("登入失敗，請稍後再試")
+                        except Exception as e:
+                            st.warning(f"登入失敗：{e}")
+                with col_r:
+                    if st.button("登出", use_container_width=True, key="btn_logout"):
+                        import uuid
+                        st.session_state.user_id = os.getenv('DEFAULT_USER_ID', 'guest')
+                        # 重新生成匿名/會話識別，避免舊會話混淆
+                        st.session_state.anonymous_id = str(uuid.uuid4())
+                        st.session_state.session_id = str(uuid.uuid4())
+                        st.success("已登出，切換為 guest")
+                    try:
+                        import httpx
+                        base_url = os.getenv('MCP_SERVER_URL', 'http://localhost:10100')
+                        resp = httpx.post(f"{base_url}/auth/login", json={"user_id": input_user, "display_name": display_name or None}, timeout=5.0)
+                        if resp.status_code == 200 and resp.json().get("ok"):
+                            st.session_state.user_id = input_user
+                            st.success(f"已登入為：{input_user}")
+                        else:
+                            st.warning("登入失敗，請稍後再試")
+                    except Exception as e:
+                        st.warning(f"登入失敗：{e}")
             
             # 爬蟲模式說明
             st.markdown("### 📖 爬蟲模式說明")
@@ -191,6 +243,7 @@ class SocialMediaGeneratorApp:
                 httpx.post(
                     f"{base_url}/user/ops",
                     json={
+                        "user_id": st.session_state.get('user_id', 'guest'),
                         "anonymous_id": st.session_state.anonymous_id,
                         "session_id": st.session_state.session_id,
                         "menu_name": nav,

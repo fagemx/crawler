@@ -573,6 +573,42 @@ class UserOperationIn(BaseModel):
     request_id: Optional[str] = None
     trace_id: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
+class UserLoginIn(BaseModel):
+    user_id: str
+    display_name: Optional[str] = None
+
+
+@app.post("/auth/login")
+async def login_user(payload: UserLoginIn):
+    """簡單登入：建立/更新使用者，回傳標準化 user_id 與顯示名。"""
+    try:
+        with Session(engine) as session:
+            # 建表（冪等）
+            session.exec(text(
+                """
+                CREATE TABLE IF NOT EXISTS app_users (
+                    user_id        TEXT PRIMARY KEY,
+                    display_name   TEXT,
+                    created_at     TIMESTAMPTZ DEFAULT now(),
+                    last_login_at  TIMESTAMPTZ
+                )
+                """
+            ))
+            # UPSERT
+            session.exec(text(
+                """
+                INSERT INTO app_users (user_id, display_name, last_login_at)
+                VALUES (:user_id, :display_name, NOW())
+                ON CONFLICT (user_id)
+                DO UPDATE SET display_name = COALESCE(EXCLUDED.display_name, app_users.display_name),
+                              last_login_at = NOW()
+                """
+            ), {"user_id": payload.user_id, "display_name": payload.display_name})
+            session.commit()
+        return {"ok": True, "user_id": payload.user_id, "display_name": payload.display_name or payload.user_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 def _ensure_user_ops_schema(session: Session) -> None:

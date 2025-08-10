@@ -90,6 +90,24 @@ class DatabaseClient:
             return await conn.execute(query, *args)
         return await self._run_with_retry(_op)
 
+    async def run_with_retry(self, op):
+        """對提供的操作（接受 conn 並返回 awaitable）套用連線重試。"""
+        return await self._run_with_retry(op)
+
+    async def run_in_transaction(self, op):
+        """在交易中執行提供的操作，並具備連線重試能力。
+
+        Args:
+            op: 一個函式，簽名為 `async def op(conn)`，內部可多次執行 SQL。
+
+        Returns:
+            任意 op 的返回值
+        """
+        async def _op(conn):
+            async with conn.transaction():
+                return await op(conn)
+        return await self._run_with_retry(_op)
+
     async def _run_with_retry(self, op_coro):
         """連線操作重試：處理連線被關閉/同時操作衝突等情況"""
         last_err = None
@@ -97,7 +115,7 @@ class DatabaseClient:
             try:
                 async with self.get_connection() as conn:
                     return await op_coro(conn)
-            except (pg_exc.ConnectionDoesNotExistError, pg_exc.InterfaceError, ConnectionResetError) as e:
+            except (pg_exc.ConnectionDoesNotExistError, pg_exc.InterfaceError, pg_exc.ConnectionFailureError, pg_exc.PostgresConnectionError, ConnectionResetError) as e:
                 last_err = e
                 # 重建連線池後重試一次
                 try:
@@ -123,7 +141,7 @@ class DatabaseClient:
             except Exception as e:
                 # 特判常見池狀態錯誤，嘗試重建一次
                 msg = str(e).lower()
-                if ("pool is closed" in msg) or ("another operation is in progress" in msg):
+                if ("pool is closed" in msg) or ("another operation is in progress" in msg) or ("connection was closed in the middle of operation" in msg) or ("connection is closed" in msg):
                     last_err = e
                     try:
                         await self.close_pool()
