@@ -48,8 +48,8 @@ RUN pip install --no-cache-dir \
     nest-asyncio>=1.5.8 \
     playwright>=1.40.0
 
-# 安裝 Playwright 瀏覽器（跳過系統依賴，因為已手動安裝）
-RUN playwright install chromium
+# 安裝 Playwright 瀏覽器（使用 Python 執行並包含相依套件）
+RUN python -m playwright install --with-deps chromium
 
 # 複製專案檔案
 COPY . .
