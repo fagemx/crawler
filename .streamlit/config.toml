@@ -1,3 +1,10 @@
+[server]
+fileWatcherType = "none"
+runOnSave = false
+
+# 若你仍想啟用監控，可忽略大量目錄以降低 CPU
+# folderWatchBlacklist = [".git", "node_modules", "venv", "__pycache__", "alembic", "media", "downloads"]
+
 
 [global]
 developmentMode = false

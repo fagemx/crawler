@@ -529,6 +529,8 @@ services:
       - PYTHONUNBUFFERED=1
       - PYTHONPATH=/app
       - POETRY_NO_INTERACTION=1
+      - PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright
+      - PLAYWRIGHT_HEADLESS=1
       - MCP_SERVER_URL=http://mcp-server:10100
       - AGENT_NAME=playwright-crawler
       - AGENT_ROLE=playwright-crawler
@@ -563,7 +565,9 @@ services:
         limits:
           cpus: '2'
           memory: '4G'
-    command: python -m uvicorn agents.playwright_crawler.main:app --host 0.0.0.0 --port 8006 --reload
+    stop_signal: SIGTERM
+    stop_grace_period: 20s
+    command: python -m uvicorn agents.playwright_crawler.main:app --host 0.0.0.0 --port 8006
     profiles:
       - tunnel
 
@@ -615,6 +619,8 @@ services:
     environment:
       - PYTHONPATH=/app
       - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_FILE_WATCHER_TYPE=none
+      - STREAMLIT_SERVER_RUN_ON_SAVE=false
       - ORCHESTRATOR_URL=http://localhost:8000
       - FORM_API_URL=http://localhost:8010
       - MCP_SERVER_URL=http://localhost:10100
@@ -636,6 +642,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    stop_signal: SIGTERM
+    stop_grace_period: 20s
     command: ["python", "scripts/start_streamlit_ui.py"]
 
   # Pinggy Tunnel - 外網訪問

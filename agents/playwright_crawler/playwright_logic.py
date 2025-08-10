@@ -534,12 +534,12 @@ class PlaywrightLogic:
         logging.info(f"🔐 [Task: {task_id}] 認證設置完成")
 
     async def _cleanup(self, task_id: str):
-        """清理資源"""
+        """清理資源（加強版：shield + timeout，避免 Chromium 殘留）"""
         try:
             # 先關閉 context，再關閉 browser，最後停止 playwright
             if self.context:
                 try:
-                    await self.context.close()
+                    await asyncio.wait_for(asyncio.shield(self.context.close()), timeout=10)
                 except Exception:
                     pass
                 finally:
@@ -547,7 +547,7 @@ class PlaywrightLogic:
 
             if self.browser:
                 try:
-                    await self.browser.close()
+                    await asyncio.wait_for(asyncio.shield(self.browser.close()), timeout=10)
                 except Exception:
                     pass
                 finally:
@@ -556,12 +556,15 @@ class PlaywrightLogic:
             # 刪除臨時認證檔案
             auth_file = Path(tempfile.gettempdir()) / f"{task_id}_auth.json"
             if auth_file.exists():
-                auth_file.unlink()
-                logging.info(f"🗑️ [Task: {task_id}] 已刪除臨時認證檔案: {auth_file}")
+                try:
+                    auth_file.unlink()
+                    logging.info(f"🗑️ [Task: {task_id}] 已刪除臨時認證檔案: {auth_file}")
+                except Exception:
+                    pass
 
             if self.playwright:
                 try:
-                    await self.playwright.stop()
+                    await asyncio.wait_for(asyncio.shield(self.playwright.stop()), timeout=10)
                 except Exception:
                     pass
                 finally:
