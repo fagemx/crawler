@@ -408,11 +408,38 @@ class MediaProcessorComponent:
                         st.caption(f"共載入 {len(rows)} 筆")
                         client = RustFSClient()
                         cols = None
+                        # 管理工具：選取刪除
+                        st.markdown("### 管理工具")
+                        mg_col1, mg_col2, mg_col3 = st.columns([1,1,2])
+                        with mg_col1:
+                            select_all = st.button("全選", key="gal_select_all")
+                        with mg_col2:
+                            unselect_all = st.button("全不選", key="gal_unselect_all")
+                        with mg_col3:
+                            auto_avatar = st.checkbox("自動選取疑似頭像(寬<200或高<200)", value=False)
+
+                        selected_ids = set()
+                        # 先渲染卡片
                         for idx, r in enumerate(rows):
                             if idx % cols_per_row == 0:
                                 cols = st.columns(cols_per_row)
                             col = cols[idx % cols_per_row]
                             with col:
+                                # 選取方塊
+                                chk_key = f"gal_sel_{r.get('id')}"
+                                # 初始化選取狀態
+                                default_chk = False
+                                if auto_avatar:
+                                    w = r.get('width') or 0
+                                    h = r.get('height') or 0
+                                    default_chk = (isinstance(w, int) and w < 200) or (isinstance(h, int) and h < 200)
+                                if select_all:
+                                    st.session_state[chk_key] = True
+                                if unselect_all:
+                                    st.session_state[chk_key] = False
+                                checked = st.checkbox("選取", key=chk_key, value=st.session_state.get(chk_key, default_chk))
+                                if checked:
+                                    selected_ids.add(r.get('id'))
                                 rust_key = r.get('rustfs_key')
                                 rustfs_url = r.get('rustfs_url')
                                 original_url = r.get('original_url')
@@ -477,6 +504,53 @@ class MediaProcessorComponent:
                                     pu = r.get('post_url')
                                     if pu:
                                         st.markdown(f"[貼文]({pu})")
+
+                        # 刪除動作
+                        if st.button("🗑️ 刪除選擇", type="secondary", key="btn_delete_selected"):
+                            try:
+                                sel_ids = [rid for rid in selected_ids if rid]
+                                if not sel_ids:
+                                    st.info("未選取任何項目")
+                                else:
+                                    # 取得待刪除清單（id, rustfs_key）
+                                    import asyncio
+                                    from common.db_client import get_db_client
+                                    async def _fetch_for_delete(ids: list[int]):
+                                        db = await get_db_client()
+                                        placeholders = ",".join([f"${i+1}" for i in range(len(ids))])
+                                        rows_del = await db.fetch_all(
+                                            f"SELECT id, rustfs_key FROM media_files WHERE id IN ({placeholders})",
+                                            *ids
+                                        )
+                                        return rows_del
+                                    rows_del = asyncio.get_event_loop().run_until_complete(_fetch_for_delete(sel_ids))
+                                    # 刪 S3 物件
+                                    from common.rustfs_client import get_rustfs_client as get_common_rustfs
+                                    rust_client = get_common_rustfs()
+                                    s3_deleted, s3_failed = 0, 0
+                                    for rr in rows_del:
+                                        key = rr.get('rustfs_key')
+                                        if key:
+                                            try:
+                                                if rust_client.delete_media(key):
+                                                    s3_deleted += 1
+                                                else:
+                                                    s3_failed += 1
+                                            except Exception:
+                                                s3_failed += 1
+                                    # 刪 DB 記錄
+                                    async def _delete_rows(ids: list[int]):
+                                        db = await get_db_client()
+                                        placeholders = ",".join([f"${i+1}" for i in range(len(ids))])
+                                        await db.execute(
+                                            f"DELETE FROM media_files WHERE id IN ({placeholders})",
+                                            *ids
+                                        )
+                                    asyncio.get_event_loop().run_until_complete(_delete_rows(sel_ids))
+                                    st.success(f"刪除完成：S3刪除成功 {s3_deleted}，失敗 {s3_failed}，DB刪除 {len(sel_ids)}")
+                                    st.info("請再次點擊『載入畫廊』更新視圖")
+                            except Exception as de:
+                                st.error(f"刪除失敗：{de}")
                 except Exception as e:
                     st.error(f"載入畫廊失敗：{e}")
 
