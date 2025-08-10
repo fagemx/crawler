@@ -16,6 +16,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 import httpx
 import base64
+import hashlib
 
 # 載入環境變數
 load_dotenv()
@@ -32,6 +33,9 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Content Generator Agent", version="1.0.0")
 
+# 媒體分析快取（記憶體快取，避免重複分析同一媒體）
+media_analysis_cache: Dict[str, str] = {}
+
 async def analyze_media_with_vision(media: Dict[str, Any]) -> List[str]:
     """
     使用 GeminiVisionAnalyzer 分析媒體內容，返回文字描述列表
@@ -41,12 +45,33 @@ async def analyze_media_with_vision(media: Dict[str, Any]) -> List[str]:
     try:
         # 導入 GeminiVisionAnalyzer
         from agents.vision.gemini_vision import GeminiVisionAnalyzer
+        
+        # 檢查環境變數
+        import os
+        gemini_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+        logger.info(f"GEMINI API KEY 狀態: {'已設置' if gemini_key else '未設置'}")
+        
         analyzer = GeminiVisionAnalyzer()
+        logger.info("GeminiVisionAnalyzer 初始化成功")
         
         # 處理圖片
         images = media.get('images', [])
         for i, img in enumerate(images):
             try:
+                # 生成快取鍵（基於 URL 或 key）
+                cache_key = None
+                if img.get('key'):
+                    cache_key = f"img:{img['key']}"
+                elif img.get('url'):
+                    cache_key = f"img:{hashlib.md5(img['url'].encode()).hexdigest()}"
+                
+                # 檢查快取
+                if cache_key and cache_key in media_analysis_cache:
+                    desc = media_analysis_cache[cache_key]
+                    media_descriptions.append(f"圖片 {i+1} 內容描述：{desc}")
+                    logger.info(f"圖片 {i+1} 使用快取分析結果")
+                    continue
+                
                 # 準備圖片數據
                 image_data = None
                 content_type = img.get('content_type') or img.get('mime') or 'image/jpeg'
@@ -54,10 +79,80 @@ async def analyze_media_with_vision(media: Dict[str, Any]) -> List[str]:
                 # 如果有 base64 數據，直接使用
                 if img.get('data_base64'):
                     image_data = base64.b64decode(img['data_base64'])
-                # 否則從 URL 下載
-                elif img.get('url') or img.get('rustfs_url'):
-                    url = img.get('url') or img.get('rustfs_url')
+                # 否則嘗試透過 RustFS key 產生在容器內可訪問的 URL，再下載
+                elif img.get('key') or img.get('url') or img.get('rustfs_url'):
+                    url = None
+                    try:
+                        if img.get('key'):
+                            from services.rustfs_client import RustFSClient
+                            _rclient = RustFSClient()
+                            # 產生對容器可用的 URL（優先 presigned）
+                            url = _rclient.get_public_or_presigned_url(img['key'], prefer_presigned=True)
+                        else:
+                            url = img.get('url') or img.get('rustfs_url')
+                            # 避免容器內使用 localhost/127.0.0.1/0.0.0.0，若偵測到則改用 RUSTFS_ENDPOINT
+                            if url:
+                                from urllib.parse import urlparse, urlunparse
+                                parsed = urlparse(url)
+                                host = (parsed.hostname or '').lower()
+                                if host in {"localhost", "127.0.0.1", "0.0.0.0"}:
+                                    from services.rustfs_client import RustFSClient
+                                    _rclient = RustFSClient()
+                                    # 嘗試從原 URL path 還原 key，重新生成合法簽名 URL
+                                    path_no_slash = parsed.path.lstrip('/')
+                                    key_from_url = path_no_slash
+                                    try:
+                                        bucket = _rclient.bucket_name
+                                        if path_no_slash.startswith(bucket + "/"):
+                                            key_from_url = path_no_slash[len(bucket)+1:]
+                                    except Exception:
+                                        pass
+                                    regen = _rclient.get_public_or_presigned_url(key_from_url, prefer_presigned=True)
+                                    if regen:
+                                        url = regen
+                                        logger.info(f"已用 key 重新產生簽名 URL（容器可用）: {url}")
+                                    else:
+                                        # 最後才嘗試直接替換主機（可能會導致簽名失效）
+                                        base_parsed = urlparse(_rclient.base_url)
+                                        url = urlunparse((
+                                            base_parsed.scheme or 'http',
+                                            base_parsed.netloc,
+                                            parsed.path,
+                                            '',
+                                            parsed.query,
+                                            ''
+                                        ))
+                                        logger.info(f"已替換 localhost 為 RUSTFS_ENDPOINT，用於容器內訪問: {url}")
+                    except Exception:
+                        url = img.get('url') or img.get('rustfs_url')
+
+                    # 最後保險：無論來源，統一在請求前再做一次容器可用 URL 正規化
+                    try:
+                        if url:
+                            from urllib.parse import urlparse
+                            parsed = urlparse(url)
+                            host = (parsed.hostname or '').lower()
+                            if host in {"localhost", "127.0.0.1", "0.0.0.0"}:
+                                from services.rustfs_client import RustFSClient
+                                _rclient = RustFSClient()
+                                path_no_slash = parsed.path.lstrip('/')
+                                key_from_url = path_no_slash
+                                try:
+                                    bucket = _rclient.bucket_name
+                                    if path_no_slash.startswith(bucket + "/"):
+                                        key_from_url = path_no_slash[len(bucket)+1:]
+                                except Exception:
+                                    pass
+                                regen2 = _rclient.get_public_or_presigned_url(key_from_url, prefer_presigned=True)
+                                if regen2:
+                                    url = regen2
+                                    logger.info(f"已二次正規化為容器可用 URL: {url}")
+                    except Exception:
+                        pass
+
                     async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+                        if url:
+                            logger.info(f"下載圖片使用 URL: {url}")
                         response = await client.get(url)
                         response.raise_for_status()
                         image_data = response.content
@@ -68,23 +163,68 @@ async def analyze_media_with_vision(media: Dict[str, Any]) -> List[str]:
                     
                 # 直接調用 GeminiVisionAnalyzer 分析圖片
                 logger.info(f"開始分析第 {i+1} 張圖片...")
-                analysis_result = await analyzer.analyze_image(image_data, content_type)
-                
-                if analysis_result and analysis_result.get('description'):
-                    desc = analysis_result['description']
+                logger.info(f"圖片大小: {len(image_data)} bytes, 類型: {content_type}")
+                analysis_result = await analyzer.analyze_media(image_data, content_type)
+
+                # 萃取可讀描述
+                desc = None
+                try:
+                    if isinstance(analysis_result, dict):
+                        if analysis_result.get('main_content'):
+                            # 圖片主要描述
+                            parts = [analysis_result.get('main_content')]
+                            aux = []
+                            if analysis_result.get('text_content'):
+                                aux.append(f"文字: {analysis_result['text_content']}")
+                            if analysis_result.get('visual_elements'):
+                                aux.append(f"元素: {analysis_result['visual_elements']}")
+                            if aux:
+                                parts.append("；".join(aux))
+                            desc = " ".join(parts)
+                        elif analysis_result.get('narrative_overview'):
+                            desc = analysis_result.get('narrative_overview')
+                        elif isinstance(analysis_result.get('segments'), list) and analysis_result['segments']:
+                            seg = analysis_result['segments'][0]
+                            desc = seg.get('visual_description') or str(seg)
+                except Exception:
+                    desc = None
+
+                if desc:
                     media_descriptions.append(f"圖片 {i+1} 內容描述：{desc}")
                     logger.info(f"圖片 {i+1} 分析完成")
+
+                    # 存入快取
+                    if cache_key:
+                        media_analysis_cache[cache_key] = desc
+                        logger.info(f"圖片 {i+1} 分析結果已快取")
                 else:
                     media_descriptions.append(f"圖片 {i+1} 內容：（分析未獲得有效結果）")
                     
             except Exception as e:
                 logger.warning(f"圖片 {i+1} 分析失敗: {e}")
-                media_descriptions.append(f"圖片 {i+1} 內容：（分析失敗，請參考上傳的圖片）")
+                # 提供基本的圖片描述作為 fallback
+                safe_size = len(image_data) if ('image_data' in locals() and image_data is not None) else '未知'
+                fallback_desc = f"已上傳圖片 {i+1}（類型：{content_type}，大小：{safe_size} bytes）。請根據此圖片內容進行創作，需要體現圖片中的主要元素和特色。"
+                media_descriptions.append(f"圖片 {i+1} 內容描述：{fallback_desc}")
         
         # 處理影片
         videos = media.get('videos', [])
         for i, vid in enumerate(videos):
             try:
+                # 生成快取鍵（基於 URL 或 key）
+                cache_key = None
+                if vid.get('key'):
+                    cache_key = f"vid:{vid['key']}"
+                elif vid.get('url'):
+                    cache_key = f"vid:{hashlib.md5(vid['url'].encode()).hexdigest()}"
+                
+                # 檢查快取
+                if cache_key and cache_key in media_analysis_cache:
+                    desc = media_analysis_cache[cache_key]
+                    media_descriptions.append(f"影片 {i+1} 內容描述：{desc}")
+                    logger.info(f"影片 {i+1} 使用快取分析結果")
+                    continue
+                
                 # 準備影片數據
                 video_data = None
                 content_type = vid.get('content_type') or vid.get('mime') or 'video/mp4'
@@ -92,10 +232,76 @@ async def analyze_media_with_vision(media: Dict[str, Any]) -> List[str]:
                 # 如果有 base64 數據，直接使用
                 if vid.get('data_base64'):
                     video_data = base64.b64decode(vid['data_base64'])
-                # 否則從 URL 下載（注意影片可能很大）
-                elif vid.get('url') or vid.get('rustfs_url'):
-                    url = vid.get('url') or vid.get('rustfs_url')
+                # 否則從 RustFS 取得容器可訪問的 URL 再下載（注意影片可能很大）
+                elif vid.get('key') or vid.get('url') or vid.get('rustfs_url'):
+                    url = None
+                    try:
+                        if vid.get('key'):
+                            from services.rustfs_client import RustFSClient
+                            _rclient = RustFSClient()
+                            url = _rclient.get_public_or_presigned_url(vid['key'], prefer_presigned=True)
+                        else:
+                            url = vid.get('url') or vid.get('rustfs_url')
+                            if url:
+                                from urllib.parse import urlparse, urlunparse
+                                parsed = urlparse(url)
+                                host = (parsed.hostname or '').lower()
+                                if host in {"localhost", "127.0.0.1", "0.0.0.0"}:
+                                    from services.rustfs_client import RustFSClient
+                                    _rclient = RustFSClient()
+                                    path_no_slash = parsed.path.lstrip('/')
+                                    key_from_url = path_no_slash
+                                    try:
+                                        bucket = _rclient.bucket_name
+                                        if path_no_slash.startswith(bucket + "/"):
+                                            key_from_url = path_no_slash[len(bucket)+1:]
+                                    except Exception:
+                                        pass
+                                    regen = _rclient.get_public_or_presigned_url(key_from_url, prefer_presigned=True)
+                                    if regen:
+                                        url = regen
+                                        logger.info(f"已用 key 重新產生簽名 URL（容器可用）: {url}")
+                                    else:
+                                        base_parsed = urlparse(_rclient.base_url)
+                                        url = urlunparse((
+                                            base_parsed.scheme or 'http',
+                                            base_parsed.netloc,
+                                            parsed.path,
+                                            '',
+                                            parsed.query,
+                                            ''
+                                        ))
+                                        logger.info(f"已替換 localhost 為 RUSTFS_ENDPOINT，用於容器內訪問: {url}")
+                    except Exception:
+                        url = vid.get('url') or vid.get('rustfs_url')
+
+                    # 最後保險：統一對影片 URL 也做一次容器可用正規化
+                    try:
+                        if url:
+                            from urllib.parse import urlparse
+                            parsed = urlparse(url)
+                            host = (parsed.hostname or '').lower()
+                            if host in {"localhost", "127.0.0.1", "0.0.0.0"}:
+                                from services.rustfs_client import RustFSClient
+                                _rclient = RustFSClient()
+                                path_no_slash = parsed.path.lstrip('/')
+                                key_from_url = path_no_slash
+                                try:
+                                    bucket = _rclient.bucket_name
+                                    if path_no_slash.startswith(bucket + "/"):
+                                        key_from_url = path_no_slash[len(bucket)+1:]
+                                except Exception:
+                                    pass
+                                regen2 = _rclient.get_public_or_presigned_url(key_from_url, prefer_presigned=True)
+                                if regen2:
+                                    url = regen2
+                                    logger.info(f"已二次正規化為容器可用 URL: {url}")
+                    except Exception:
+                        pass
+
                     async with httpx.AsyncClient(timeout=120.0, follow_redirects=True) as client:
+                        if url:
+                            logger.info(f"下載影片使用 URL: {url}")
                         response = await client.get(url)
                         response.raise_for_status()
                         video_data = response.content
@@ -106,18 +312,39 @@ async def analyze_media_with_vision(media: Dict[str, Any]) -> List[str]:
                     
                 # 直接調用 GeminiVisionAnalyzer 分析影片
                 logger.info(f"開始分析第 {i+1} 個影片...")
-                analysis_result = await analyzer.analyze_video(video_data, content_type)
-                
-                if analysis_result and analysis_result.get('description'):
-                    desc = analysis_result['description']
+                analysis_result = await analyzer.analyze_media(video_data, content_type)
+
+                # 萃取可讀描述
+                desc = None
+                try:
+                    if isinstance(analysis_result, dict):
+                        if analysis_result.get('narrative_overview'):
+                            desc = analysis_result.get('narrative_overview')
+                        elif isinstance(analysis_result.get('segments'), list) and analysis_result['segments']:
+                            seg = analysis_result['segments'][0]
+                            desc = seg.get('visual_description') or str(seg)
+                        elif analysis_result.get('main_content'):
+                            desc = analysis_result.get('main_content')
+                except Exception:
+                    desc = None
+
+                if desc:
                     media_descriptions.append(f"影片 {i+1} 內容描述：{desc}")
                     logger.info(f"影片 {i+1} 分析完成")
+
+                    # 存入快取
+                    if cache_key:
+                        media_analysis_cache[cache_key] = desc
+                        logger.info(f"影片 {i+1} 分析結果已快取")
                 else:
                     media_descriptions.append(f"影片 {i+1} 內容：（分析未獲得有效結果）")
                     
             except Exception as e:
                 logger.warning(f"影片 {i+1} 分析失敗: {e}")
-                media_descriptions.append(f"影片 {i+1} 內容：（分析失敗，請參考上傳的影片）")
+                # 提供基本的影片描述作為 fallback
+                safe_vsize = len(video_data) if ('video_data' in locals() and video_data is not None) else '未知'
+                fallback_desc = f"已上傳影片 {i+1}（類型：{content_type}，大小：{safe_vsize} bytes）。請根據此影片內容進行創作，需要體現影片中的主要場景和內容。"
+                media_descriptions.append(f"影片 {i+1} 內容描述：{fallback_desc}")
         
     except Exception as e:
         logger.error(f"媒體分析器初始化失敗: {e}")
@@ -193,6 +420,8 @@ async def generate_content(request: ContentGenerationRequest):
                 
                 if media_descriptions:
                     logger.info(f"媒體分析完成，獲得 {len(media_descriptions)} 個描述")
+                    for i, desc in enumerate(media_descriptions):
+                        logger.info(f"媒體描述 {i+1}: {desc[:100]}...")  # 顯示前100字
                     
                     # 第二步：重新構建 prompt，加入媒體描述
                     full_prompt_with_media = _build_five_stage_prompt(
@@ -207,6 +436,7 @@ async def generate_content(request: ContentGenerationRequest):
                     # 更新 messages 為包含媒體描述的版本
                     messages = [{"role": "user", "content": full_prompt_with_media}]
                     logger.info("已將媒體描述整合到提示中，使用純文字模式生成")
+                    logger.info(f"最終提示前500字: {full_prompt_with_media[:500]}...")
                 else:
                     logger.warning("媒體分析未獲得有效描述，退回原始提示")
                     

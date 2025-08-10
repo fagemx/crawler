@@ -12,6 +12,7 @@ import time
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 import sys
+import base64
 
 # 添加專案根目錄到 Python 路徑
 project_root = Path(__file__).parent.parent.parent
@@ -443,7 +444,8 @@ class PostWriterComponent:
                                     url = item.get('url') or item.get('rustfs_url')
                                     if url:
                                         with cols[idx % len(cols)]:
-                                            st.video(url)
+                                            # 縮小影片預覽尺寸但保持可播放
+                                            st.video(url, format="video/mp4")
                     
                     col1, col2 = st.columns(2)
                     with col1:
@@ -712,10 +714,28 @@ class PostWriterComponent:
                         for f in img_files:
                             data = f.read()
                             res = loop.run_until_complete(client.upload_user_media(f.name, data, f.type))
+                            # 直接內嵌影像的 base64，避免後端再從 RustFS 下載失敗
+                            try:
+                                res = {
+                                    **res,
+                                    'data_base64': base64.b64encode(data).decode('utf-8'),
+                                    'content_type': f.type or res.get('content_type') or 'image/jpeg'
+                                }
+                            except Exception:
+                                pass
                             uploaded_images.append(res)
                         for f in vid_files:
                             data = f.read()
                             res = loop.run_until_complete(client.upload_user_media(f.name, data, f.type))
+                            # 直接內嵌影片的 base64，避免後端再從 RustFS 下載失敗
+                            try:
+                                res = {
+                                    **res,
+                                    'data_base64': base64.b64encode(data).decode('utf-8'),
+                                    'content_type': f.type or res.get('content_type') or 'video/mp4'
+                                }
+                            except Exception:
+                                pass
                             uploaded_videos.append(res)
                         # 更新 generation_data.media 為可瀏覽 URL 清單
                         generation_data['media'] = {
