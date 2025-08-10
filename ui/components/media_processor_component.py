@@ -352,7 +352,8 @@ class MediaProcessorComponent:
 
         # 介面：已下載媒體畫廊（快速總覽）
         st.markdown("---")
-        with st.expander("🖼️ 已下載媒體瀏覽（畫廊）", expanded=False):
+        # 畫廊展開狀態：載入後維持展開，避免因重繪而自行收合
+        with st.expander("🖼️ 已下載媒體瀏覽（畫廊）", expanded=st.session_state.get("gal_loaded", False)):
             col_g1, col_g2, col_g3, col_g4, col_g5 = st.columns([2, 1, 1, 1, 1])
             with col_g1:
                 gallery_user = st.text_input("帳號（可選）", value="", key="gallery_user")
@@ -428,7 +429,7 @@ class MediaProcessorComponent:
                         cols = None
                         # 管理工具：選取刪除
                         st.markdown("### 管理工具")
-                        mg_col1, mg_col2, mg_col3, mg_col4 = st.columns([1,1,2,1])
+                        mg_col1, mg_col2, mg_col3, mg_col4, mg_col5 = st.columns([1,1,2,1,1])
                         with mg_col1:
                             select_all = st.button("全選", key="gal_select_all")
                         with mg_col2:
@@ -438,6 +439,9 @@ class MediaProcessorComponent:
                         with mg_col4:
                             if st.button("重新載入", key="gal_reload"):
                                 st.rerun()
+                        with mg_col5:
+                            # 在工具列提供刪除按鈕，避免滾動到最下方才看見
+                            quick_del = st.button("🗑️ 刪除選擇(頂部)", type="secondary", key="btn_delete_selected_top")
 
                         # 先渲染卡片
                         for idx, r in enumerate(rows):
@@ -524,55 +528,61 @@ class MediaProcessorComponent:
                                         st.markdown(f"[貼文]({pu})")
 
                         # 刪除動作
+                        # 共用刪除處理
+                        def _perform_delete(rows):
+                            import asyncio
+                            from common.db_client import get_db_client
+                            # 讀取選取清單
+                            sel_ids = []
+                            for r in rows:
+                                chk_key = f"gal_sel_{r.get('id')}"
+                                if st.session_state.get(chk_key):
+                                    sel_ids.append(r.get('id'))
+                            if not sel_ids:
+                                st.info("未選取任何項目")
+                                return
+                            async def _fetch_for_delete(ids: list[int]):
+                                db = await get_db_client()
+                                placeholders = ",".join([f"${i+1}" for i in range(len(ids))])
+                                rows_del = await db.fetch_all(
+                                    f"SELECT id, rustfs_key FROM media_files WHERE id IN ({placeholders})",
+                                    *ids
+                                )
+                                return rows_del
+                            rows_del = asyncio.get_event_loop().run_until_complete(_fetch_for_delete(sel_ids))
+                            from common.rustfs_client import get_rustfs_client as get_common_rustfs
+                            rust_client = get_common_rustfs()
+                            s3_deleted, s3_failed = 0, 0
+                            for rr in rows_del:
+                                key = rr.get('rustfs_key')
+                                if key:
+                                    try:
+                                        if rust_client.delete_media(key):
+                                            s3_deleted += 1
+                                        else:
+                                            s3_failed += 1
+                                    except Exception:
+                                        s3_failed += 1
+                            async def _delete_rows(ids: list[int]):
+                                db = await get_db_client()
+                                placeholders = ",".join([f"${i+1}" for i in range(len(ids))])
+                                await db.execute(
+                                    f"DELETE FROM media_files WHERE id IN ({placeholders})",
+                                    *ids
+                                )
+                            asyncio.get_event_loop().run_until_complete(_delete_rows(sel_ids))
+                            st.success(f"刪除完成：S3刪除成功 {s3_deleted}，失敗 {s3_failed}，DB刪除 {len(sel_ids)}")
+                            st.rerun()
+
+                        if quick_del:
+                            try:
+                                _perform_delete(rows)
+                            except Exception as de:
+                                st.error(f"刪除失敗：{de}")
+
                         if st.button("🗑️ 刪除選擇", type="secondary", key="btn_delete_selected"):
                             try:
-                                # 從目前 rows 讀取選取狀態
-                                sel_ids = []
-                                for r in rows:
-                                    chk_key = f"gal_sel_{r.get('id')}"
-                                    if st.session_state.get(chk_key):
-                                        sel_ids.append(r.get('id'))
-                                if not sel_ids:
-                                    st.info("未選取任何項目")
-                                else:
-                                    # 取得待刪除清單（id, rustfs_key）
-                                    import asyncio
-                                    from common.db_client import get_db_client
-                                    async def _fetch_for_delete(ids: list[int]):
-                                        db = await get_db_client()
-                                        placeholders = ",".join([f"${i+1}" for i in range(len(ids))])
-                                        rows_del = await db.fetch_all(
-                                            f"SELECT id, rustfs_key FROM media_files WHERE id IN ({placeholders})",
-                                            *ids
-                                        )
-                                        return rows_del
-                                    rows_del = asyncio.get_event_loop().run_until_complete(_fetch_for_delete(sel_ids))
-                                    # 刪 S3 物件
-                                    from common.rustfs_client import get_rustfs_client as get_common_rustfs
-                                    rust_client = get_common_rustfs()
-                                    s3_deleted, s3_failed = 0, 0
-                                    for rr in rows_del:
-                                        key = rr.get('rustfs_key')
-                                        if key:
-                                            try:
-                                                if rust_client.delete_media(key):
-                                                    s3_deleted += 1
-                                                else:
-                                                    s3_failed += 1
-                                            except Exception:
-                                                s3_failed += 1
-                                    # 刪 DB 記錄
-                                    async def _delete_rows(ids: list[int]):
-                                        db = await get_db_client()
-                                        placeholders = ",".join([f"${i+1}" for i in range(len(ids))])
-                                        await db.execute(
-                                            f"DELETE FROM media_files WHERE id IN ({placeholders})",
-                                            *ids
-                                        )
-                                    asyncio.get_event_loop().run_until_complete(_delete_rows(sel_ids))
-                                    st.success(f"刪除完成：S3刪除成功 {s3_deleted}，失敗 {s3_failed}，DB刪除 {len(sel_ids)}")
-                                    # 重新載入畫廊
-                                    st.rerun()
+                                _perform_delete(rows)
                             except Exception as de:
                                 st.error(f"刪除失敗：{de}")
                 except Exception as e:
