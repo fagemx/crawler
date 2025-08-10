@@ -370,8 +370,25 @@ class MediaProcessorComponent:
             # 是否走內部代理（由伺服器抓取 bytes，再由 8501 回傳給前端）
             use_internal_proxy = st.checkbox("由伺服器代理顯示（避免瀏覽器連 9000）", value=True, help="開啟後，UI 會在伺服器端抓取媒體並內嵌顯示，不需開放 9000 給瀏覽器")
 
+            # 點擊後記住狀態，避免元素在下一次重繪時消失而看起來像被鎖住
             if st.button("載入畫廊", key="btn_load_gallery"):
+                st.session_state["gal_loaded"] = True
+                st.session_state["gal_user"] = gallery_user
+                st.session_state["gal_types"] = gallery_types
+                st.session_state["gal_limit"] = int(gallery_limit)
+                st.session_state["gal_cols"] = int(cols_per_row)
+                st.session_state["gal_size"] = size_label
+                st.session_state["gal_proxy"] = bool(use_internal_proxy)
+
+            if st.session_state.get("gal_loaded"):
                 try:
+                    # 使用已儲存的條件（若未存則採用當前 UI 值）
+                    gallery_user = st.session_state.get("gal_user", gallery_user)
+                    gallery_types = st.session_state.get("gal_types", gallery_types)
+                    gallery_limit = st.session_state.get("gal_limit", int(gallery_limit))
+                    cols_per_row = st.session_state.get("gal_cols", int(cols_per_row))
+                    size_label = st.session_state.get("gal_size", size_label)
+                    use_internal_proxy = st.session_state.get("gal_proxy", use_internal_proxy)
                     from common.db_client import get_db_client
                     from services.rustfs_client import RustFSClient
                     import nest_asyncio, asyncio
@@ -391,7 +408,8 @@ class MediaProcessorComponent:
                         where_sql = " AND ".join(where)
                         limit_param = len(params) + 1
                         sql = f"""
-                            SELECT mf.id, mf.media_type, mf.rustfs_key, mf.rustfs_url, mf.post_url, mf.original_url, mf.downloaded_at
+                            SELECT mf.id, mf.media_type, mf.rustfs_key, mf.rustfs_url, mf.post_url, mf.original_url,
+                                   mf.downloaded_at, mf.width, mf.height
                             FROM media_files mf
                             LEFT JOIN playwright_post_metrics ppm ON ppm.url = mf.post_url
                             WHERE {where_sql}
@@ -410,15 +428,17 @@ class MediaProcessorComponent:
                         cols = None
                         # 管理工具：選取刪除
                         st.markdown("### 管理工具")
-                        mg_col1, mg_col2, mg_col3 = st.columns([1,1,2])
+                        mg_col1, mg_col2, mg_col3, mg_col4 = st.columns([1,1,2,1])
                         with mg_col1:
                             select_all = st.button("全選", key="gal_select_all")
                         with mg_col2:
                             unselect_all = st.button("全不選", key="gal_unselect_all")
                         with mg_col3:
                             auto_avatar = st.checkbox("自動選取疑似頭像(寬<200或高<200)", value=False)
+                        with mg_col4:
+                            if st.button("重新載入", key="gal_reload"):
+                                st.rerun()
 
-                        selected_ids = set()
                         # 先渲染卡片
                         for idx, r in enumerate(rows):
                             if idx % cols_per_row == 0:
@@ -438,8 +458,6 @@ class MediaProcessorComponent:
                                 if unselect_all:
                                     st.session_state[chk_key] = False
                                 checked = st.checkbox("選取", key=chk_key, value=st.session_state.get(chk_key, default_chk))
-                                if checked:
-                                    selected_ids.add(r.get('id'))
                                 rust_key = r.get('rustfs_key')
                                 rustfs_url = r.get('rustfs_url')
                                 original_url = r.get('original_url')
@@ -508,7 +526,12 @@ class MediaProcessorComponent:
                         # 刪除動作
                         if st.button("🗑️ 刪除選擇", type="secondary", key="btn_delete_selected"):
                             try:
-                                sel_ids = [rid for rid in selected_ids if rid]
+                                # 從目前 rows 讀取選取狀態
+                                sel_ids = []
+                                for r in rows:
+                                    chk_key = f"gal_sel_{r.get('id')}"
+                                    if st.session_state.get(chk_key):
+                                        sel_ids.append(r.get('id'))
                                 if not sel_ids:
                                     st.info("未選取任何項目")
                                 else:
@@ -548,7 +571,8 @@ class MediaProcessorComponent:
                                         )
                                     asyncio.get_event_loop().run_until_complete(_delete_rows(sel_ids))
                                     st.success(f"刪除完成：S3刪除成功 {s3_deleted}，失敗 {s3_failed}，DB刪除 {len(sel_ids)}")
-                                    st.info("請再次點擊『載入畫廊』更新視圖")
+                                    # 重新載入畫廊
+                                    st.rerun()
                             except Exception as de:
                                 st.error(f"刪除失敗：{de}")
                 except Exception as e:
