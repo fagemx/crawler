@@ -370,6 +370,8 @@ class MediaProcessorComponent:
 
             # 是否走內部代理（由伺服器抓取 bytes，再由 8501 回傳給前端）
             use_internal_proxy = st.checkbox("由伺服器代理顯示（避免瀏覽器連 9000）", value=True, help="開啟後，UI 會在伺服器端抓取媒體並內嵌顯示，不需開放 9000 給瀏覽器")
+            # 快速互動模式：僅顯示連結，不抓取內容，避免每次勾選觸發重載造成卡頓
+            quick_mode = st.checkbox("快速互動模式（不載入縮圖/影片）", value=True, help="啟用後僅顯示連結，勾選/管理更順暢；關閉以載入縮圖與預覽")
 
             # 點擊後記住狀態，避免元素在下一次重繪時消失而看起來像被鎖住
             if st.button("載入畫廊", key="btn_load_gallery"):
@@ -482,39 +484,45 @@ class MediaProcessorComponent:
 
                                 st.caption(f"#{r.get('id')} · {media_type}")
                                 if media_type == 'image' and url:
-                                    if use_internal_proxy:
-                                        try:
-                                            # 伺服器端抓取圖片 bytes，再由 Streamlit 內嵌顯示
-                                            import requests
-                                            resp = requests.get(url, timeout=15)
-                                            if resp.status_code == 200:
-                                                st.image(resp.content, width=thumb_width)
-                                            else:
-                                                st.caption(f"(圖片載入失敗 {resp.status_code})")
-                                        except Exception as _:
-                                            st.caption("(圖片代理失敗)")
+                                    if quick_mode:
+                                        st.markdown(f"[預覽圖片]({url})")
                                     else:
-                                        st.image(url, width=thumb_width)
-                                elif media_type == 'video' and url:
-                                    if use_internal_proxy:
-                                        try:
-                                            import requests
-                                            resp = requests.get(url, timeout=30, stream=True)
-                                            if resp.status_code == 200:
-                                                size = int(resp.headers.get('content-length') or 0)
-                                                # 大於 20MB 的影片改以連結開啟，避免記憶體與載入時間過長
-                                                if size > 20 * 1024 * 1024:
-                                                    st.caption("(影片較大，改以連結開啟)")
-                                                    st.markdown(f"[開啟影片]({url})")
+                                        if use_internal_proxy:
+                                            try:
+                                                # 伺服器端抓取圖片 bytes，再由 Streamlit 內嵌顯示
+                                                import requests
+                                                resp = requests.get(url, timeout=15)
+                                                if resp.status_code == 200:
+                                                    st.image(resp.content, width=thumb_width)
                                                 else:
-                                                    content = resp.content  # 下載完整檔案
-                                                    st.video(content)
-                                            else:
-                                                st.caption(f"(影片載入失敗 {resp.status_code})")
-                                        except Exception:
-                                            st.caption("(影片代理失敗)")
+                                                    st.caption(f"(圖片載入失敗 {resp.status_code})")
+                                            except Exception as _:
+                                                st.caption("(圖片代理失敗)")
+                                        else:
+                                            st.image(url, width=thumb_width)
+                                elif media_type == 'video' and url:
+                                    if quick_mode:
+                                        st.markdown(f"[預覽影片]({url})")
                                     else:
-                                        st.video(url)
+                                        if use_internal_proxy:
+                                            try:
+                                                import requests
+                                                resp = requests.get(url, timeout=30, stream=True)
+                                                if resp.status_code == 200:
+                                                    size = int(resp.headers.get('content-length') or 0)
+                                                    # 大於 20MB 的影片改以連結開啟，避免記憶體與載入時間過長
+                                                    if size > 20 * 1024 * 1024:
+                                                        st.caption("(影片較大，改以連結開啟)")
+                                                        st.markdown(f"[開啟影片]({url})")
+                                                    else:
+                                                        content = resp.content  # 下載完整檔案
+                                                        st.video(content)
+                                                else:
+                                                    st.caption(f"(影片載入失敗 {resp.status_code})")
+                                            except Exception:
+                                                st.caption("(影片代理失敗)")
+                                        else:
+                                            st.video(url)
                                 else:
                                     st.write(url or "(無可用連結)")
                                 # 連結與貼文 URL
