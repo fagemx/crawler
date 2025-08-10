@@ -650,6 +650,10 @@ services:
       - MCP_SERVER_URL=http://localhost:10100
       - DATABASE_URL=postgresql://postgres:password@localhost:5432/social_media_db
       - REDIS_URL=redis://localhost:6379/0
+      - RUSTFS_ENDPOINT=http://rustfs:9000
+      - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY:-rustfsadmin}
+      - RUSTFS_SECRET_KEY=${RUSTFS_SECRET_KEY:-rustfsadmin}
+      - RUSTFS_BUCKET=${RUSTFS_BUCKET:-social-media-content}
     env_file:
       - .env
     volumes:
