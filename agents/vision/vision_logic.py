@@ -12,7 +12,8 @@ from datetime import datetime
 
 from .gemini_vision import GeminiVisionAnalyzer
 from common.db_client import get_db_client
-from services.rustfs_client import get_rustfs_client
+# 使用同步取得客戶端的介面，避免在 __init__ 中持有 coroutine 導致健康檢查報錯
+from common.rustfs_client import get_rustfs_client
 
 # 輕量定義以避免依賴不存在的 common.models
 from dataclasses import dataclass
