@@ -696,7 +696,7 @@ class PostWriterComponent:
                     if reference_content:
                         generation_data['reference_analysis'] = reference_content
                 
-                # 若啟用媒體素材：將上傳的檔案保存到 RustFS，並把可瀏覽 URL 寫入 media 欄位
+                # 若啟用媒體素材：將上傳的檔案保存到 RustFS，並把可瀏覽 URL 寫入 media 欄位（供歷史預覽與多模態直送）
                 media_payload = project.get('media_payload') or {}
                 if media_payload.get('enabled') and ((media_payload.get('images')) or (media_payload.get('videos'))):
                     try:
@@ -726,6 +726,8 @@ class PostWriterComponent:
                         }
                         # 標註：已啟用媒體素材
                         generation_data['settings']['media_enabled'] = True
+                        # 立即將可瀏覽 URL 寫入 generation_history 的媒體預覽（之後顯示用）
+                        project['last_uploaded_media'] = generation_data['media']
                     except Exception as up_err:
                         st.warning(f"媒體上傳失敗，將以文字創作為主：{up_err}")
                         generation_data['settings']['media_enabled'] = False
@@ -742,9 +744,29 @@ class PostWriterComponent:
                         'settings': generation_data['settings'],
                         'created_at': datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M:%S")
                     }
-                    # 保存引用的媒體（若有）供瀏覽
+                    # 保存引用的媒體（若有）供瀏覽；必要時以 key 重新產生有效連結
                     if generation_data.get('media') and generation_data['media'].get('enabled'):
-                        generation_record['media'] = generation_data['media']
+                        try:
+                            media = generation_data['media']
+                            from services.rustfs_client import RustFSClient
+                            client = RustFSClient()
+                            def _refresh(items):
+                                out = []
+                                for it in items or []:
+                                    key = it.get('key')
+                                    url = it.get('url')
+                                    if key and (not url or url.startswith('http') is False):
+                                        it = {**it, 'url': client.get_public_or_presigned_url(key, prefer_presigned=True)}
+                                    out.append(it)
+                                return out
+                            media_refreshed = {
+                                'enabled': True,
+                                'images': _refresh(media.get('images')),
+                                'videos': _refresh(media.get('videos')),
+                            }
+                            generation_record['media'] = media_refreshed
+                        except Exception:
+                            generation_record['media'] = generation_data['media']
                     
                     if 'generation_history' not in project:
                         project['generation_history'] = []

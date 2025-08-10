@@ -85,16 +85,88 @@ async def generate_content(request: ContentGenerationRequest):
         
         logger.info(f"使用 LLM: {provider_name} - {model_name}")
         
-        # 調用 LLM
+        # 調用 LLM：若啟用媒體且有上傳，改用多模態直送（Gemini parts）
         messages = [{"role": "user", "content": full_prompt}]
+        metadata = {"usage_scene": "post-writing"}
+        gemini_parts = None
+        if request.media and request.media.get('enabled') and ((request.media.get('images')) or (request.media.get('videos'))):
+            # 僅在 Gemini 提供商時使用多模態直送
+            if (provider or 'gemini') == 'gemini':
+                try:
+                    # 將多段提示與媒體一起送入（順序：系統規則 → 寫作設定/參考分析 → 媒體本體 → 媒體提示段 → 生成指令）
+                    parts = []
+                    # 0) 系統規則（強制引用媒體內容，嚴格模板）
+                    sys_rules = (
+                        "你是一位社群文案寫手。必須根據提供的圖片/影片內容進行創作，"
+                        "不可忽略媒體資訊，需自然描述媒體中的具體元素（人物/物件/場景/文字等），"
+                        "且嚴格依照模板輸出多個版本（以【版本X】開頭）。"
+                    )
+                    parts.append(sys_rules)
+                    # 1) 前置文字（第一至五段組合，不含媒體提示）
+                    preface = _build_five_stage_prompt(
+                        user_prompt=request.user_prompt,
+                        settings=request.settings,
+                        post_count=post_count,
+                        reference_analysis=request.reference_analysis,
+                        media=None
+                    )
+                    parts.append(preface)
+                    # 2) 媒體本體
+                    import base64, httpx
+                    images = (request.media.get('images') or [])[:4]
+                    for img in images:
+                        content_type = img.get('content_type') or img.get('mime') or 'image/jpeg'
+                        data_b64 = img.get('data_base64')
+                        if not data_b64:
+                            url = img.get('url') or img.get('rustfs_url')
+                            if url:
+                                try:
+                                    with httpx.Client(timeout=20.0, follow_redirects=True) as c:
+                                        resp = c.get(url)
+                                        resp.raise_for_status()
+                                        ct = resp.headers.get('content-type') or content_type
+                                        data_b64 = base64.b64encode(resp.content).decode('utf-8')
+                                        content_type = ct
+                                except Exception:
+                                    data_b64 = None
+                        if data_b64:
+                            parts.append({"mime_type": content_type, "data": data_b64})
+                        elif img.get('url'):
+                            # 資料抓取失敗時，至少附上 URL 作為上下文
+                            parts.append(f"[image-url] {img['url']}")
+                    videos = request.media.get('videos') or []
+                    for vid in videos:
+                        # Gemini File API 需預先上傳；此處先以 URL 作為上下文提示
+                        url = vid.get('url')
+                        if url:
+                            parts.append(f"[video] {url}")
+                    # 3) 媒體提示段（原 stage_6 的提示語）
+                    stage_6 = ""
+                    media_notes = []
+                    if request.media.get('images'):
+                        media_notes.append("請根據圖片內容傳達情緒，與模板設計貼文，圖片與文字需要搭配，兩者呼應且相關。必要時文字會自然講到圖片的內容。")
+                    if request.media.get('videos'):
+                        media_notes.append("可搭配影片內容設計貼文，如果沒有特別要求以文字文主。影片內容可自由參考，自然呼應即可。")
+                    if media_notes:
+                        stage_6 = "**媒體素材提示**:\n" + "\n".join(media_notes)
+                        parts.append(stage_6)
+                    # 4) 明確生成指令（版本數/風格要求）
+                    parts.append(f"請根據以上信息，生成 {post_count} 個不同風格的貼文版本。每個版本用 '【版本X】' 標示，內容要符合指定的風格和長度要求。")
+                    gemini_parts = parts
+                except Exception as _mm_err:
+                    # 若 parts 構建失敗，退回純文字模式
+                    gemini_parts = None
+        if gemini_parts:
+            metadata["gemini_parts"] = gemini_parts
+            # 若呼叫端誤選非 gemini，強制落到 gemini
+            provider = 'gemini'
         generated_content = await llm_manager.chat_completion(
             messages=messages,
             model=model_name,
             provider=provider,
             max_tokens=4096,
             temperature=0.8,
-            # 用於成本面板的使用場景標記
-            usage_scene="post-writing"
+            **metadata
         )
         
         # 解析生成的多個貼文版本

@@ -161,7 +161,22 @@ class StructureTemplater:
 """
 
         messages = [
-            {"role": "system", "content": "你是專業的結構分析師，請以繁體中文輸出，只關注『結構與表現手法』，嚴禁涉及主題/情節內容。"},
+            {
+                "role": "system",
+                "content": (
+                    "你是專業的結構分析師。請以繁體中文輸出，只關注『結構與表現手法』，嚴禁涉及主題/情節/語義或實名資訊。\n"
+                    "請優先覆蓋以下面向（僅在可觀察且適用時輸出）：\n"
+                    "- 長度輪廓：總句數、平均句長、總字數；短/長句定義與比例\n"
+                    "- 組織方式：段落數、每段句數、單段/多段、列點/對話/引用\n"
+                    "- 節奏與停頓：快/中/慢、停頓位置、強調與對比的節奏用途\n"
+                    "- 連貫策略：承接/轉折/對比/時間序 及其頻率或位置建議\n"
+                    "- 句型分布：陳述/疑問/感嘆/祈使 的比例\n"
+                    "- 標點/符號：逗號/冒號/破折號/省略號密度、emoji/hashtag 使用模式\n"
+                    "- 開頭鉤子（結構層面）：疑問句/數據句/對比句/故事起點/引用\n"
+                    "- 結尾收束（結構層面）：總結/呼應/CTA 的結構位置與句型（僅結構標記）\n"
+                    "所有數值以『範圍』呈現；無觀察依據的欄位應省略。"
+                ),
+            },
             {"role": "user", "content": prompt}
         ]
         
@@ -171,7 +186,8 @@ class StructureTemplater:
                 model="gemini-2.0-flash",
                 temperature=0.2,
                 max_tokens=2000,
-                provider="gemini"
+                provider="gemini",
+                usage_scene="post-analyzer.template.adaptive"
             )
             parsed = parse_llm_json_response(content)
             # 將樣本一併回傳，便於後續摘要不需再查資料

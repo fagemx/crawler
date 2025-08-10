@@ -38,9 +38,13 @@ class PostAnalyzerAgent:
     
     def _decide_min_groups(self, total_posts: int) -> int:
         """根據總貼文數決定最低分組數（允許重疊覆蓋）"""
-        if total_posts >= 100:
+        # 規則：
+        # - > 50 篇：至少 10 組（目標每 ~10 篇形成 1 組）
+        # - > 5 篇：至少 5 組
+        # - 其他：3 組
+        if total_posts > 50:
             return 10
-        if total_posts >= 25:
+        if total_posts > 5:
             return 5
         return 3
     
@@ -141,7 +145,12 @@ class PostAnalyzerAgent:
         print("\n-------------------------------------\n")
 
         messages = [{"role": "user", "content": prompt}]
-        response = await self.llm_client.chat_completion(messages, temperature=0.2, usage_scene="content-analysis")
+        # 設定使用場景，便於 llm_usage.service/metadata 中標示來源
+        response = await self.llm_client.chat_completion(
+            messages,
+            temperature=0.2,
+            usage_scene="post-analyzer.mode1.template"
+        )
         
         try:
             content = response["choices"][0]["message"]["content"]
@@ -195,7 +204,11 @@ class PostAnalyzerAgent:
         print("\n-------------------------------------\n")
 
         messages = [{"role": "user", "content": prompt}]
-        response = await self.llm_client.chat_completion(messages, temperature=0.3, usage_scene="content-analysis")
+        response = await self.llm_client.chat_completion(
+            messages,
+            temperature=0.3,
+            usage_scene="post-analyzer.mode2.patterns"
+        )
         try:
             content = response["choices"][0]["message"]["content"]
             return parse_llm_json_response(content)
@@ -235,7 +248,12 @@ class PostAnalyzerAgent:
 
             messages = [{"role": "user", "content": prompt}]
             try:
-                response = await self.llm_client.chat_completion(messages, model=model, temperature=0.5, usage_scene="content-analysis")
+                response = await self.llm_client.chat_completion(
+                    messages,
+                    model=model,
+                    temperature=0.5,
+                    usage_scene="post-analyzer.mode3.multi-llm"
+                )
                 content = response["choices"][0]["message"]["content"]
                 findings.append({
                     "model": model,
@@ -280,7 +298,11 @@ class PostAnalyzerAgent:
         print("\n----------------------------------------------------\n")
 
         summary_messages = [{"role": "user", "content": final_summary_prompt}]
-        summary_response = await self.llm_client.chat_completion(summary_messages, temperature=0.3, usage_scene="content-analysis")
+        summary_response = await self.llm_client.chat_completion(
+            summary_messages,
+            temperature=0.3,
+            usage_scene="post-analyzer.mode3.synthesis"
+        )
         
         try:
             content = summary_response["choices"][0]["message"]["content"]
@@ -446,7 +468,8 @@ class PostAnalyzerAgent:
                 model="gemini-2.0-flash",
                 temperature=0.1,
                 max_tokens=1000,
-                provider="gemini"
+                provider="gemini",
+                usage_scene="post-analyzer.batch.step1-structure"
             )
             result = parse_llm_json_response(content)
             # 如果有重複的 post_structure_guide 嵌套，提取內層的
@@ -573,7 +596,9 @@ class PostAnalyzerAgent:
         
         # 動態建議每組至少樣本（允許重疊，放寬門檻）
         suggested_min_samples = max(3, len(posts_content) // max(min_groups, 5))
-        target_groups_high = min_groups + 2
+        # 期望上限：大量樣本時固定瞄準 10 組；
+        # 少量樣本時給一個彈性範圍（min_groups ~ min(min_groups+5, 10)）
+        target_groups_high = 10 if len(posts_content) > 50 else min(min_groups + 5, 10)
         
         prompt = f"""分析{len(posts_content)}篇貼文的結構特徵，請輸出至少{min_groups}組（可達到{target_groups_high}組）的結構模式分群，允許重疊覆蓋。
 
@@ -617,7 +642,23 @@ class PostAnalyzerAgent:
 }}"""
 
         messages = [
-            {"role": "system", "content": "你是專業的結構模式識別專家，專注於從客觀結構特徵中發現貼文模式，不涉及內容主題分析。"},
+            {
+                "role": "system",
+                "content": (
+                    "你是專業的結構模式識別專家，僅根據『可觀察的結構特徵』分群，嚴禁涉入主題/情節/語義。\n"
+                    "必須覆蓋全部貼文（允許重疊），並以『純結構命名』輸出模式名稱（例如：單段密集型、多段漸進對比型、列點節奏切換型、對話插入型、引用鋪陳型）。\n"
+                    "請從下列面向觀察並歸納：\n"
+                    "- 長度輪廓：總句數範圍、平均句長、字數範圍\n"
+                    "- 組織方式：段落數、每段句數、單段/多段、列點/對話/引用\n"
+                    "- 節奏與停頓：快/中/慢、停頓位置、段內/段間節奏\n"
+                    "- 句型分布：陳述/疑問/感嘆/祈使 的比例\n"
+                    "- 標點與符號：逗號/冒號/破折號/省略號密度、emoji/hashtag 使用頻率\n"
+                    "- 連貫策略：承接/轉折/對比/時間序\n"
+                    "- 開頭鉤子（結構層面）：疑問句/數據句/對比句/故事起點/引用\n"
+                    "- 結尾收束（結構層面）：總結/呼應/CTA 位置與句型（僅結構標記，不含內容）\n"
+                    "所有結論必須可由結構觀察得到，若無法觀察請省略。"
+                ),
+            },
             {"role": "user", "content": prompt}
         ]
         
@@ -627,7 +668,8 @@ class PostAnalyzerAgent:
                 model="gemini-2.0-flash",
                 temperature=0.3,  # 適中的創意性，保持一致性
                 max_tokens=2000,
-                provider="gemini"
+                provider="gemini",
+                usage_scene="post-analyzer.batch.pattern-recognition"
             )
             return parse_llm_json_response(content)
         except Exception as e:
@@ -786,7 +828,14 @@ class PostAnalyzerAgent:
 """
 
         messages = [
-            {"role": "system", "content": "你是專業的結構分析師，專注於從結構特徵中提取可指導AI創作的模板。"},
+            {
+                "role": "system",
+                "content": (
+                    "你是專業的結構分析師。只關注『結構與表現手法』，嚴禁涉及任何主題/情節/語義或實名資訊。\n"
+                    "優先覆蓋：長度輪廓、段落/列點/對話組織、節奏與停頓、連貫策略、句型分布、標點與符號密度、開頭鉤子類型、結尾收束與 CTA 的結構位置。\n"
+                    "僅輸出可觀察且有依據的欄位；無法觀察請省略。所有數值以『範圍』呈現。"
+                ),
+            },
             {"role": "user", "content": prompt}
         ]
         

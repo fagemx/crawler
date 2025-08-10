@@ -167,17 +167,24 @@ class GeminiProvider(BaseLLMProvider):
             model_name = request.model or self.default_model
             model = genai.GenerativeModel(model_name)
             
-            # 轉換消息格式
-            prompt_parts = []
-            for msg in request.messages:
-                if msg['role'] == 'system':
-                    prompt_parts.append(f"System: {msg['content']}")
-                elif msg['role'] == 'user':
-                    prompt_parts.append(f"User: {msg['content']}")
-                elif msg['role'] == 'assistant':
-                    prompt_parts.append(f"Assistant: {msg['content']}")
+            # 若有多模態 parts（例如圖片/影片 + 多段提示），優先走多模態直送
+            gemini_parts = None
+            try:
+                gemini_parts = (request.metadata or {}).get('gemini_parts')
+            except Exception:
+                gemini_parts = None
             
-            prompt = "\n\n".join(prompt_parts)
+            # 轉換消息格式（純文字備援）
+            prompt_parts = []
+            if not gemini_parts:
+                for msg in request.messages:
+                    if msg['role'] == 'system':
+                        prompt_parts.append(f"System: {msg['content']}")
+                    elif msg['role'] == 'user':
+                        prompt_parts.append(f"User: {msg['content']}")
+                    elif msg['role'] == 'assistant':
+                        prompt_parts.append(f"Assistant: {msg['content']}")
+            prompt = "\n\n".join(prompt_parts) if prompt_parts else None
             
             # 生成配置
             generation_config = genai.types.GenerationConfig(
@@ -185,12 +192,19 @@ class GeminiProvider(BaseLLMProvider):
                 max_output_tokens=request.max_tokens,
             )
             
-            # 調用 Gemini API
-            response = model.generate_content(
-                prompt,
-                generation_config=generation_config,
-                safety_settings=self.safety_settings
-            )
+            # 調用 Gemini API（多模態優先，其次文字）
+            if gemini_parts and isinstance(gemini_parts, (list, tuple)):
+                response = model.generate_content(
+                    list(gemini_parts),
+                    generation_config=generation_config,
+                    safety_settings=self.safety_settings
+                )
+            else:
+                response = model.generate_content(
+                    prompt or "",
+                    generation_config=generation_config,
+                    safety_settings=self.safety_settings
+                )
             
             # 檢查響應狀態
             if not response.candidates:
