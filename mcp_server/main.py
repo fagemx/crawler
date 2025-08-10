@@ -220,6 +220,7 @@ app = FastAPI(
 )
 
 # 認證設定
+import os
 JWT_SECRET = os.getenv("AUTH_JWT_SECRET", "dev-secret-change-me")
 JWT_EXPIRES_MINUTES = int(os.getenv("AUTH_TOKEN_EXPIRES_MINUTES", "43200"))  # 30天
 REG_TOKEN = os.getenv("AUTH_ADMIN_REG_TOKEN")

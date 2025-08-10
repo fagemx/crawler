@@ -97,7 +97,7 @@ class SocialMediaGeneratorApp:
         with st.sidebar:
             st.header("🎯 功能導航")
             # 簡易登入區塊
-            with st.expander("👤 登入", expanded=False):
+            with st.expander("👤 登入 / 管理員後台", expanded=False):
                 # 目前使用者顯示
                 current_user = st.session_state.get('user_id', os.getenv('DEFAULT_USER_ID', 'guest'))
                 st.info(f"目前使用者：{current_user}")
@@ -132,6 +132,41 @@ class SocialMediaGeneratorApp:
                         st.session_state.anonymous_id = str(uuid.uuid4())
                         st.session_state.session_id = str(uuid.uuid4())
                         st.success("已登出，切換為 guest")
+
+                # 管理員後台：固定獨立帳密 admin/adminpassword
+                st.markdown("---")
+                st.caption("管理員後台：僅用於新增員工帳號（預設 admin/adminpassword 登入本面板）。")
+                admin_user = st.text_input("管理員帳號", value="admin", key="admin_panel_user")
+                admin_pwd = st.text_input("管理員密碼", value="adminpassword", key="admin_panel_pwd", type="password")
+                new_emp = st.text_input("新增員工 user_id", value="", key="new_emp_user")
+                new_emp_name = st.text_input("顯示名稱（可選）", value="", key="new_emp_name")
+                new_emp_pwd = st.text_input("預設密碼", value="InitPass123", key="new_emp_pwd", type="password")
+                if st.button("新增員工（預設密碼）", use_container_width=True, key="btn_admin_create_user"):
+                    try:
+                        import httpx
+                        base_url = os.getenv('MCP_SERVER_URL', 'http://localhost:10100')
+                        # 先用 admin 固定帳密登入換 JWT（簡化：在後端預先建立 admin/adminpassword 或用 REG_TOKEN）
+                        # 嘗試用註冊密鑰
+                        headers = {}
+                        reg_token = os.getenv('AUTH_ADMIN_REG_TOKEN')
+                        if reg_token:
+                            headers["X-REG-TOKEN"] = reg_token
+                        else:
+                            # 後備：若無 REG_TOKEN，嘗試 admin login 取 JWT 再帶 Authorization
+                            resp_login = httpx.post(f"{base_url}/auth/login", json={"user_id": admin_user, "password": admin_pwd}, timeout=8.0)
+                            if resp_login.status_code == 200 and resp_login.json().get("ok"):
+                                headers["Authorization"] = f"Bearer {resp_login.json().get('access_token')}"
+                            else:
+                                st.error("管理員登入失敗，請設定 AUTH_ADMIN_REG_TOKEN 或先建立 admin 帳號")
+                                st.stop()
+                        payload = {"user_id": new_emp, "password": new_emp_pwd, "display_name": new_emp_name or None}
+                        resp_reg = httpx.post(f"{base_url}/auth/register", headers=headers, json=payload, timeout=8.0)
+                        if resp_reg.status_code == 200 and resp_reg.json().get("ok"):
+                            st.success(f"已新增員工：{new_emp}")
+                        else:
+                            st.error(f"新增員工失敗：HTTP {resp_reg.status_code}")
+                    except Exception as e:
+                        st.error(f"新增員工失敗：{e}")
                     try:
                         import httpx
                         base_url = os.getenv('MCP_SERVER_URL', 'http://localhost:10100')
