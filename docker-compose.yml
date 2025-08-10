@@ -55,8 +55,8 @@ services:
       - ./storage/rustfs-logs:/logs
     command: ["/usr/bin/rustfs", "--address", ":9000", "/data"]
     environment:
-      - RUSTFS_ACCESS_KEY=rustfsadmin
-      - RUSTFS_SECRET_KEY=rustfsadmin
+      - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY:-rustfsadmin}
+      - RUSTFS_SECRET_KEY=${RUSTFS_SECRET_KEY:-rustfsadmin}
       - RUST_LOG=error
     healthcheck:
       test: ["CMD", "sh", "-c", "nc -z localhost 9000"]
@@ -280,6 +280,10 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - NATS_URL=nats://nats:4222
       - DATABASE_URL=postgresql://postgres:password@postgres:5432/social_media_db
+      - RUSTFS_ENDPOINT=http://rustfs:9000
+      - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY:-rustfsadmin}
+      - RUSTFS_SECRET_KEY=${RUSTFS_SECRET_KEY:-rustfsadmin}
+      - RUSTFS_BUCKET=${RUSTFS_BUCKET:-social-media-content}
     env_file:
       - .env
     volumes:
@@ -314,6 +318,10 @@ services:
       - AGENT_PORT=8008
       - REDIS_URL=redis://redis:6379/0
       - DATABASE_URL=postgresql://postgres:password@postgres:5432/social_media_db
+      - RUSTFS_ENDPOINT=http://rustfs:9000
+      - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY:-rustfsadmin}
+      - RUSTFS_SECRET_KEY=${RUSTFS_SECRET_KEY:-rustfsadmin}
+      - RUSTFS_BUCKET=${RUSTFS_BUCKET:-social-media-content}
     env_file:
       - .env
     volumes:
@@ -382,9 +390,9 @@ services:
       - DATABASE_URL=postgresql://postgres:password@postgres:5432/social_media_db
       - REDIS_URL=redis://redis:6379/0
       - RUSTFS_ENDPOINT=http://rustfs:9000
-      - RUSTFS_ACCESS_KEY=rustfsadmin
-      - RUSTFS_SECRET_KEY=rustfsadmin
-      - RUSTFS_BUCKET=social-media-content
+      - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY:-rustfsadmin}
+      - RUSTFS_SECRET_KEY=${RUSTFS_SECRET_KEY:-rustfsadmin}
+      - RUSTFS_BUCKET=${RUSTFS_BUCKET:-social-media-content}
     env_file:
       - .env
     volumes:
@@ -544,6 +552,10 @@ services:
       - DATABASE_URL=postgresql://postgres:password@postgres:5432/social_media_db
       - REDIS_URL=redis://redis:6379/0
       - NATS_URL=nats://nats:4222
+      - RUSTFS_ENDPOINT=http://rustfs:9000
+      - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY:-rustfsadmin}
+      - RUSTFS_SECRET_KEY=${RUSTFS_SECRET_KEY:-rustfsadmin}
+      - RUSTFS_BUCKET=${RUSTFS_BUCKET:-social-media-content}
     env_file:
       - .env
     volumes:
@@ -592,6 +604,10 @@ services:
       - MCP_SERVER_URL=http://mcp-server:10100
       - DATABASE_URL=postgresql://postgres:password@postgres:5432/social_media_db
       - REDIS_URL=redis://redis:6379/0
+      - RUSTFS_ENDPOINT=http://rustfs:9000
+      - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY:-rustfsadmin}
+      - RUSTFS_SECRET_KEY=${RUSTFS_SECRET_KEY:-rustfsadmin}
+      - RUSTFS_BUCKET=${RUSTFS_BUCKET:-social-media-content}
       - NATS_URL=nats://nats:4222
     env_file:
       - .env
