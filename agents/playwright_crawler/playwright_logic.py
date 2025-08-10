@@ -509,20 +509,16 @@ class PlaywrightLogic:
             "--disable-web-security",
             "--disable-features=VizDisplayCompositor",
         ]
+        # 嚴格降級順序：channel=chrome → system 安裝 → 內建 chromium
         try:
-            # 優先使用系統 Chrome 渠道，避免缺少 headless_shell 造成的啟動失敗
-            self.browser = await self.playwright.chromium.launch(
-                channel="chrome",
-                headless=True,
-                args=launch_args,
-            )
-        except Exception as launch_via_channel_error:
-            logging.warning(f"⚠️ 無法透過 Chrome 渠道啟動，改用預設 chromium：{launch_via_channel_error}")
-            # 回退到內建的 chromium（需要已安裝對應瀏覽器）
-            self.browser = await self.playwright.chromium.launch(
-                headless=True,
-                args=launch_args,
-            )
+            self.browser = await self.playwright.chromium.launch(channel="chrome", headless=True, args=launch_args)
+        except Exception as e1:
+            logging.warning(f"⚠️ Chrome channel 啟動失敗，嘗試 system chromium: {e1}")
+            try:
+                self.browser = await self.playwright.chromium.launch(executable_path="/usr/bin/chromium" , headless=True, args=launch_args)
+            except Exception as e2:
+                logging.warning(f"⚠️ system chromium 不可用，回退內建 chromium: {e2}")
+                self.browser = await self.playwright.chromium.launch(headless=True, args=launch_args)
         # 創建context（自動播放通過launch args控制）
         self.context = await self.browser.new_context()
         
