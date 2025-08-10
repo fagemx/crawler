@@ -75,10 +75,13 @@ class PostDataFetcher:
             
             # 根據排序方式構建查詢
             sort_column = {
+                "views": "views_count",
                 "likes": "likes_count",
-                "views": "views_count", 
-                "score": "calculated_score"
-            }.get(sort_method, "likes_count")
+                "comments": "comments_count",
+                "reposts": "reposts_count",
+                "shares": "shares_count",
+                "score": "calculated_score",
+            }.get(sort_method, "views_count")
             
             query = f"""
             SELECT content

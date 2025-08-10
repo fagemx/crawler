@@ -87,7 +87,7 @@ class AnalyzerComponent:
             options=["📊 批量結構分析", "📝 單篇深度分析"],
             index=0,
             horizontal=True,
-            help="單篇模式：深度分析特定貼文 | 批量模式：從實時爬蟲資料庫導入多篇貼文進行模式分析"
+            help="單篇模式：深度分析特定貼文 | 批量模式：從 Playwright 爬蟲入庫數據導入多篇貼文（實時爬蟲作為備用）"
         )
         
         if analysis_mode == "📝 單篇深度分析":
@@ -113,7 +113,7 @@ class AnalyzerComponent:
             # 使用現有的分頁系統
             self._render_tab_system()
         else:
-            st.markdown("**智能模式識別** - 從實時爬蟲數據中識別結構模式並生成創作指南")
+            st.markdown("**智能模式識別** - 從 Playwright 爬蟲入庫數據中識別結構模式並生成創作指南（🚀 實時爬蟲作為備用）")
             # 使用拆分出來的批量分析組件
             self.batch_analysis.render_batch_analysis_system()
         

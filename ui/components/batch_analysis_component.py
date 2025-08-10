@@ -59,13 +59,13 @@ class BatchAnalysisComponent:
     
     def _render_batch_input_section(self):
         """渲染批量分析輸入區域"""
-        st.subheader("🚀 從實時爬蟲導入")
+        st.subheader("🎭 從 Playwright 爬蟲導入")
         
         col1, col2 = st.columns([1, 1])
         
         with col1:
             st.markdown("**📊 數據來源**")
-            st.info("從實時智能爬蟲系統選擇已爬取的用戶進行批量分析")
+            st.info("從 Playwright 爬蟲已入庫的數據中選擇用戶進行批量分析（🚀 實時爬蟲作為備用）")
             
             if st.button("🔄 刷新用戶", key="refresh_crawled_users"):
                 st.session_state.batch_analysis_state['status'] = 'loading_users'
@@ -83,8 +83,15 @@ class BatchAnalysisComponent:
             # 排序方式
             sort_method = st.selectbox(
                 "排序方式",
-                options=["likes", "views", "score"],
-                format_func=lambda x: {"likes": "按讚數", "views": "瀏覽數", "score": "總和分數"}[x],
+                options=["views", "likes", "comments", "reposts", "shares", "score"],
+                format_func=lambda x: {
+                    "views": "瀏覽數",
+                    "likes": "按讚數",
+                    "comments": "留言數",
+                    "reposts": "轉發數",
+                    "shares": "分享數",
+                    "score": "計算分數",
+                }[x],
                 key="batch_sort_method"
             )
             st.session_state.batch_analysis_state['sort_method'] = sort_method
