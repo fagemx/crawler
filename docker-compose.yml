@@ -163,6 +163,11 @@ services:
       - MCP_SERVER_HOST=0.0.0.0
       - MCP_SERVER_PORT=10100
       - DATABASE_URL=postgresql://postgres:password@postgres:5432/social_media_db
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=social_media_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
       - REDIS_URL=redis://redis:6379/0
       - PYTHONPATH=/app
       - RUSTFS_ENDPOINT=http://rustfs:9000
@@ -171,6 +176,8 @@ services:
       - RUSTFS_BUCKET=${RUSTFS_BUCKET:-social-media-content}
     env_file:
       - .env
+    volumes:
+      - .:/app
     depends_on:
       postgres:
         condition: service_healthy
@@ -185,7 +192,7 @@ services:
       retries: 3
     networks:
       - social-media-network
-    command: ["uvicorn", "mcp_server.main:app", "--host", "0.0.0.0", "--port", "10100", "--log-level", "debug", "--reload"]
+    command: sh -c "python scripts/setup_database.py && uvicorn mcp_server.main:app --host 0.0.0.0 --port 10100 --log-level debug --reload"
 
   # =============================================================================
   # AI Agent 服務

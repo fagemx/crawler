@@ -1,142 +1,121 @@
 #!/usr/bin/env python3
 """
-資料庫設置腳本
-
-在 PostgreSQL 容器啟動後執行資料庫初始化
+自動資料庫初始化腳本
+確保所有必要的資料表和索引都已建立，支援 idempotent 重複執行
 """
 
 import asyncio
 import asyncpg
+import os
 import sys
-import time
+import logging
 from pathlib import Path
 
+# 設置日誌
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
-async def wait_for_postgres(host="localhost", port=5432, user="postgres", password="password", database="social_media_db", max_retries=30):
-    """等待 PostgreSQL 準備就緒"""
-    print(f"🔍 Waiting for PostgreSQL at {host}:{port}...")
+async def setup_database():
+    """自動初始化資料庫"""
+    # 從環境變數獲取資料庫連線資訊
+    db_host = os.getenv('POSTGRES_HOST', 'postgres')
+    db_port = int(os.getenv('POSTGRES_PORT', 5432))
+    db_name = os.getenv('POSTGRES_DB', 'social_media_db')
+    db_user = os.getenv('POSTGRES_USER', 'postgres')
+    db_password = os.getenv('POSTGRES_PASSWORD', 'password')
+    
+    max_retries = 30
+    retry_delay = 2
     
     for attempt in range(max_retries):
         try:
+            logger.info(f"嘗試連線資料庫... (第 {attempt + 1}/{max_retries} 次)")
+            
+            # 建立資料庫連線
             conn = await asyncpg.connect(
-                host=host,
-                port=port,
-                user=user,
-                password=password,
-                database=database,
-                timeout=5
+                host=db_host,
+                port=db_port,
+                database=db_name,
+                user=db_user,
+                password=db_password
             )
-            await conn.close()
-            print("✅ PostgreSQL is ready")
-            return True
-        except Exception as e:
-            if attempt < max_retries - 1:
-                print(f"   Attempt {attempt + 1}/{max_retries} failed, retrying in 2s...")
-                await asyncio.sleep(2)
-            else:
-                print(f"❌ PostgreSQL not ready after {max_retries} attempts: {e}")
+            
+            logger.info("資料庫連線成功，開始執行初始化腳本...")
+            
+            # 讀取初始化 SQL 腳本
+            sql_file = Path(__file__).parent / 'init-db.sql'
+            if not sql_file.exists():
+                logger.error(f"找不到 SQL 腳本檔案: {sql_file}")
                 return False
-    
-    return False
+                
+            with open(sql_file, 'r', encoding='utf-8') as f:
+                sql_content = f.read()
+            
+            # 執行 SQL 腳本
+            await conn.execute(sql_content)
+            
+            # 檢查關鍵表格是否存在
+            tables_to_check = [
+                'posts', 'post_metrics', 'media_files', 'media_descriptions',
+                'mcp_agents', 'crawl_state', 'post_metrics_sql'
+            ]
+            
+            missing_tables = []
+            for table in tables_to_check:
+                exists = await conn.fetchval("""
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables 
+                        WHERE table_schema = 'public' 
+                        AND table_name = $1
+                    )
+                """, table)
+                
+                if not exists:
+                    missing_tables.append(table)
+                else:
+                    logger.info(f"✓ 表格 {table} 已存在")
+            
+            if missing_tables:
+                logger.error(f"以下表格缺失: {missing_tables}")
+                return False
+            
+            # 關閉連線
+            await conn.close()
+            
+            logger.info("🎉 資料庫初始化完成！所有必要的表格和索引都已就緒")
+            return True
+            
+        except asyncpg.exceptions.ConnectionError as e:
+            logger.warning(f"連線失敗 (第 {attempt + 1} 次): {e}")
+            if attempt < max_retries - 1:
+                logger.info(f"等待 {retry_delay} 秒後重試...")
+                await asyncio.sleep(retry_delay)
+            else:
+                logger.error("資料庫連線失敗，已達最大重試次數")
+                return False
+                
+        except Exception as e:
+            logger.error(f"執行資料庫初始化時發生錯誤: {e}")
+            logger.error(f"錯誤類型: {type(e).__name__}")
+            import traceback
+            logger.error(f"詳細錯誤: {traceback.format_exc()}")
+            return False
 
-
-async def execute_sql_file(sql_file_path: Path, host="localhost", port=5432, user="postgres", password="password", database="social_media_db"):
-    """執行 SQL 檔案"""
-    print(f"📋 Executing SQL file: {sql_file_path}")
+async def main():
+    """主程式進入點"""
+    logger.info("🚀 開始自動資料庫初始化...")
     
-    if not sql_file_path.exists():
-        print(f"❌ SQL file not found: {sql_file_path}")
-        return False
+    success = await setup_database()
     
-    try:
-        # 讀取 SQL 檔案
-        with open(sql_file_path, 'r', encoding='utf-8') as f:
-            sql_content = f.read()
-        
-        # 連接資料庫
-        conn = await asyncpg.connect(
-            host=host,
-            port=port,
-            user=user,
-            password=password,
-            database=database
-        )
-        
-        # 執行 SQL
-        await conn.execute(sql_content)
-        await conn.close()
-        
-        print("✅ SQL file executed successfully")
-        return True
-        
-    except Exception as e:
-        print(f"❌ Failed to execute SQL file: {e}")
-        return False
-
-
-async def setup_database():
-    """設置資料庫"""
-    print("🚀 Database Setup Script")
-    print("=" * 40)
-    
-    # 1. 等待 PostgreSQL 準備就緒
-    if not await wait_for_postgres():
-        return False
-    
-    # 2. 執行初始化 SQL
-    sql_file = Path(__file__).parent / "init-db.sql"
-    if not await execute_sql_file(sql_file):
-        return False
-    
-    # 3. 驗證設置
-    print("\n🔍 Verifying database setup...")
-    try:
-        conn = await asyncpg.connect(
-            host="localhost",
-            port=5432,
-            user="postgres",
-            password="password",
-            database="social_media_db"
-        )
-        
-        # 檢查表格是否存在
-        tables = await conn.fetch("""
-            SELECT table_name 
-            FROM information_schema.tables 
-            WHERE table_schema = 'public'
-            ORDER BY table_name
-        """)
-        
-        table_names = [row['table_name'] for row in tables]
-        print(f"✅ Found {len(table_names)} tables: {', '.join(table_names)}")
-        
-        await conn.close()
-        
-        print("\n🎉 Database setup completed successfully!")
-        return True
-        
-    except Exception as e:
-        print(f"❌ Database verification failed: {e}")
-        return False
-
-
-def main():
-    """主函數"""
-    import argparse
-    
-    parser = argparse.ArgumentParser(description="Database Setup Script")
-    parser.add_argument("--host", default="localhost", help="PostgreSQL host")
-    parser.add_argument("--port", type=int, default=5432, help="PostgreSQL port")
-    parser.add_argument("--user", default="postgres", help="PostgreSQL user")
-    parser.add_argument("--password", default="password", help="PostgreSQL password")
-    parser.add_argument("--database", default="social_media_db", help="Database name")
-    
-    args = parser.parse_args()
-    
-    # 執行設置
-    success = asyncio.run(setup_database())
-    sys.exit(0 if success else 1)
-
+    if success:
+        logger.info("✅ 資料庫初始化成功完成")
+        sys.exit(0)
+    else:
+        logger.error("❌ 資料庫初始化失敗")
+        sys.exit(1)
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

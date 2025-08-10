@@ -661,7 +661,7 @@ class MediaProcessorComponent:
         with col5:
             overwrite = st.checkbox("重新描述（覆蓋舊的）", value=True)
         with col6:
-            concurrency = st.selectbox("並發數", [1, 2, 3], index=1, key="desc_ccy")
+            concurrency = st.selectbox("並發數", [1, 2, 3], index=0, key="desc_ccy")
         with col7:
             only_undesc = st.checkbox("僅未描述", value=True, key="only_undesc")
 
