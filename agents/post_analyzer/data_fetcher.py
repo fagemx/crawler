@@ -89,7 +89,7 @@ class PostDataFetcher:
         try:
             conn = await self._connect()
             
-            # 根據排序方式構建查詢
+            # 根據排序方式構建查詢（允許為 NULL，使用 COALESCE 排序）
             sort_column = {
                 "views": "views_count",
                 "likes": "likes_count",
@@ -98,18 +98,41 @@ class PostDataFetcher:
                 "shares": "shares_count",
                 "score": "calculated_score",
             }.get(sort_method, "views_count")
-            
-            query = f"""
+
+            # 主要來源：post_metrics_sql（內容清洗後的語料）
+            primary_query = f"""
             SELECT content
             FROM post_metrics_sql
-            WHERE username = $1 
+            WHERE replace(lower(username),'@','') = replace(lower($1),'@','')
               AND content IS NOT NULL 
               AND trim(content) != ''
-            ORDER BY {sort_column} DESC NULLS LAST, fetched_at DESC
+            ORDER BY COALESCE({sort_column}, 0) DESC, COALESCE(fetched_at, created_at, NOW()) DESC
             LIMIT $2;
             """
-            
-            rows = await conn.fetch(query, username, post_count)
+
+            rows = await conn.fetch(primary_query, username, post_count)
+
+            # 後備來源：playwright_post_metrics（直接從爬蟲入庫的 content）
+            if not rows:
+                fallback_sort_column = {
+                    "views": "views_count",
+                    "likes": "likes_count",
+                    "comments": "comments_count",
+                    "reposts": "reposts_count",
+                    "shares": "shares_count",
+                    "score": "calculated_score",
+                }.get(sort_method, "views_count")
+
+                fallback_query = f"""
+                SELECT content
+                FROM playwright_post_metrics
+                WHERE replace(lower(username),'@','') = replace(lower($1),'@','')
+                  AND content IS NOT NULL 
+                  AND trim(content) != ''
+                ORDER BY COALESCE({fallback_sort_column}, 0) DESC, COALESCE(created_at, fetched_at, NOW()) DESC
+                LIMIT $2;
+                """
+                rows = await conn.fetch(fallback_query, username, post_count)
             await conn.close()
             
             # 提取markdown內容
