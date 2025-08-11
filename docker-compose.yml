@@ -655,7 +655,7 @@ services:
       - ORCHESTRATOR_URL=http://localhost:8000
       - FORM_API_URL=http://localhost:8010
       - MCP_SERVER_URL=http://localhost:10100
-      - DATABASE_URL=postgresql://postgres:password@localhost:5432/social_media_db
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/social_media_db
       - REDIS_URL=redis://localhost:6379/0
       - RUSTFS_ENDPOINT=http://localhost:9000
       - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY:-rustfsadmin}
