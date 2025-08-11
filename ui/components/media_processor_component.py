@@ -460,7 +460,13 @@ class MediaProcessorComponent:
                         with mg_col2:
                             unselect_all = st.button("全不選", key="gal_unselect_all")
                         with mg_col3:
-                            auto_avatar = st.checkbox("自動選取疑似頭像(寬<200或高<200)", value=False)
+                            auto_avatar = st.checkbox("自動選取疑似頭像", value=False, help="依尺寸與近似方形自動勾選")
+                        # 頭像判斷參數（並排顯示）
+                        p_col1, p_col2 = st.columns([1,1])
+                        with p_col1:
+                            avatar_max_edge = st.number_input("頭像最大邊長(px)", min_value=64, max_value=512, value=200, step=10, help="最小邊長需小於等於此值才視為頭像")
+                        with p_col2:
+                            avatar_square_tol = st.slider("方形容差(%)", min_value=0, max_value=30, value=10, step=1, help="寬高比須在 1±此百分比 內")
                         with mg_col4:
                             if st.button("重新載入", key="gal_reload"):
                                 st.rerun()
@@ -479,11 +485,20 @@ class MediaProcessorComponent:
                                 # 初始化選取狀態
                                 default_chk = False
                                 if auto_avatar:
-                                    # 僅對圖片判斷頭像，排除影片
+                                    # 僅對圖片判斷頭像：小尺寸且近似正方形
                                     if r.get('media_type') == 'image':
                                         w = r.get('width') or 0
                                         h = r.get('height') or 0
-                                        default_chk = (isinstance(w, int) and w < 200) or (isinstance(h, int) and h < 200)
+                                        is_int_wh = isinstance(w, int) and isinstance(h, int) and w > 0 and h > 0
+                                        if is_int_wh:
+                                            min_edge = min(w, h)
+                                            ratio = (max(w, h) / min_edge) if min_edge > 0 else 999
+                                            tol = 1.0 + (avatar_square_tol / 100.0)
+                                            is_small = min_edge <= int(avatar_max_edge)
+                                            is_squareish = ratio <= tol
+                                            default_chk = bool(is_small and is_squareish)
+                                        else:
+                                            default_chk = False
                                     else:
                                         default_chk = False
                                 if select_all:
