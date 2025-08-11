@@ -120,7 +120,8 @@ class MediaDescribeService:
         db = await get_db_client()
 
         # 先取貼文集合（排序 Top-N）
-        post_filter_cte = ""
+        with_parts = []
+        base_posts_where = ""
         if top_k and isinstance(top_k, int) and top_k > 0:
             sort_expr_map = {
                 "views": "COALESCE(views_count, 0)",
@@ -130,23 +131,33 @@ class MediaDescribeService:
             }
             sort_expr = sort_expr_map.get(sort_by) if sort_by and sort_by != "none" else None
             order_clause = f"ORDER BY {sort_expr} DESC NULLS LAST" if sort_expr else "ORDER BY COALESCE(created_at, fetched_at, NOW()) DESC"
-            post_filter_cte = f"""
-                , top_posts AS (
+            with_parts.append(
+                f"""
+                top_posts AS (
                     SELECT url
                     FROM playwright_post_metrics
                     WHERE replace(lower(username),'@','') = replace(lower($1),'@','')
                     {order_clause}
                     LIMIT {top_k}
                 )
-                """
+                """.strip()
+            )
+            base_posts_where = "WHERE url IN (SELECT url FROM top_posts)"
+        else:
+            base_posts_where = "WHERE replace(lower(username),'@','') = replace(lower($1),'@','')"
 
-        base_posts = "WHERE replace(lower(username),'@','') = replace(lower($1),'@','')" if not post_filter_cte else "WHERE url IN (SELECT url FROM top_posts)"
-        query = f"""
-        WITH
-        {post_filter_cte}
-        base AS (
-            SELECT url, username FROM playwright_post_metrics {base_posts}
+        with_parts.append(
+            f"""
+            base AS (
+                SELECT url, username FROM playwright_post_metrics {base_posts_where}
+            )
+            """.strip()
         )
+
+        with_clause = "WITH " + ",\n".join(with_parts)
+
+        query = f"""
+        {with_clause}
         , completed AS (
             SELECT mf.*
             FROM media_files mf
