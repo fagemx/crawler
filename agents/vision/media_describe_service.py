@@ -273,13 +273,23 @@ class MediaDescribeService:
                     rustfs_url = item.get("rustfs_url")
                     if rustfs_url:
                         try:
-                            # 僅允許從 RustFS bucket 讀取，避免誤用原始 Instagram/FBCDN 連結
-                            prefix = f"{client.base_url}/{client.bucket_name}/"
-                            if not rustfs_url.startswith(prefix):
-                                details.append({"media_id": media_id, "status": "skipped", "error": "invalid_rustfs_url_not_in_bucket"})
-                                continue
-                            key = rustfs_url[len(prefix):]
-                            presigned = client.get_public_or_presigned_url(key, prefer_presigned=True)
+                            # 寬鬆解析：不依賴 host，直接從 "/{bucket}/" 後截取 key
+                            from urllib.parse import urlparse
+                            parsed = urlparse(rustfs_url)
+                            key = None
+                            # 方式1：從 path 抽取
+                            path_part = (parsed.path or "").lstrip('/')
+                            bucket_prefix = f"{client.bucket_name}/"
+                            if path_part.startswith(bucket_prefix):
+                                key = path_part[len(bucket_prefix):]
+                            # 方式2：從完整字串分割
+                            if not key and f"/{client.bucket_name}/" in rustfs_url:
+                                key = rustfs_url.split(f"/{client.bucket_name}/", 1)[1]
+                            # 產生可用 URL（優先 presigned）
+                            if key:
+                                presigned = client.get_public_or_presigned_url(key, prefer_presigned=True)
+                            else:
+                                presigned = rustfs_url
                             async with httpx.AsyncClient(timeout=60.0) as http:
                                 resp = await http.get(presigned, follow_redirects=True)
                                 resp.raise_for_status()
