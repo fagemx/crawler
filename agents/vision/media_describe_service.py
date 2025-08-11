@@ -1,6 +1,7 @@
 from typing import List, Dict, Any, Optional
 import asyncio
 import json
+import time
 
 from common.db_client import get_db_client
 from services.rustfs_client import get_rustfs_client
@@ -13,6 +14,56 @@ class MediaDescribeService:
 
     def __init__(self):
         self.analyzer = GeminiVisionAnalyzer()
+        
+    async def _analyze_media_with_retry(self, media_bytes: bytes, mime_type: str, extra_text: str = None, max_retries: int = 3) -> Dict[str, Any]:
+        """
+        帶重試機制的 Gemini API 調用
+        
+        Args:
+            media_bytes: 媒體二進制資料
+            mime_type: MIME 類型
+            extra_text: 額外文字上下文
+            max_retries: 最大重試次數
+            
+        Returns:
+            分析結果字典
+        """
+        last_error = None
+        
+        for attempt in range(max_retries + 1):
+            try:
+                result = await self.analyzer.analyze_media(media_bytes, mime_type, extra_text)
+                return result
+                
+            except Exception as e:
+                error_str = str(e)
+                last_error = e
+                
+                # 檢查是否是可重試的錯誤
+                retryable_errors = [
+                    "500 An internal error has occurred",
+                    "503 Service Unavailable", 
+                    "502 Bad Gateway",
+                    "429 Too Many Requests",
+                    "timeout",
+                    "connection",
+                    "network"
+                ]
+                
+                is_retryable = any(retryable_phrase in error_str.lower() for retryable_phrase in retryable_errors)
+                
+                if not is_retryable or attempt == max_retries:
+                    # 不可重試的錯誤或已達最大重試次數
+                    raise e
+                
+                # 可重試錯誤，等待後重試
+                wait_time = (2 ** attempt) + (attempt * 0.5)  # 指數退避 + 抖動
+                print(f"⚠️ Gemini API 錯誤 (第 {attempt + 1}/{max_retries + 1} 次)：{error_str}")
+                print(f"🔄 等待 {wait_time:.1f} 秒後重試...")
+                await asyncio.sleep(wait_time)
+        
+        # 應該不會到這裡，但以防萬一
+        raise last_error
 
     async def get_account_describe_stats(self, limit: int = 50) -> List[Dict[str, Any]]:
         """統計各帳號媒體描述現況（待描述/已描述）。"""
@@ -66,21 +117,21 @@ class MediaDescribeService:
 
         # 先取貼文集合（排序 Top-N）
         post_filter_cte = ""
-        if sort_by and sort_by != "none" and top_k and isinstance(top_k, int):
-            # 使用 COALESCE 避免 NULL 影響排序
-            sort_expr = {
+        if top_k and isinstance(top_k, int) and top_k > 0:
+            sort_expr_map = {
                 "views": "COALESCE(views_count, 0)",
                 "likes": "COALESCE(likes_count, 0)",
                 "comments": "COALESCE(comments_count, 0)",
                 "reposts": "COALESCE(reposts_count, 0)",
-            }.get(sort_by, None)
-            if sort_expr:
-                post_filter_cte = f"""
+            }
+            sort_expr = sort_expr_map.get(sort_by) if sort_by and sort_by != "none" else None
+            order_clause = f"ORDER BY {sort_expr} DESC NULLS LAST" if sort_expr else "ORDER BY COALESCE(created_at, fetched_at, NOW()) DESC"
+            post_filter_cte = f"""
                 , top_posts AS (
                     SELECT url
                     FROM playwright_post_metrics
                     WHERE replace(lower(username),'@','') = replace(lower($1),'@','')
-                    ORDER BY {sort_expr} DESC NULLS LAST
+                    {order_clause}
                     LIMIT {top_k}
                 )
                 """
@@ -95,7 +146,7 @@ class MediaDescribeService:
         , completed AS (
             SELECT mf.*
             FROM media_files mf
-            WHERE mf.download_status = 'completed'
+            WHERE mf.download_status = 'completed' AND mf.rustfs_url IS NOT NULL AND mf.rustfs_url != ''
         )
         , described AS (
             SELECT d.media_id FROM media_descriptions d
@@ -116,12 +167,8 @@ class MediaDescribeService:
             # 直接過濾掉已存在描述的 media_id（用 IN 子查詢避免佔位）
             ids = [r["media_id"] for r in rows]
             if ids:
-                placeholders = ",".join([str(int(i)) for i in ids])
-                desc_rows = await db.fetch_all(
-                    f"SELECT media_id FROM media_descriptions WHERE media_id IN ({placeholders})"
-                )
-                described = {d["media_id"] for d in desc_rows}
-                rows = [r for r in rows if r["media_id"] not in described]
+                described_set = set([r['media_id'] for r in await db.fetch_all(f"SELECT media_id FROM media_descriptions WHERE media_id = ANY($1)", ids)])
+                rows = [r for r in rows if r['media_id'] not in described_set]
 
         # 規則篩選（第一段）：若 only_primary（僅對圖片生效，影片不過濾）
         if only_primary and rows:
@@ -165,6 +212,10 @@ class MediaDescribeService:
                     filtered.append(r)
             rows = filtered
 
+        # 最終總量上限：確保 Top-N 不會超過使用者設定的數量（以媒體數量為單位）
+        if top_k and isinstance(top_k, int) and top_k > 0 and rows:
+            rows = rows[:top_k]
+
         return rows
 
     async def run_describe(self, items: List[Dict[str, Any]], overwrite: bool = True, attach_post_text: bool = True) -> Dict[str, Any]:
@@ -199,16 +250,15 @@ class MediaDescribeService:
                             details.append({"media_id": media_id, "status": "skipped", "reason": "not_primary"})
                             continue
 
-                    # 1. 下載媒體（優先 RustFS，失敗回原始 URL）
+                    # 1. 下載媒體（僅 RustFS，不再回退原始 URL）
                     import httpx
                     media_bytes = None
                     mime = ""
 
                     rustfs_url = item.get("rustfs_url")
                     if rustfs_url:
-                        # 將資料庫中的 URL 轉為可讀的（優先 presigned）
                         try:
-                            # 解析出 key：{base}/{bucket}/{key}
+                            # 將資料庫中的 URL 轉為可讀的（優先 presigned）
                             prefix = f"{client.base_url}/{client.bucket_name}/"
                             key = rustfs_url[len(prefix):] if rustfs_url.startswith(prefix) else None
                             presigned = client.get_public_or_presigned_url(key or '', prefer_presigned=True) if key else rustfs_url
@@ -217,15 +267,14 @@ class MediaDescribeService:
                                 resp.raise_for_status()
                                 media_bytes = resp.content
                                 mime = resp.headers.get("content-type", "") or mime
-                        except Exception:
-                            media_bytes = None
-
-                    if media_bytes is None:
-                        async with httpx.AsyncClient(timeout=60.0) as http:
-                            resp = await http.get(original_url, follow_redirects=True)
-                            resp.raise_for_status()
-                            media_bytes = resp.content
-                            mime = resp.headers.get("content-type", "") or mime
+                        except Exception as e:
+                            # 無法從 RustFS 讀取 → 跳過
+                            details.append({"media_id": media_id, "status": "skipped", "error": f"rustfs_unavailable: {str(e)}"})
+                            continue
+                    else:
+                        # 沒有 rustfs_url（理論上不會出現，因為上面已過濾），保險起見也跳過
+                        details.append({"media_id": media_id, "status": "skipped", "error": "no_rustfs_url"})
+                        continue
 
                     # 2. 準備提示（圖片附主貼文內文）
                     extra_text = ""
@@ -236,13 +285,13 @@ class MediaDescribeService:
                         if post_text_cache[post_url]:
                             extra_text = f"貼文內文：\n{post_text_cache[post_url]}"
 
-                    # 3. 呼叫 Gemini
+                    # 3. 呼叫 Gemini (帶重試機制)
                     if media_type == 'image':
                         # 將貼文原文作為 extra_text 提供給模型，改善情境判讀
-                        result = await self.analyzer.analyze_media(media_bytes, mime or 'image/jpeg', extra_text=extra_text)
+                        result = await self._analyze_media_with_retry(media_bytes, mime or 'image/jpeg', extra_text=extra_text)
                         prompt_text = self.analyzer.image_prompt + ("\n\n" + (f"貼文原文：\n{extra_text}" if extra_text else ""))
                     else:
-                        result = await self.analyzer.analyze_media(media_bytes, mime or 'video/mp4')
+                        result = await self._analyze_media_with_retry(media_bytes, mime or 'video/mp4')
                         prompt_text = self.analyzer.video_prompt
 
                     # 4. 規整輸出為 JSON（允許模型回傳文字時包裝）
@@ -255,7 +304,8 @@ class MediaDescribeService:
                     # 5. 原子性覆蓋或新增（使用 transaction + advisory lock 防止並發重複）
                     async with conn.transaction():
                         # 每個 media_id 拿一把交易級別鎖，序列化同一資源的並發寫入
-                        await conn.execute("SELECT pg_advisory_xact_lock($1)", media_id)
+                        # 明確轉換為 bigint 避免類型推斷衝突
+                        await conn.execute("SELECT pg_advisory_xact_lock($1::bigint)", int(media_id))
 
                         if overwrite:
                             # 覆蓋模式：先刪除，再插入
@@ -263,7 +313,7 @@ class MediaDescribeService:
                                 """
                                 DELETE FROM media_descriptions WHERE media_id = $1
                                 """,
-                                media_id
+                                int(media_id)
                             )
                             await conn.execute(
                                 """
@@ -274,7 +324,7 @@ class MediaDescribeService:
                                 JOIN playwright_post_metrics pwm ON pwm.url = mf.post_url
                                 WHERE mf.id = $1
                                 """,
-                                media_id, media_type, "gemini-2.5-pro", prompt_text, json.dumps(result, ensure_ascii=False)
+                                int(media_id), media_type, "gemini-2.5-pro", prompt_text, json.dumps(result, ensure_ascii=False)
                             )
                         else:
                             # 非覆蓋：僅在不存在時插入
@@ -288,7 +338,7 @@ class MediaDescribeService:
                                 WHERE mf.id = $1
                                   AND NOT EXISTS (SELECT 1 FROM media_descriptions d WHERE d.media_id = $1)
                                 """,
-                                media_id, media_type, "gemini-2.5-pro", prompt_text, json.dumps(result, ensure_ascii=False)
+                                int(media_id), media_type, "gemini-2.5-pro", prompt_text, json.dumps(result, ensure_ascii=False)
                             )
 
                     success += 1
