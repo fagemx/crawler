@@ -737,10 +737,17 @@ ALTER TABLE IF EXISTS post_metrics_sql
   ADD COLUMN IF NOT EXISTS reader_processed_at TIMESTAMPTZ,
   ADD COLUMN IF NOT EXISTS dom_processed_at TIMESTAMPTZ;
 
--- playwright_post_metrics 唯一鍵與索引補齊
-DO $$ BEGIN
-  ALTER TABLE playwright_post_metrics
-    ADD CONSTRAINT IF NOT EXISTS uniq_playwright_user_post_type UNIQUE (username, post_id, crawler_type);
-EXCEPTION WHEN others THEN NULL; END $$;
+-- playwright_post_metrics 唯一鍵與索引補齊（無 IF NOT EXISTS 支援 → 以 pg_constraint 檢查）
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conrelid = 'playwright_post_metrics'::regclass
+      AND conname = 'uniq_playwright_user_post_type'
+  ) THEN
+    ALTER TABLE playwright_post_metrics
+      ADD CONSTRAINT uniq_playwright_user_post_type UNIQUE (username, post_id, crawler_type);
+  END IF;
+END $$;
 CREATE INDEX IF NOT EXISTS idx_playwright_username_created ON playwright_post_metrics(username, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_playwright_crawl_id ON playwright_post_metrics(crawl_id);
