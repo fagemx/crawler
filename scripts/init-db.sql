@@ -81,10 +81,10 @@ CREATE TABLE IF NOT EXISTS processing_log (
     completed_at TIMESTAMPTZ,
     error_msg    TEXT,
     metadata     JSONB
-);--
- ============================================================================
+);
+-- =========================================================================
 -- MCP Server 管理表格
--- ============================================================================
+-- =========================================================================
 
 -- Agent 註冊表
 CREATE TABLE IF NOT EXISTS mcp_agents (
@@ -235,10 +235,10 @@ CREATE INDEX IF NOT EXISTS idx_system_operation_log_type ON system_operation_log
 CREATE INDEX IF NOT EXISTS idx_system_operation_log_started_at ON system_operation_log(started_at DESC);
 CREATE INDEX IF NOT EXISTS idx_system_error_log_type ON system_error_log(error_type);
 CREATE INDEX IF NOT EXISTS idx_system_error_log_severity ON system_error_log(severity);
-CREATE INDEX IF NOT EXISTS idx_system_error_log_occurred_at ON system_error_log(occurred_at DESC);-- =
-===========================================================================
+CREATE INDEX IF NOT EXISTS idx_system_error_log_occurred_at ON system_error_log(occurred_at DESC);
+-- =========================================================================
 -- 視圖和函數
--- ============================================================================
+-- =========================================================================
 
 -- 完整貼文資料視圖（包含媒體檔案）
 CREATE OR REPLACE VIEW posts_with_metrics AS
@@ -336,10 +336,10 @@ BEGIN
         shares = COALESCE(EXCLUDED.shares, post_metrics.shares),
         updated_at = now();
 END;
-$$ LANGUAGE plpgsql;-- ===
-=========================================================================
+$$ LANGUAGE plpgsql;
+-- =========================================================================
 -- MCP Server 管理函數
--- ============================================================================
+-- =========================================================================
 
 -- 註冊或更新 Agent
 CREATE OR REPLACE FUNCTION upsert_agent(
@@ -520,8 +520,8 @@ BEGIN
     
     RETURN media_id;
 END;
-$$ LANGUAGE plpgsql;-
-- ============================================================================
+$$ LANGUAGE plpgsql;
+-- ============================================================================
 -- 初始數據插入
 -- ============================================================================
 

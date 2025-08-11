@@ -88,8 +88,8 @@ async def setup_database():
             logger.info("🎉 資料庫初始化完成！所有必要的表格和索引都已就緒")
             return True
             
-        except asyncpg.exceptions.ConnectionError as e:
-            logger.warning(f"連線失敗 (第 {attempt + 1} 次): {e}")
+        except (OSError, asyncpg.PostgresError) as e:
+            logger.warning(f"連線或資料庫錯誤 (第 {attempt + 1} 次): {e}")
             if attempt < max_retries - 1:
                 logger.info(f"等待 {retry_delay} 秒後重試...")
                 await asyncio.sleep(retry_delay)

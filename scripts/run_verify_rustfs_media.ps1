@@ -10,3 +10,4 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "verify_rustfs_media 執行完成" -ForegroundColor Green
+
