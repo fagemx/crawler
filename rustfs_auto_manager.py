@@ -410,7 +410,21 @@ class RustFSAutoManager:
         if datetime.now().hour == 2:  # 每天凌晨 2 點執行
             logger.info("[TIME] 定期清理時間，執行維護...")
             await self.cleanup_expired_media()
-        
+
+        # 5. 驗證 RustFS 與資料庫一致性（每日一次或每次 auto 都跑輕量批次）
+        try:
+            logger.info("[VERIFY] 開始驗證 RustFS 與 DB 一致性（輕量批次）...")
+            # 在 mcp-server 容器內執行，確保環境變數一致
+            result = self._run_command([
+                self.docker_compose_cmd.split()[0],
+                *self.docker_compose_cmd.split()[1:],
+                "exec", "-T", "mcp-server",
+                "python", "scripts/verify_rustfs_media.py", "--batch-size", "500"
+            ], timeout=120)
+            logger.info(f"[VERIFY] 結果: {(result.stdout or '').strip()}")
+        except Exception as e:
+            logger.warning(f"[VERIFY] 一致性驗證失敗：{e}")
+
         logger.info("[OK] 自動維護完成")
     
     def monitor_mode(self, interval_minutes: int = 30):

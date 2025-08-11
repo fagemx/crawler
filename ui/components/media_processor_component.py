@@ -689,6 +689,12 @@ class MediaProcessorComponent:
                     only_primary=only_primary,
                     primary_threshold=float(primary_threshold)
                 ))
+                # 以媒體數量為單位的 Top-N 強制切齊（UI 保護，避免後端未切齊或版本差異）
+                try:
+                    if top_k != "全部":
+                        items = items[:int(top_k)]
+                except Exception:
+                    pass
                 if not items:
                     st.info("沒有待描述的媒體")
                     return

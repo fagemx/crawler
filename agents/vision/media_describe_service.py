@@ -37,20 +37,24 @@ class MediaDescribeService:
                 
             except Exception as e:
                 error_str = str(e)
+                error_lower = error_str.lower()
                 last_error = e
                 
                 # 檢查是否是可重試的錯誤
                 retryable_errors = [
-                    "500 An internal error has occurred",
-                    "503 Service Unavailable", 
-                    "502 Bad Gateway",
-                    "429 Too Many Requests",
+                    "500 an internal error has occurred",
+                    "internal error has occurred",
+                    "503 service unavailable", 
+                    "502 bad gateway",
+                    "429 too many requests",
                     "timeout",
+                    "timed out",
                     "connection",
-                    "network"
+                    "network",
+                    "resource has been exhausted"
                 ]
                 
-                is_retryable = any(retryable_phrase in error_str.lower() for retryable_phrase in retryable_errors)
+                is_retryable = any(phrase in error_lower for phrase in retryable_errors)
                 
                 if not is_retryable or attempt == max_retries:
                     # 不可重試的錯誤或已達最大重試次數
@@ -258,10 +262,13 @@ class MediaDescribeService:
                     rustfs_url = item.get("rustfs_url")
                     if rustfs_url:
                         try:
-                            # 將資料庫中的 URL 轉為可讀的（優先 presigned）
+                            # 僅允許從 RustFS bucket 讀取，避免誤用原始 Instagram/FBCDN 連結
                             prefix = f"{client.base_url}/{client.bucket_name}/"
-                            key = rustfs_url[len(prefix):] if rustfs_url.startswith(prefix) else None
-                            presigned = client.get_public_or_presigned_url(key or '', prefer_presigned=True) if key else rustfs_url
+                            if not rustfs_url.startswith(prefix):
+                                details.append({"media_id": media_id, "status": "skipped", "error": "invalid_rustfs_url_not_in_bucket"})
+                                continue
+                            key = rustfs_url[len(prefix):]
+                            presigned = client.get_public_or_presigned_url(key, prefer_presigned=True)
                             async with httpx.AsyncClient(timeout=60.0) as http:
                                 resp = await http.get(presigned, follow_redirects=True)
                                 resp.raise_for_status()
