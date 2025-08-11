@@ -645,19 +645,22 @@ services:
       context: .
       dockerfile: ui/Dockerfile
     container_name: social-media-ui
-    network_mode: host
+    ports:
+      - "8501:8501"
+    networks:
+      - social-media-network
     environment:
       - PYTHONPATH=/app
       - STREAMLIT_SERVER_PORT=8501
       - STREAMLIT_SERVER_FILE_WATCHER_TYPE=none
       - STREAMLIT_SERVER_RUN_ON_SAVE=false
       - PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright
-      - ORCHESTRATOR_URL=http://localhost:8000
-      - FORM_API_URL=http://localhost:8010
-      - MCP_SERVER_URL=http://localhost:10100
-      - DATABASE_URL=postgresql://postgres:password@localhost:5432/social_media_db
-      - REDIS_URL=redis://localhost:6379/0
-      - RUSTFS_ENDPOINT=http://localhost:9000
+      - ORCHESTRATOR_URL=http://orchestrator-agent:8000
+      - FORM_API_URL=http://form-api:8010
+      - MCP_SERVER_URL=http://mcp-server:10100
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/social_media_db
+      - REDIS_URL=redis://redis:6379/0
+      - RUSTFS_ENDPOINT=http://rustfs:9000
       - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY:-rustfsadmin}
       - RUSTFS_SECRET_KEY=${RUSTFS_SECRET_KEY:-rustfsadmin}
       - RUSTFS_BUCKET=${RUSTFS_BUCKET:-social-media-content}
@@ -685,13 +688,13 @@ services:
   pinggy-tunnel:
     image: pinggy/pinggy:latest
     container_name: social-media-pinggy
-    network_mode: host
     tty: true                    # ★ 關鍵：等同 -t
     stdin_open: true             # ★ 關鍵：等同 -i
-
+    networks:
+      - social-media-network
     command: [
       "-p", "443",
-      "-R0:localhost:8501",
+      "-R0:streamlit-ui:8501",  # 連接到 streamlit-ui 容器
       "-o", "StrictHostKeyChecking=no",
       "-o", "ServerAliveInterval=30",
       "RdUOEHSfE2u@pro.pinggy.io"
