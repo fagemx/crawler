@@ -75,17 +75,26 @@ class TaskRecoveryComponent:
                     st.progress(0.0, text="0.0%")
             
             with col3:
-                # 改善時間顯示（加入錯誤處理）
+                # 改善時間顯示（統一轉為台北時間，並加入錯誤處理）
                 if task.start_time:
                     try:
                         # 檢查時間戳是否合理（不能是負數或過大的值）
                         current_time = time.time()
                         if task.start_time > 0 and task.start_time <= current_time and (current_time - task.start_time) < 365 * 24 * 3600:  # 不超過一年
                             st.write(f"⏱️ {task.elapsed_time}")
-                            # 顯示更詳細的時間信息
+                            # 顯示更詳細的時間信息（Asia/Taipei）
                             import datetime
-                            start_dt = datetime.datetime.fromtimestamp(task.start_time)
-                            st.caption(f"開始: {start_dt.strftime('%H:%M:%S')}")
+                            try:
+                                from zoneinfo import ZoneInfo  # Python 3.9+
+                                start_dt = datetime.datetime.fromtimestamp(
+                                    task.start_time, tz=datetime.timezone.utc
+                                ).astimezone(ZoneInfo("Asia/Taipei"))
+                            except Exception:
+                                # 後備：直接使用 +08:00（無 DST）
+                                start_dt = datetime.datetime.fromtimestamp(
+                                    task.start_time, tz=datetime.timezone(datetime.timedelta(hours=8))
+                                )
+                            st.caption(f"開始: {start_dt.strftime('%H:%M:%S')} (台北)")
                         else:
                             st.write("⏱️ 時間無效")
                             st.caption(f"無效時間戳: {task.start_time}")
