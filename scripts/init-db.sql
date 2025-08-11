@@ -191,10 +191,10 @@ CREATE TABLE IF NOT EXISTS app_users (
 );
 
 -- 使用者表欄位補齊（標準登入）
-ALTER TABLE IF EXISTS app_users
-  ADD COLUMN IF NOT EXISTS password_hash TEXT,
-  ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user',
-  ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
+-- 拆分為多條 ALTER，避免部分環境對多列 ADD 的解析問題
+ALTER TABLE IF EXISTS app_users ADD COLUMN IF NOT EXISTS password_hash TEXT;
+ALTER TABLE IF EXISTS app_users ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user';
+ALTER TABLE IF EXISTS app_users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
 
 CREATE INDEX IF NOT EXISTS idx_app_users_role ON app_users(role);
 
@@ -668,36 +668,34 @@ SELECT 'Database initialization completed successfully!' as status;
 -- ============================================================================
 
 -- playwright_post_metrics 欄位補齊
-ALTER TABLE IF EXISTS playwright_post_metrics
-  ADD COLUMN IF NOT EXISTS views_count INTEGER,
-  ADD COLUMN IF NOT EXISTS likes_count INTEGER,
-  ADD COLUMN IF NOT EXISTS comments_count INTEGER,
-  ADD COLUMN IF NOT EXISTS reposts_count INTEGER,
-  ADD COLUMN IF NOT EXISTS shares_count INTEGER,
-  ADD COLUMN IF NOT EXISTS calculated_score DECIMAL,
-  ADD COLUMN IF NOT EXISTS post_published_at TIMESTAMP,
-  ADD COLUMN IF NOT EXISTS tags TEXT,
-  ADD COLUMN IF NOT EXISTS images TEXT,
-  ADD COLUMN IF NOT EXISTS videos TEXT,
-  ADD COLUMN IF NOT EXISTS source VARCHAR(100) DEFAULT 'playwright_agent',
-  ADD COLUMN IF NOT EXISTS crawler_type VARCHAR(50) DEFAULT 'playwright',
-  ADD COLUMN IF NOT EXISTS crawl_id VARCHAR(255),
-  ADD COLUMN IF NOT EXISTS created_at TIMESTAMP,
-  ADD COLUMN IF NOT EXISTS fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE IF EXISTS playwright_post_metrics ADD COLUMN IF NOT EXISTS views_count INTEGER;
+ALTER TABLE IF EXISTS playwright_post_metrics ADD COLUMN IF NOT EXISTS likes_count INTEGER;
+ALTER TABLE IF EXISTS playwright_post_metrics ADD COLUMN IF NOT EXISTS comments_count INTEGER;
+ALTER TABLE IF EXISTS playwright_post_metrics ADD COLUMN IF NOT EXISTS reposts_count INTEGER;
+ALTER TABLE IF EXISTS playwright_post_metrics ADD COLUMN IF NOT EXISTS shares_count INTEGER;
+ALTER TABLE IF EXISTS playwright_post_metrics ADD COLUMN IF NOT EXISTS calculated_score DECIMAL;
+ALTER TABLE IF EXISTS playwright_post_metrics ADD COLUMN IF NOT EXISTS post_published_at TIMESTAMP;
+ALTER TABLE IF EXISTS playwright_post_metrics ADD COLUMN IF NOT EXISTS tags TEXT;
+ALTER TABLE IF EXISTS playwright_post_metrics ADD COLUMN IF NOT EXISTS images TEXT;
+ALTER TABLE IF EXISTS playwright_post_metrics ADD COLUMN IF NOT EXISTS videos TEXT;
+ALTER TABLE IF EXISTS playwright_post_metrics ADD COLUMN IF NOT EXISTS source VARCHAR(100) DEFAULT 'playwright_agent';
+ALTER TABLE IF EXISTS playwright_post_metrics ADD COLUMN IF NOT EXISTS crawler_type VARCHAR(50) DEFAULT 'playwright';
+ALTER TABLE IF EXISTS playwright_post_metrics ADD COLUMN IF NOT EXISTS crawl_id VARCHAR(255);
+ALTER TABLE IF EXISTS playwright_post_metrics ADD COLUMN IF NOT EXISTS created_at TIMESTAMP;
+ALTER TABLE IF EXISTS playwright_post_metrics ADD COLUMN IF NOT EXISTS fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 
 -- media_files 欄位補齊
-ALTER TABLE IF EXISTS media_files
-  ADD COLUMN IF NOT EXISTS file_extension TEXT,
-  ADD COLUMN IF NOT EXISTS rustfs_key TEXT,
-  ADD COLUMN IF NOT EXISTS rustfs_url TEXT,
-  ADD COLUMN IF NOT EXISTS file_size BIGINT,
-  ADD COLUMN IF NOT EXISTS width INTEGER,
-  ADD COLUMN IF NOT EXISTS height INTEGER,
-  ADD COLUMN IF NOT EXISTS duration INTEGER,
-  ADD COLUMN IF NOT EXISTS download_status TEXT DEFAULT 'pending',
-  ADD COLUMN IF NOT EXISTS download_error TEXT,
-  ADD COLUMN IF NOT EXISTS downloaded_at TIMESTAMPTZ,
-  ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'::jsonb;
+ALTER TABLE IF EXISTS media_files ADD COLUMN IF NOT EXISTS file_extension TEXT;
+ALTER TABLE IF EXISTS media_files ADD COLUMN IF NOT EXISTS rustfs_key TEXT;
+ALTER TABLE IF EXISTS media_files ADD COLUMN IF NOT EXISTS rustfs_url TEXT;
+ALTER TABLE IF EXISTS media_files ADD COLUMN IF NOT EXISTS file_size BIGINT;
+ALTER TABLE IF EXISTS media_files ADD COLUMN IF NOT EXISTS width INTEGER;
+ALTER TABLE IF EXISTS media_files ADD COLUMN IF NOT EXISTS height INTEGER;
+ALTER TABLE IF EXISTS media_files ADD COLUMN IF NOT EXISTS duration INTEGER;
+ALTER TABLE IF EXISTS media_files ADD COLUMN IF NOT EXISTS download_status TEXT DEFAULT 'pending';
+ALTER TABLE IF EXISTS media_files ADD COLUMN IF NOT EXISTS download_error TEXT;
+ALTER TABLE IF EXISTS media_files ADD COLUMN IF NOT EXISTS downloaded_at TIMESTAMPTZ;
+ALTER TABLE IF EXISTS media_files ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'::jsonb;
 
 -- media_files created_at 預設補齊（避免 NOT NULL 無預設導致插入失敗）
 DO $$ BEGIN
@@ -715,27 +713,26 @@ CREATE INDEX IF NOT EXISTS idx_media_files_original_url ON media_files(original_
 CREATE INDEX IF NOT EXISTS idx_media_files_rustfs_key ON media_files(rustfs_key);
 
 -- post_metrics_sql 欄位補齊（增量表）
-ALTER TABLE IF EXISTS post_metrics_sql
-  ADD COLUMN IF NOT EXISTS likes_count INTEGER DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS comments_count INTEGER DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS reposts_count INTEGER DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS shares_count INTEGER DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS views_count BIGINT DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS calculated_score DOUBLE PRECISION,
-  ADD COLUMN IF NOT EXISTS images JSONB DEFAULT '[]'::jsonb,
-  ADD COLUMN IF NOT EXISTS videos JSONB DEFAULT '[]'::jsonb,
-  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ,
-  ADD COLUMN IF NOT EXISTS fetched_at TIMESTAMPTZ,
-  ADD COLUMN IF NOT EXISTS views_fetched_at TIMESTAMPTZ,
-  ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'unknown',
-  ADD COLUMN IF NOT EXISTS processing_stage TEXT DEFAULT 'initial',
-  ADD COLUMN IF NOT EXISTS is_complete BOOLEAN DEFAULT FALSE,
-  ADD COLUMN IF NOT EXISTS post_published_at TIMESTAMPTZ,
-  ADD COLUMN IF NOT EXISTS tags JSONB DEFAULT '[]'::jsonb,
-  ADD COLUMN IF NOT EXISTS reader_status TEXT DEFAULT 'pending',
-  ADD COLUMN IF NOT EXISTS dom_status TEXT DEFAULT 'pending',
-  ADD COLUMN IF NOT EXISTS reader_processed_at TIMESTAMPTZ,
-  ADD COLUMN IF NOT EXISTS dom_processed_at TIMESTAMPTZ;
+ALTER TABLE IF EXISTS post_metrics_sql ADD COLUMN IF NOT EXISTS likes_count INTEGER DEFAULT 0;
+ALTER TABLE IF EXISTS post_metrics_sql ADD COLUMN IF NOT EXISTS comments_count INTEGER DEFAULT 0;
+ALTER TABLE IF EXISTS post_metrics_sql ADD COLUMN IF NOT EXISTS reposts_count INTEGER DEFAULT 0;
+ALTER TABLE IF EXISTS post_metrics_sql ADD COLUMN IF NOT EXISTS shares_count INTEGER DEFAULT 0;
+ALTER TABLE IF EXISTS post_metrics_sql ADD COLUMN IF NOT EXISTS views_count BIGINT DEFAULT 0;
+ALTER TABLE IF EXISTS post_metrics_sql ADD COLUMN IF NOT EXISTS calculated_score DOUBLE PRECISION;
+ALTER TABLE IF EXISTS post_metrics_sql ADD COLUMN IF NOT EXISTS images JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE IF EXISTS post_metrics_sql ADD COLUMN IF NOT EXISTS videos JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE IF EXISTS post_metrics_sql ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ;
+ALTER TABLE IF EXISTS post_metrics_sql ADD COLUMN IF NOT EXISTS fetched_at TIMESTAMPTZ;
+ALTER TABLE IF EXISTS post_metrics_sql ADD COLUMN IF NOT EXISTS views_fetched_at TIMESTAMPTZ;
+ALTER TABLE IF EXISTS post_metrics_sql ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'unknown';
+ALTER TABLE IF EXISTS post_metrics_sql ADD COLUMN IF NOT EXISTS processing_stage TEXT DEFAULT 'initial';
+ALTER TABLE IF EXISTS post_metrics_sql ADD COLUMN IF NOT EXISTS is_complete BOOLEAN DEFAULT FALSE;
+ALTER TABLE IF EXISTS post_metrics_sql ADD COLUMN IF NOT EXISTS post_published_at TIMESTAMPTZ;
+ALTER TABLE IF EXISTS post_metrics_sql ADD COLUMN IF NOT EXISTS tags JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE IF EXISTS post_metrics_sql ADD COLUMN IF NOT EXISTS reader_status TEXT DEFAULT 'pending';
+ALTER TABLE IF EXISTS post_metrics_sql ADD COLUMN IF NOT EXISTS dom_status TEXT DEFAULT 'pending';
+ALTER TABLE IF EXISTS post_metrics_sql ADD COLUMN IF NOT EXISTS reader_processed_at TIMESTAMPTZ;
+ALTER TABLE IF EXISTS post_metrics_sql ADD COLUMN IF NOT EXISTS dom_processed_at TIMESTAMPTZ;
 
 -- playwright_post_metrics 唯一鍵與索引補齊（無 IF NOT EXISTS 支援 → 以 pg_constraint 檢查）
 DO $$
