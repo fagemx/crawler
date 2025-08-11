@@ -370,8 +370,8 @@ class MediaProcessorComponent:
 
             thumb_width = {"小": 160, "中": 240, "大": 320}[size_label]
 
-            # 是否走內部代理（由伺服器抓取 bytes，再由 8501 回傳給前端）
-            use_internal_proxy = st.checkbox("由伺服器代理顯示（避免瀏覽器連 9000）", value=True, help="開啟後，UI 會在伺服器端抓取媒體並內嵌顯示，不需開放 9000 給瀏覽器")
+            # 是否走內部代理（由伺服器抓取 bytes，再由 8501 回傳給前端）— 預設關閉以降低阻塞風險
+            use_internal_proxy = st.checkbox("由伺服器代理顯示（避免瀏覽器連 9000）", value=False, help="預設關閉以避免伺服器端同步抓取造成卡頓；必要時再開啟")
             # 快速互動模式：僅顯示連結，不抓取內容，避免每次勾選觸發重載造成卡頓
             # 為確保能看到縮圖進行勾選，預設關閉快速模式（僅 20 張影像）
             quick_mode = st.checkbox("快速互動模式（不載入縮圖/影片）", value=False, help="啟用後僅顯示連結；建議僅在大量操作或卡頓時開啟")
@@ -385,6 +385,8 @@ class MediaProcessorComponent:
                 st.session_state["gal_cols"] = int(cols_per_row)
                 st.session_state["gal_size"] = size_label
                 st.session_state["gal_proxy"] = bool(use_internal_proxy)
+                # 初始化分頁
+                st.session_state["gal_page"] = 0
 
             if st.session_state.get("gal_loaded"):
                 try:
@@ -400,6 +402,11 @@ class MediaProcessorComponent:
                     import nest_asyncio, asyncio
                     nest_asyncio.apply()
 
+                    # 分頁狀態
+                    page = int(st.session_state.get("gal_page", 0))
+                    page_size = int(st.session_state.get("gal_limit", int(gallery_limit)))
+                    offset = page * page_size
+
                     async def load_rows():
                         db = await get_db_client()
                         params = []
@@ -413,6 +420,7 @@ class MediaProcessorComponent:
                             params.append(gallery_types[0])
                         where_sql = " AND ".join(where)
                         limit_param = len(params) + 1
+                        offset_param = len(params) + 2
                         sql = f"""
                             SELECT mf.id, mf.media_type, mf.rustfs_key, mf.rustfs_url, mf.post_url, mf.original_url,
                                    mf.downloaded_at, mf.width, mf.height
@@ -420,16 +428,28 @@ class MediaProcessorComponent:
                             LEFT JOIN playwright_post_metrics ppm ON ppm.url = mf.post_url
                             WHERE {where_sql}
                             ORDER BY mf.downloaded_at DESC NULLS LAST, mf.id DESC
-                            LIMIT ${limit_param}
+                            LIMIT ${limit_param} OFFSET ${offset_param}
                         """
-                        params.append(int(gallery_limit))
+                        params.append(int(page_size))
+                        params.append(int(offset))
                         return await db.fetch_all(sql, *params)
 
                     rows = asyncio.get_event_loop().run_until_complete(load_rows())
                     if not rows:
                         st.info("沒有可顯示的已下載媒體")
                     else:
-                        st.caption(f"共載入 {len(rows)} 筆")
+                        # 分頁控制列
+                        nav_c1, nav_c2, nav_c3 = st.columns([1,1,3])
+                        with nav_c1:
+                            if st.button("⬅️ 上一頁", key="gal_prev", disabled=(page <= 0)):
+                                st.session_state["gal_page"] = max(0, page - 1)
+                                st.rerun()
+                        with nav_c2:
+                            if st.button("下一頁 ➡️", key="gal_next", disabled=(len(rows) < page_size)):
+                                st.session_state["gal_page"] = page + 1
+                                st.rerun()
+                        with nav_c3:
+                            st.caption(f"頁碼：第 {page + 1} 頁 | 本頁 {len(rows)} 筆（每頁 {page_size}）")
                         client = RustFSClient()
                         cols = None
                         # 管理工具：選取刪除
@@ -498,7 +518,7 @@ class MediaProcessorComponent:
                                             try:
                                                 # 伺服器端抓取圖片 bytes，再由 Streamlit 內嵌顯示
                                                 import requests
-                                                resp = requests.get(url, timeout=15)
+                                                resp = requests.get(url, timeout=5)
                                                 if resp.status_code == 200:
                                                     st.image(resp.content, width=thumb_width)
                                                 else:
@@ -508,28 +528,8 @@ class MediaProcessorComponent:
                                         else:
                                             st.image(url, width=thumb_width)
                                 elif media_type == 'video' and url:
-                                    if quick_mode:
-                                        st.markdown(f"[預覽影片]({url})")
-                                    else:
-                                        if use_internal_proxy:
-                                            try:
-                                                import requests
-                                                resp = requests.get(url, timeout=30, stream=True)
-                                                if resp.status_code == 200:
-                                                    size = int(resp.headers.get('content-length') or 0)
-                                                    # 大於 20MB 的影片改以連結開啟，避免記憶體與載入時間過長
-                                                    if size > 20 * 1024 * 1024:
-                                                        st.caption("(影片較大，改以連結開啟)")
-                                                        st.markdown(f"[開啟影片]({url})")
-                                                    else:
-                                                        content = resp.content  # 下載完整檔案
-                                                        st.video(content)
-                                                else:
-                                                    st.caption(f"(影片載入失敗 {resp.status_code})")
-                                            except Exception:
-                                                st.caption("(影片代理失敗)")
-                                        else:
-                                            st.video(url)
+                                    # 為避免鎖死與高記憶體占用，影片一律以連結開啟；快速模式同樣顯示連結
+                                    st.markdown(f"[開啟影片]({url})")
                                 else:
                                     st.write(url or "(無可用連結)")
                                 # 連結與貼文 URL
