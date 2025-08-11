@@ -522,6 +522,22 @@ async def get_available_users():
     """獲取已爬取的用戶列表"""
     try:
         users = await data_fetcher.get_available_users()
+        # 若主要/後備都取不到，用更寬鬆的最後防線（避免 UI 完全空白）
+        if not users:
+            try:
+                # 嘗試僅從 playwright_post_metrics 取 50 個樣本用戶（降級）
+                conn = await data_fetcher._connect()
+                rows = await conn.fetch("""
+                    SELECT DISTINCT replace(lower(username),'@','') AS username
+                    FROM playwright_post_metrics 
+                    WHERE username IS NOT NULL AND trim(username) != ''
+                    ORDER BY 1
+                    LIMIT 50;
+                """)
+                await conn.close()
+                users = [r['username'] for r in rows if r and r.get('username')]
+            except Exception:
+                pass
         return {"users": users, "count": len(users)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"獲取用戶列表失敗: {str(e)}")

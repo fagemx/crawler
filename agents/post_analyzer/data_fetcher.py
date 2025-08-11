@@ -48,8 +48,8 @@ class PostDataFetcher:
         try:
             conn = await self._connect()
             
-            # 查詢有貼文數據的用戶
-            query = """
+            # 主要來源：post_metrics_sql（已整理的內容）
+            primary_query = """
             SELECT DISTINCT username 
             FROM post_metrics_sql 
             WHERE username IS NOT NULL 
@@ -57,11 +57,27 @@ class PostDataFetcher:
               AND trim(content) != ''
             ORDER BY username;
             """
-            
-            rows = await conn.fetch(query)
+
+            rows = await conn.fetch(primary_query)
+
+            # 後備來源：playwright_post_metrics（只要有抓到貼文就列出用戶）
+            if not rows:
+                fallback_query = """
+                SELECT DISTINCT replace(lower(username),'@','') AS username
+                FROM playwright_post_metrics 
+                WHERE username IS NOT NULL AND trim(username) != ''
+                ORDER BY 1;
+                """
+                rows = await conn.fetch(fallback_query)
+
             await conn.close()
-            
-            return [row['username'] for row in rows]
+
+            # 去重、過濾空白
+            users = [r['username'] for r in rows if r and r.get('username')]
+            users = [u.strip().lstrip('@') for u in users if isinstance(u, str) and u.strip()]
+            # 可能兩張表大小寫不同，統一再去重
+            users = sorted(list({u.lower(): u for u in users}.values()))
+            return users
             
         except Exception as e:
             print(f"❌ 獲取用戶列表失敗: {e}")
