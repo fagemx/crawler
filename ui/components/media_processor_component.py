@@ -622,7 +622,7 @@ class MediaProcessorComponent:
                                             st.image(url, width=thumb_width)
                                 elif media_type == 'video' and url:
                                     # 為避免鎖死與高記憶體占用，影片一律以連結開啟；快速模式同樣顯示連結
-                                    st.markdown(f"[開啟影片]({url})")
+                                                        st.markdown(f"[開啟影片]({url})")
                                 else:
                                     st.write(url or "(無可用連結)")
                                 # 連結與貼文 URL
