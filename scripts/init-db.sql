@@ -262,7 +262,15 @@ CREATE INDEX IF NOT EXISTS idx_mcp_agents_last_seen ON mcp_agents(last_seen DESC
 CREATE INDEX IF NOT EXISTS idx_agent_health_history_agent ON agent_health_history(agent_name);
 CREATE INDEX IF NOT EXISTS idx_agent_health_history_checked_at ON agent_health_history(checked_at DESC);
 CREATE INDEX IF NOT EXISTS idx_system_operation_log_type ON system_operation_log(operation_type);
-CREATE INDEX IF NOT EXISTS idx_system_operation_log_started_at ON system_operation_log(started_at DESC);
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name='system_operation_log' AND column_name='started_at'
+  ) THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_system_operation_log_started_at ON system_operation_log(started_at DESC)';
+  END IF;
+END $$;
 CREATE INDEX IF NOT EXISTS idx_system_error_log_type ON system_error_log(error_type);
 CREATE INDEX IF NOT EXISTS idx_system_error_log_severity ON system_error_log(severity);
 CREATE INDEX IF NOT EXISTS idx_system_error_log_occurred_at ON system_error_log(occurred_at DESC);
