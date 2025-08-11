@@ -464,16 +464,75 @@ class MediaProcessorComponent:
                         # 頭像判斷參數（並排顯示）
                         p_col1, p_col2 = st.columns([1,1])
                         with p_col1:
-                            avatar_max_edge = st.number_input("頭像最大邊長(px)", min_value=64, max_value=512, value=200, step=10, help="最小邊長需小於等於此值才視為頭像")
+                            avatar_max_edge = st.number_input(
+                                "頭像最大邊長(px)",
+                                min_value=64, max_value=512,
+                                value=int(st.session_state.get("avatar_max_edge", 256)),
+                                step=10,
+                                help="建議先用 256～320，再視結果微調；此值表示 min(寬,高) 的上限"
+                            )
                         with p_col2:
-                            avatar_square_tol = st.slider("方形容差(%)", min_value=0, max_value=30, value=10, step=1, help="寬高比須在 1±此百分比 內")
-                        require_squareish = st.checkbox("要求近似正方形", value=False, help="開啟：小且近方形；關閉：小或近方形（較寬鬆）")
+                            avatar_square_tol = st.slider(
+                                "方形容差(%)",
+                                min_value=0, max_value=30,
+                                value=int(st.session_state.get("avatar_square_tol", 10)),
+                                step=1,
+                                help="寬高比需在 1±此百分比 內（越小越接近正方形）"
+                            )
+                        require_squareish = st.checkbox(
+                            "要求近似正方形",
+                            value=bool(st.session_state.get("require_squareish", False)),
+                            help="開啟：同時滿足『小尺寸』且『近方形』；關閉：任一成立即可（較寬鬆）"
+                        )
+                        # 持久化目前設定，便於一鍵套用與重繪後保留
+                        st.session_state["avatar_max_edge"] = int(avatar_max_edge)
+                        st.session_state["avatar_square_tol"] = int(avatar_square_tol)
+                        st.session_state["require_squareish"] = bool(require_squareish)
                         with mg_col4:
                             if st.button("重新載入", key="gal_reload"):
                                 st.rerun()
                         with mg_col5:
                             # 在工具列提供刪除按鈕，避免滾動到最下方才看見
                             quick_del = st.button("🗑️ 刪除選擇(頂部)", type="secondary", key="btn_delete_selected_top")
+
+                        # 推薦門檻：根據本頁資料推估，提供一鍵套用（寬鬆/嚴格）
+                        try:
+                            img_edges = []
+                            for rr in rows:
+                                if rr.get('media_type') == 'image':
+                                    wv = rr.get('width')
+                                    hv = rr.get('height')
+                                    try:
+                                        wv = int(float(wv)) if wv is not None else 0
+                                        hv = int(float(hv)) if hv is not None else 0
+                                    except Exception:
+                                        wv, hv = 0, 0
+                                    if wv > 0 and hv > 0:
+                                        img_edges.append(min(wv, hv))
+                            if img_edges:
+                                img_edges.sort()
+                                n = len(img_edges)
+                                idx35 = max(0, min(n - 1, int(0.35 * (n - 1))))
+                                idx50 = max(0, min(n - 1, int(0.50 * (n - 1))))
+                                rec_loose = max(128, min(320, img_edges[idx50]))
+                                rec_strict = max(100, min(240, img_edges[idx35]))
+                                tip_col1, tip_col2, tip_col3 = st.columns([2,1,1])
+                                with tip_col1:
+                                    st.caption(f"建議門檻：寬鬆≈{rec_loose}px、嚴格≈{rec_strict}px（依本頁樣本推估）")
+                                with tip_col2:
+                                    if st.button("套用寬鬆", key="gal_apply_loose"):
+                                        st.session_state["avatar_max_edge"] = int(rec_loose)
+                                        st.session_state["avatar_square_tol"] = 20
+                                        st.session_state["require_squareish"] = False
+                                        st.rerun()
+                                with tip_col3:
+                                    if st.button("套用嚴格", key="gal_apply_strict"):
+                                        st.session_state["avatar_max_edge"] = int(rec_strict)
+                                        st.session_state["avatar_square_tol"] = 8
+                                        st.session_state["require_squareish"] = True
+                                        st.rerun()
+                        except Exception:
+                            pass
 
                         # 先渲染卡片
                         def _to_int_dim(v):
@@ -539,7 +598,11 @@ class MediaProcessorComponent:
                                 if not url:
                                     url = original_url
 
-                                st.caption(f"#{r.get('id')} · {media_type}")
+                                # 顯示尺寸資訊，便於判斷門檻
+                                w_disp = _to_int_dim(r.get('width'))
+                                h_disp = _to_int_dim(r.get('height'))
+                                size_tag = f" · {w_disp}x{h_disp}px" if (w_disp and h_disp) else ""
+                                st.caption(f"#{r.get('id')} · {media_type}{size_tag}")
                                 if media_type == 'image' and url:
                                     if quick_mode:
                                         st.markdown(f"[預覽圖片]({url})")
