@@ -1693,12 +1693,40 @@ class PlaywrightCrawlerComponentV2:
         # 顯示總體統計
         total_stats = stats.get("total_stats", {})
         if total_stats:
+            # 統一台北時間顯示
+            def _to_tw_str(v):
+                try:
+                    from datetime import datetime, timezone, timedelta
+                    try:
+                        from zoneinfo import ZoneInfo
+                        tz_tw = ZoneInfo("Asia/Taipei")
+                    except Exception:
+                        tz_tw = timezone(timedelta(hours=8))
+                    if v is None:
+                        return "N/A"
+                    if isinstance(v, str):
+                        try:
+                            dt = datetime.fromisoformat(v)
+                        except Exception:
+                            try:
+                                dt = datetime.strptime(v, "%Y-%m-%d %H:%M:%S")
+                            except Exception:
+                                return v[:16]
+                    else:
+                        dt = v
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=timezone.utc)
+                    return dt.astimezone(tz_tw).strftime("%Y-%m-%d %H:%M")
+                except Exception:
+                    return str(v)[:16]
+
+            latest_tw = _to_tw_str(total_stats.get('latest_activity'))
             st.info(f"""
             **🎭 Playwright 爬蟲統計**
             - 📊 總貼文數: {total_stats.get('total_posts', 0):,}
             - 👥 已爬取用戶: {total_stats.get('total_users', 0)} 個
             - 🔄 總爬取次數: {total_stats.get('total_crawls', 0):,}
-            - ⏰ 最後活動: {str(total_stats.get('latest_activity', 'N/A'))[:16] if total_stats.get('latest_activity') else 'N/A'}
+            - ⏰ 最後活動: {latest_tw}
             """)
         
         # 顯示用戶統計
@@ -1708,8 +1736,34 @@ class PlaywrightCrawlerComponentV2:
             
             import pandas as pd
             df_data = []
+            def _to_tw_str2(v):
+                try:
+                    from datetime import datetime, timezone, timedelta
+                    try:
+                        from zoneinfo import ZoneInfo
+                        tz_tw = ZoneInfo("Asia/Taipei")
+                    except Exception:
+                        tz_tw = timezone(timedelta(hours=8))
+                    if not v:
+                        return "N/A"
+                    if isinstance(v, str):
+                        try:
+                            dt = datetime.fromisoformat(v)
+                        except Exception:
+                            try:
+                                dt = datetime.strptime(v, "%Y-%m-%d %H:%M:%S")
+                            except Exception:
+                                return v[:16]
+                    else:
+                        dt = v
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=timezone.utc)
+                    return dt.astimezone(tz_tw).strftime("%Y-%m-%d %H:%M")
+                except Exception:
+                    return str(v)[:16]
+
             for user in user_stats:
-                latest = str(user.get('latest_crawl', 'N/A'))[:16] if user.get('latest_crawl') else 'N/A'
+                latest = _to_tw_str2(user.get('latest_crawl'))
                 crawl_id = user.get('latest_crawl_id', 'N/A')[:12] + '...' if user.get('latest_crawl_id') else 'N/A'
                 df_data.append({
                     "用戶名": f"@{user.get('username', 'N/A')}",

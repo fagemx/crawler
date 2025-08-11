@@ -2003,11 +2003,40 @@ if __name__ == "__main__":
         """渲染緩存的統計信息，並整合新的用戶管理 UI"""
         total_stats = stats.get("total_stats", {})
         if total_stats:
+            # 統一台北時間顯示
+            def _to_tw_str(v):
+                try:
+                    from datetime import datetime, timezone, timedelta
+                    try:
+                        from zoneinfo import ZoneInfo
+                        tz_tw = ZoneInfo("Asia/Taipei")
+                    except Exception:
+                        tz_tw = timezone(timedelta(hours=8))
+                    if v is None:
+                        return "N/A"
+                    if isinstance(v, str):
+                        # 嘗試 ISO 或常見格式
+                        try:
+                            dt = datetime.fromisoformat(v)
+                        except Exception:
+                            try:
+                                dt = datetime.strptime(v, "%Y-%m-%d %H:%M:%S")
+                            except Exception:
+                                return v[:16]
+                    else:
+                        dt = v
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=timezone.utc)
+                    return dt.astimezone(tz_tw).strftime("%Y-%m-%d %H:%M")
+                except Exception:
+                    return str(v)[:16]
+
+            latest_tw = _to_tw_str(total_stats.get('latest_activity'))
             st.info(f"""
             **📈 總體統計 (Realtime)**
             - 📊 總貼文數: {total_stats.get('total_posts', 0):,}
             - 👥 已爬取用戶: {total_stats.get('total_users', 0)} 個
-            - ⏰ 最後活動: {str(total_stats.get('latest_activity', 'N/A'))[:16] if total_stats.get('latest_activity') else 'N/A'}
+            - ⏰ 最後活動: {latest_tw}
             """)
         
         user_stats = stats.get("user_stats", [])
@@ -2015,10 +2044,36 @@ if __name__ == "__main__":
             st.write("**👥 各用戶統計 (Realtime):**")
             
             import pandas as pd
+            def _to_tw_str2(v):
+                try:
+                    from datetime import datetime, timezone, timedelta
+                    try:
+                        from zoneinfo import ZoneInfo
+                        tz_tw = ZoneInfo("Asia/Taipei")
+                    except Exception:
+                        tz_tw = timezone(timedelta(hours=8))
+                    if not v:
+                        return "N/A"
+                    if isinstance(v, str):
+                        try:
+                            dt = datetime.fromisoformat(v)
+                        except Exception:
+                            try:
+                                dt = datetime.strptime(v, "%Y-%m-%d %H:%M:%S")
+                            except Exception:
+                                return v[:16]
+                    else:
+                        dt = v
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=timezone.utc)
+                    return dt.astimezone(tz_tw).strftime("%Y-%m-%d %H:%M")
+                except Exception:
+                    return str(v)[:16]
+
             df_data = [{
                 "用戶名": f"@{user.get('username', 'N/A')}",
                 "貼文數": f"{user.get('post_count', 0):,}",
-                "最後爬取": str(user.get('latest_crawl', 'N/A'))[:16] if user.get('latest_crawl') else 'N/A'
+                "最後爬取": _to_tw_str2(user.get('latest_crawl'))
             } for user in user_stats]
 
             st.dataframe(
@@ -2056,7 +2111,7 @@ if __name__ == "__main__":
                         st.info(f"""
                         **📋 用戶 @{selected_user} 的詳細信息:**
                         - 📊 貼文總數: {selected_user_info.get('post_count', 0):,} 個
-                        - ⏰ 最後爬取: {str(selected_user_info.get('latest_crawl', 'N/A'))[:16] if selected_user_info.get('latest_crawl') else 'N/A'}
+                        - ⏰ 最後爬取: {_to_tw_str2(selected_user_info.get('latest_crawl'))}
                         """)
                     
                     col1, col2 = st.columns(2)
