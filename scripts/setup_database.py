@@ -54,13 +54,13 @@ async def setup_database():
             with open(sql_file, 'r', encoding='utf-8') as f:
                 sql_content = f.read()
             
-            # 執行 SQL 腳本
+            # 執行 SQL 腳本（允許包含多個語句與 DO $$ ... $$ 區塊）
             await conn.execute(sql_content)
             
             # 檢查關鍵表格是否存在
             tables_to_check = [
                 'posts', 'post_metrics', 'media_files', 'media_descriptions',
-                'mcp_agents', 'crawl_state', 'post_metrics_sql'
+                'mcp_agents', 'crawl_state', 'post_metrics_sql', 'playwright_post_metrics'
             ]
             
             missing_tables = []

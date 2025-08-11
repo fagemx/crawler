@@ -30,6 +30,36 @@ CREATE TABLE IF NOT EXISTS post_metrics (
     updated_at   TIMESTAMPTZ DEFAULT now()
 );
 
+-- 兼容舊環境：若已存在舊版 post_metrics（無 score 欄位），補齊欄位與觸發器
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name='post_metrics' AND column_name='score'
+  ) THEN
+    ALTER TABLE post_metrics ADD COLUMN score DOUBLE PRECISION;
+    UPDATE post_metrics 
+      SET score = COALESCE(views,0)*1.0 
+                + COALESCE(likes,0)*0.3 
+                + COALESCE(comments,0)*0.3 
+                + COALESCE(reposts,0)*0.1 
+                + COALESCE(shares,0)*0.1;
+    CREATE OR REPLACE FUNCTION refresh_post_metrics_score() RETURNS trigger AS $f$
+    BEGIN
+      NEW.score = COALESCE(NEW.views,0)*1.0 
+                + COALESCE(NEW.likes,0)*0.3 
+                + COALESCE(NEW.comments,0)*0.3 
+                + COALESCE(NEW.reposts,0)*0.1 
+                + COALESCE(NEW.shares,0)*0.1;
+      RETURN NEW;
+    END
+    $f$ LANGUAGE plpgsql;
+    DROP TRIGGER IF EXISTS trg_refresh_post_metrics_score ON post_metrics;
+    CREATE TRIGGER trg_refresh_post_metrics_score
+      BEFORE INSERT OR UPDATE ON post_metrics
+      FOR EACH ROW EXECUTE FUNCTION refresh_post_metrics_score();
+  END IF;
+END $$;
+
 -- 媒體檔案管理表（支援 RustFS 存儲）
 CREATE TABLE IF NOT EXISTS media_files (
     id              SERIAL PRIMARY KEY,
