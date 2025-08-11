@@ -162,7 +162,7 @@ services:
     environment:
       - MCP_SERVER_HOST=0.0.0.0
       - MCP_SERVER_PORT=10100
-      - DATABASE_URL=postgresql://postgres:password@localhost:5432/social_media_db
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/social_media_db
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
       - POSTGRES_DB=social_media_db
@@ -174,7 +174,8 @@ services:
       - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY:-rustfsadmin}
       - RUSTFS_SECRET_KEY=${RUSTFS_SECRET_KEY:-rustfsadmin}
       - RUSTFS_BUCKET=${RUSTFS_BUCKET:-social-media-content}
-    # 移除 env_file，避免 .env 將 DATABASE_URL 覆蓋回 localhost
+    env_file:
+      - .env
     volumes:
       - .:/app
     depends_on:
@@ -209,7 +210,7 @@ services:
       - PYTHONPATH=/app
       - AGENT_PORT=8000
       - MCP_SERVER_URL=http://mcp-server:10100
-      - DATABASE_URL=postgresql://postgres:password@localhost:5432/social_media_db
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/social_media_db
       - REDIS_URL=redis://redis:6379/0
       - NATS_URL=nats://nats:4222
       - ORCHESTRATOR_URL=http://orchestrator-agent:8000
@@ -615,7 +616,8 @@ services:
       - RUSTFS_SECRET_KEY=${RUSTFS_SECRET_KEY:-rustfsadmin}
       - RUSTFS_BUCKET=${RUSTFS_BUCKET:-social-media-content}
       - NATS_URL=nats://nats:4222
-    # 移除 env_file，避免 .env 將 DATABASE_URL 覆蓋回 localhost
+    env_file:
+      - .env
     volumes:
       - .:/app
     depends_on:
@@ -653,18 +655,17 @@ services:
       - ORCHESTRATOR_URL=http://localhost:8000
       - FORM_API_URL=http://localhost:8010
       - MCP_SERVER_URL=http://localhost:10100
-      - DATABASE_URL=postgresql://postgres:password@postgres:5432/social_media_db
+      - DATABASE_URL=postgresql://postgres:password@localhost:5432/social_media_db
       - REDIS_URL=redis://localhost:6379/0
       - RUSTFS_ENDPOINT=http://localhost:9000
       - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY:-rustfsadmin}
       - RUSTFS_SECRET_KEY=${RUSTFS_SECRET_KEY:-rustfsadmin}
       - RUSTFS_BUCKET=${RUSTFS_BUCKET:-social-media-content}
-    # 保留 env_file 但注意 DATABASE_URL 已透過 environment 指定為 @localhost
+    env_file:
+      - .env
     volumes:
       - .:/app
     depends_on:
-      postgres:
-        condition: service_healthy
       orchestrator-agent:
         condition: service_healthy
       form-api:
