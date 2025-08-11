@@ -467,6 +467,7 @@ class MediaProcessorComponent:
                             avatar_max_edge = st.number_input("頭像最大邊長(px)", min_value=64, max_value=512, value=200, step=10, help="最小邊長需小於等於此值才視為頭像")
                         with p_col2:
                             avatar_square_tol = st.slider("方形容差(%)", min_value=0, max_value=30, value=10, step=1, help="寬高比須在 1±此百分比 內")
+                        require_squareish = st.checkbox("要求近似正方形", value=False, help="開啟：小且近方形；關閉：小或近方形（較寬鬆）")
                         with mg_col4:
                             if st.button("重新載入", key="gal_reload"):
                                 st.rerun()
@@ -475,6 +476,18 @@ class MediaProcessorComponent:
                             quick_del = st.button("🗑️ 刪除選擇(頂部)", type="secondary", key="btn_delete_selected_top")
 
                         # 先渲染卡片
+                        def _to_int_dim(v):
+                            try:
+                                if isinstance(v, (int, float)):
+                                    return int(v)
+                                if isinstance(v, str) and v.strip():
+                                    return int(float(v))
+                                # 避免直接依賴 Decimal 類型，動態轉 float
+                                if 'Decimal' in str(type(v)):
+                                    return int(float(v))
+                            except Exception:
+                                return 0
+                            return 0
                         for idx, r in enumerate(rows):
                             if idx % cols_per_row == 0:
                                 cols = st.columns(cols_per_row)
@@ -487,16 +500,18 @@ class MediaProcessorComponent:
                                 if auto_avatar:
                                     # 僅對圖片判斷頭像：小尺寸且近似正方形
                                     if r.get('media_type') == 'image':
-                                        w = r.get('width') or 0
-                                        h = r.get('height') or 0
-                                        is_int_wh = isinstance(w, int) and isinstance(h, int) and w > 0 and h > 0
-                                        if is_int_wh:
+                                        w = _to_int_dim(r.get('width'))
+                                        h = _to_int_dim(r.get('height'))
+                                        if w > 0 and h > 0:
                                             min_edge = min(w, h)
                                             ratio = (max(w, h) / min_edge) if min_edge > 0 else 999
                                             tol = 1.0 + (avatar_square_tol / 100.0)
                                             is_small = min_edge <= int(avatar_max_edge)
                                             is_squareish = ratio <= tol
-                                            default_chk = bool(is_small and is_squareish)
+                                            if require_squareish:
+                                                default_chk = bool(is_small and is_squareish)
+                                            else:
+                                                default_chk = bool(is_small or is_squareish)
                                         else:
                                             default_chk = False
                                     else:
