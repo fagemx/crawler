@@ -16,6 +16,7 @@ from datetime import datetime
 from contextlib import asynccontextmanager
 
 from .settings import get_settings
+import os
 
 
 class DatabaseClient:
@@ -24,27 +25,98 @@ class DatabaseClient:
     def __init__(self):
         self.settings = get_settings()
         self.pool = None
+        self._primary_url = self._compute_primary_url()
+
+    def _compute_primary_url(self) -> str:
+        """決定主要資料庫連線 URL，優先用環境變數，再退回設定檔。
+
+        - 在容器內不主動改 host，避免破壞 host network 場景（如 streamlit-ui）。
+        - 真正連線失敗時，才做容器內的 `localhost` → `postgres` 後備嘗試。
+        """
+        env_url = os.getenv("DATABASE_URL", "").strip()
+        if env_url:
+            return env_url
+        return self.settings.database.url
     
     async def init_pool(self):
         """初始化連接池"""
         if self.pool is None:
-            self.pool = await asyncpg.create_pool(
-                self.settings.database.url,
-                min_size=1,  # 降低啟動連線數，避免觸發 too many clients
+            self.pool = await self._create_pool_with_fallback(self._primary_url)
+        else:
+            # 若池已存在但處於關閉狀態，重新建立
+            if getattr(self.pool, "_closed", False):
+                self.pool = await self._create_pool_with_fallback(self._primary_url)
+
+    async def _create_pool_with_fallback(self, url: str):
+        """建立連線池，處理數種常見故障：
+        - 目標資料庫不存在 → 以管理連線自動 CREATE DATABASE 後重試
+        - 容器內誤用 localhost → 嘗試將 host 改成 postgres 後重試
+        """
+        try:
+            return await asyncpg.create_pool(
+                url,
+                min_size=1,
                 max_size=self.settings.database.pool_size,
                 command_timeout=60,
                 max_inactive_connection_lifetime=30.0,
             )
-        else:
-            # 若池已存在但處於關閉狀態，重新建立
-            if getattr(self.pool, "_closed", False):
-                self.pool = await asyncpg.create_pool(
-                    self.settings.database.url,
-                    min_size=1,
-                    max_size=self.settings.database.pool_size,
-                    command_timeout=60,
-                    max_inactive_connection_lifetime=30.0,
-                )
+        except asyncpg.InvalidCatalogNameError:
+            # database 不存在：嘗試用管理連線建立
+            await self._ensure_database_exists(url)
+            return await asyncpg.create_pool(
+                url,
+                min_size=1,
+                max_size=self.settings.database.pool_size,
+                command_timeout=60,
+                max_inactive_connection_lifetime=30.0,
+            )
+        except Exception:
+            # 若在容器內且 URL 指向 localhost/127.0.0.1，嘗試改為 postgres 後再試一次
+            is_container = os.path.exists('/.dockerenv')
+            if is_container and ('@localhost:' in url or '@127.0.0.1:' in url):
+                alt_url = url.replace('@localhost:', '@postgres:').replace('@127.0.0.1:', '@postgres:')
+                try:
+                    return await asyncpg.create_pool(
+                        alt_url,
+                        min_size=1,
+                        max_size=self.settings.database.pool_size,
+                        command_timeout=60,
+                        max_inactive_connection_lifetime=30.0,
+                    )
+                except asyncpg.InvalidCatalogNameError:
+                    await self._ensure_database_exists(alt_url)
+                    return await asyncpg.create_pool(
+                        alt_url,
+                        min_size=1,
+                        max_size=self.settings.database.pool_size,
+                        command_timeout=60,
+                        max_inactive_connection_lifetime=30.0,
+                    )
+            raise
+
+    async def _ensure_database_exists(self, url: str) -> None:
+        """若指定 URL 的資料庫不存在，使用管理連線自動建立。"""
+        try:
+            from urllib.parse import urlparse
+            parsed = urlparse(url)
+            # 例：postgresql://user:pass@host:5432/dbname
+            username = parsed.username or 'postgres'
+            password = parsed.password or 'password'
+            host = parsed.hostname or 'postgres'
+            port = parsed.port or 5432
+            dbname = (parsed.path or '').lstrip('/') or 'postgres'
+
+            # 連到管理庫 postgres
+            admin_conn = await asyncpg.connect(host=host, port=port, user=username, password=password, database='postgres')
+            try:
+                await admin_conn.execute(f'CREATE DATABASE {dbname};')
+            except asyncpg.DuplicateDatabaseError:
+                pass
+            finally:
+                await admin_conn.close()
+        except Exception:
+            # 若建立失敗，交由上層處理
+            raise
     
     async def close_pool(self):
         """關閉連接池"""
