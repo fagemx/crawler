@@ -63,17 +63,42 @@ async def log_operation(
     execution_time_ms: int = None,
     extra: dict = None
 ):
-    """記錄操作日誌 - 簡化版"""
-    ops_log = OpsLog(
-        agent=agent,
-        operation_type=operation_type,
-        operation_name=operation_name,
-        message=message,
-        status=status,
-        execution_time_ms=execution_time_ms,
-        extra=extra or {}
-    )
-    session.add(ops_log)
+    """記錄操作日誌（統一走 DB 函數，避免欄位不相容問題）"""
+    from sqlalchemy.sql import text
+    import json
+    payload = {
+        "message": message,
+        "extra": extra or {},
+    }
+    session.exec(text(
+        """
+        SELECT log_system_operation(
+            :operation_type,
+            :operation_name,
+            :agent_name,
+            :user_id,
+            :status,
+            :request_data,
+            :response_data,
+            :error_message,
+            :execution_time_ms,
+            :ip_address,
+            :user_agent
+        )
+        """
+    ), {
+        "operation_type": operation_type,
+        "operation_name": operation_name,
+        "agent_name": agent,
+        "user_id": None,
+        "status": status,
+        "request_data": payload,
+        "response_data": None,
+        "error_message": None,
+        "execution_time_ms": execution_time_ms,
+        "ip_address": None,
+        "user_agent": None,
+    })
     session.commit()
 
 
