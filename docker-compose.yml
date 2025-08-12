@@ -412,6 +412,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      rustfs:
+        condition: service_healthy
       mcp-server:
         condition: service_healthy
     healthcheck:
